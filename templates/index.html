@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>DRE Empresa — MQ Hair</title>
+  <meta name="description" content="Demonstrativo de Resultado do Exercício por Empresa MQ Hair — Realizado vs Orçado por centro de custo e empresa." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260911_v35" />
+</head>
+<body>
+
+<!-- ════ NAVBAR ════════════════════════════════════════════════════════════ -->
+<header class="navbar">
+  <div class="navbar-brand">
+    <div class="brand-logo">
+      <span class="logo-mq">MQ</span>
+      <span class="logo-sep">|</span>
+      <span class="logo-txt">DRE Empresa</span>
+    </div>
+    <div class="brand-badge">DIRETORIA FINANCEIRA</div>
+    <div class="db-status-pill" title="Status da Conexão em Tempo Real">
+      <span class="pulse-green"></span>
+      <span>Conectado ao Banco Oracle Sankhya</span>
+    </div>
+  </div>
+  <div class="navbar-right">
+
+    <div class="last-update" id="lastUpdate">Carregando…</div>
+    
+  </div>
+</header>
+
+<!-- ════ FILTROS ═══════════════════════════════════════════════════════════ -->
+<section class="filtros-bar" id="filtrosBar">
+  <!-- Filtro 1: Ano -->
+  <div class="filtro-group">
+    <label>Ano</label>
+    <div class="multi-select" id="multiSelectAno">
+      <div class="multi-select-btn" id="anoBtn" tabindex="0" title="Clique para selecionar um ou mais Anos">
+        <span class="multi-select-text" id="anoBtnText">2026</span>
+        <span class="multi-select-arrow">▾</span>
+      </div>
+      <div class="multi-select-dropdown" id="anoDropdown" style="display: none;">
+        <div class="multi-select-actions">
+          <button type="button" class="btn-action-select-all" id="btnSelectAllAno">Todos</button>
+          <button type="button" class="btn-action-clear" id="btnClearAno">Limpar</button>
+        </div>
+        <div class="multi-select-options" id="anoOptionsList">
+          <div class="multi-select-loading">Carregando anos…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro 2: Mês -->
+  <div class="filtro-group">
+    <label>Mês</label>
+    <div class="multi-select" id="multiSelectMes">
+      <div class="multi-select-btn" id="mesBtn" tabindex="0" title="Clique para selecionar um ou mais Meses">
+        <span class="multi-select-text" id="mesBtnText">Agosto</span>
+        <span class="multi-select-arrow">▾</span>
+      </div>
+      <div class="multi-select-dropdown" id="mesDropdown" style="display: none;">
+        <div class="multi-select-actions">
+          <button type="button" class="btn-action-select-all" id="btnSelectAllMes">Todos</button>
+          <button type="button" class="btn-action-clear" id="btnClearMes">Limpar</button>
+        </div>
+        <div class="multi-select-options" id="mesOptionsList">
+          <div class="multi-select-loading">Carregando meses…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro 3: Empresa -->
+  <div class="filtro-group">
+    <label>Empresa</label>
+    <div class="multi-select" id="multiSelectEmp">
+      <div class="multi-select-btn" id="empBtn" tabindex="0" title="Clique para selecionar uma ou mais Empresas">
+        <span class="multi-select-text" id="empBtnText">Todas as Empresas</span>
+        <span class="multi-select-arrow">▾</span>
+      </div>
+      <div class="multi-select-dropdown" id="empDropdown" style="display: none;">
+        <div class="multi-select-search">
+          <input type="text" id="empSearch" placeholder="Buscar empresa..." autocomplete="off">
+        </div>
+        <div class="multi-select-actions">
+          <button type="button" class="btn-action-select-all" id="btnSelectAllEmp">Todas</button>
+          <button type="button" class="btn-action-clear" id="btnClearEmp">Limpar</button>
+        </div>
+        <div class="multi-select-options" id="empOptionsList">
+          <div class="multi-select-loading">Carregando empresas…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filtro 4: Centro de Custo -->
+  <div class="filtro-group cenc-filter-group">
+    <label>Centro de Custo</label>
+    <div class="multi-select" id="multiSelectCenc">
+      <div class="multi-select-btn" id="cencBtn" tabindex="0" title="Clique para selecionar um ou mais Centros de Custo">
+        <span class="multi-select-text" id="cencBtnText">Todos os Centros</span>
+        <span class="multi-select-arrow">▾</span>
+      </div>
+      <div class="multi-select-dropdown" id="cencDropdown" style="display: none;">
+        <div class="multi-select-search">
+          <input type="text" id="cencSearch" placeholder="Buscar código ou nome..." autocomplete="off">
+        </div>
+        <div class="multi-select-actions">
+          <button type="button" class="btn-action-select-all" id="btnSelectAllCenc">Todos</button>
+          <button type="button" class="btn-action-clear" id="btnClearCenc">Limpar</button>
+        </div>
+        <div class="multi-select-options" id="cencOptionsList">
+          <div class="multi-select-loading">Carregando centros…</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <button class="btn-aplicar" id="btnAplicar">Aplicar</button>
+</section>
+
+<!-- ════ KPI CARDS ═════════════════════════════════════════════════════════ -->
+<section class="kpi-section" id="kpiSection">
+  <div class="kpi-card" id="kpiVB" data-kpi="vb" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Venda Bruta</div>
+    <div class="kpi-value" id="kpiVBVal">—</div>
+    <div class="kpi-sub" id="kpiVBSub"></div>
+  </div>
+  <div class="kpi-card accent" id="kpiMargem" data-kpi="margem" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Margem de Contribuição</div>
+    <div class="kpi-value" id="kpiMargemVal">—</div>
+    <div class="kpi-sub" id="kpiMargemSub"></div>
+  </div>
+  <div class="kpi-card" id="kpiBonif" data-kpi="bonif" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Bonificação</div>
+    <div class="kpi-value" id="kpiBonifVal">—</div>
+    <div class="kpi-sub" id="kpiBonifSub"></div>
+  </div>
+  <div class="kpi-card" id="kpiComissao" data-kpi="comissao" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Comissão</div>
+    <div class="kpi-value" id="kpiComissaoVal">—</div>
+    <div class="kpi-sub" id="kpiComissaoSub"></div>
+  </div>
+  <div class="kpi-card" id="kpiGuelta" data-kpi="guelta" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Guelta</div>
+    <div class="kpi-value" id="kpiGueltaVal">—</div>
+    <div class="kpi-sub" id="kpiGueltaSub"></div>
+  </div>
+  <div class="kpi-card" id="kpiDespComercial" data-kpi="despCom" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Despesa Comercial Operacional</div>
+    <div class="kpi-value" id="kpiDespComercialVal">—</div>
+    <div class="kpi-sub" id="kpiDespComercialSub"></div>
+  </div>
+  <div class="kpi-card" id="kpiFolha" data-kpi="folha" title="Clique para filtrar no gráfico">
+    <div class="kpi-label" style="color: #CB9727 !important;">Folha e Benefícios</div>
+    <div class="kpi-value" id="kpiFolhaVal">—</div>
+    <div class="kpi-sub" id="kpiFolhaSub"></div>
+  </div>
+</section>
+
+<!-- ════ CONTEÚDO PRINCIPAL ════════════════════════════════════════════════ -->
+<main class="main-content">
+
+  <!-- ════ GRÁFICOS: EVOLUÇÃO MENSAL E ACUMULADO COM DIAGNÓSTICO ═══════════ -->
+  <div class="charts-grid">
+
+    <!-- Card 1: Evolução Mensal -->
+    <section class="card chart-card">
+      <div class="card-header">
+        <h2 id="tituloGraficoMensal" style="color: #CB9727 !important; font-weight: 800;">Evolução Mensal (Mês a Mês)</h2>
+        <div class="card-header-right">
+          <button class="btn-reset-linha" id="btnResetLinha" style="display:none;" title="Voltar para a visão geral da DRE">Ver Total</button>
+        </div>
+      </div>
+      <div class="chart-wrapper">
+        <canvas id="chartMensal"></canvas>
+      </div>
+    </section>
+
+    <!-- Card 2: Acumulado até o Mês Selecionado (Diagnóstico Orçamentário) -->
+    <section class="card chart-card chart-acumulado-card">
+      <div class="card-header">
+        <div class="card-header-left">
+          <h2 id="tituloAcumulado" style="color: #CB9727 !important; font-weight: 800;">Acumulado até o Mês (YTD)</h2>
+        </div>
+        <div class="card-header-right">
+          <span class="status-badge" id="badgeStatusPlanejado">—</span>
+        </div>
+      </div>
+
+      <!-- Mini-painel de Diagnóstico Executivo -->
+      <div class="acum-diag-grid">
+        <div class="diag-item">
+          <span class="diag-label" style="color: #ffffff !important;">Orçado Acumulado</span>
+          <span class="diag-val" id="acumOrcVal" style="color: #ffffff !important;">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" style="color: #ffffff !important;">Realizado Acumulado</span>
+          <span class="diag-val" id="acumRealVal" style="color: #ffffff !important;">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" style="color: #ffffff !important;">Desvio da Meta (%)</span>
+          <span class="diag-val" id="acumPctVal">—</span>
+        </div>
+      </div>
+
+      <div class="chart-wrapper chart-wrapper-acum">
+        <canvas id="chartAcumulado"></canvas>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ════ QUADRO DE DESVIOS EXECUTIVOS (|R/O| >= 10%) ═══════════════════════ -->
+  <section class="card desvios-card" id="cardDesvios">
+    <div class="card-header">
+      <div class="desvios-header-left">
+        <span class="desvios-icon">⚠</span>
+        <div>
+          <h2 style="color: #CB9727 !important; font-weight: 800;">Quadro de Desvios Executivos (|R/O| ≥ 10%)</h2>
+          <span class="desvios-subtitle" style="color: #ffffff !important;">Títulos com desvio orçamentário igual ou superior a 10% no período</span>
+        </div>
+      </div>
+      <div class="desvios-count-badge" id="desviosCount">0 desvios encontrados</div>
+    </div>
+    <div class="table-wrapper desvios-table-wrap">
+      <table class="desvios-table" id="desviosTable">
+        <thead>
+          <tr>
+            <th class="col-desvio-bloco">Bloco</th>
+            <th class="col-desvio-tit">Título</th>
+            <th class="col-num">Orçado (R$)</th>
+            <th class="col-num">Realizado (R$)</th>
+            <th class="col-num">Desvio (R$)</th>
+            <th class="col-ro">Desvio (%)</th>
+            <th class="col-status">Status / Impacto</th>
+          </tr>
+        </thead>
+        <tbody id="desviosBody">
+          <tr><td colspan="7" class="loading-row">Carregando desvios…</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Demonstrativo de Resultado (Tela Toda / Amplo) -->
+  <section class="card dre-card">
+    <div class="card-header">
+      <div class="desvios-header-left">
+        <span class="desvios-icon">📋</span>
+        <div>
+          <h2 style="color: #CB9727 !important; font-weight: 800;">Demonstrativo de Resultado</h2>
+          <span class="desvios-subtitle" style="color: #ffffff !important;">Visão analítica e sintética por bloco, título e centro de custo</span>
+        </div>
+      </div>
+      <div class="card-header-right">
+        <button class="btn-expand-all" id="btnExpandAll">Expandir tudo</button>
+      </div>
+    </div>
+
+    <div class="table-wrapper" id="dreTableWrapper">
+      <table class="dre-table" id="dreTable">
+        <thead>
+          <tr>
+            <th class="col-descr">Descrição</th>
+            <th class="col-num">Orçado (R$)</th>
+            <th class="col-num">Realizado (R$)</th>
+            <th class="col-var" title="Month over Month — Evolução vs Mês Anterior">MoM</th>
+            <th class="col-var" title="Year over Year — Evolução vs Mesmo Mês do Ano Anterior">YoY</th>
+            <th class="col-var" title="Year-to-Date Year-over-Year — Evolução Acumulada no Ano vs Mesmo Período do Ano Anterior">YTD YoY</th>
+            <th class="col-pct">% VB Orç.</th>
+            <th class="col-pct">% VB Real.</th>
+            <th class="col-ro">R/O</th>
+          </tr>
+        </thead>
+        <tbody id="dreBody">
+          <tr><td colspan="9" class="loading-row">
+            <div class="spinner"></div> Carregando DRE…
+          </td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+</main>
+
+<!-- ════ FOOTER EXECUTIVO ═══════════════════════════════════════════════════ -->
+<footer class="app-footer">
+  <div class="footer-left">
+    <span class="pulse-green"></span>
+    <span>Conectado ao Banco Oracle Sankhya</span>
+  </div>
+  <div class="footer-center">
+    <span class="footer-mq">MQ PROFESSIONAL</span> &bull; <span>DRE GESTORES</span>
+  </div>
+  <div class="footer-right">
+    <span>Desenvolvido por <strong>BI MQ Hair Company</strong></span>
+  </div>
+</footer>
+
+<!-- ════ TOAST ══════════════════════════════════════════════════════════════ -->
+<div class="toast" id="toast"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260911_v35"></script>
+</body>
+</html>
