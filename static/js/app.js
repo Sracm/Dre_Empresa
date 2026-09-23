@@ -29,6 +29,10 @@ const state = {
   mesesCongeladosCache: {},
   desviosSortCol: 'diff',
   desviosSortAsc: true,
+  tabelaAcumuladoData: null,
+  acumuladoExpandAll: false,
+  margemAcumuladaAberta: true,
+  blocosAcumuladoAbertos: new Set(),
   polling: {},  // { key: intervalId }
 };
 
@@ -163,6 +167,11 @@ document.addEventListener('DOMContentLoaded', async () => {
   const btnReset = document.getElementById('btnResetLinha');
   if (btnReset) {
     btnReset.addEventListener('click', resetarFiltroLinha);
+  }
+
+  const btnExpAcum = document.getElementById('btnToggleExpandAcumulado');
+  if (btnExpAcum) {
+    btnExpAcum.addEventListener('click', toggleExpandAllAcumulado);
   }
 
   // Interatividade nos KPI cards para filtrar gráficos diretamente
@@ -443,9 +452,10 @@ function carregarTudo(somenteDoisMeses = false) {
     setLoadingDRE('Carregando dashboard completo…');
   }
 
-  // Dispara DRE e Evolução Mensal em paralelo
+  // Dispara DRE, Evolução Mensal e Tabela Acumulada em paralelo
   fetchComPolling('/api/dre?' + p, 'dre', (data) => onDRELoaded(data, somenteDoisMeses));
   fetchComPolling('/api/dre/mensal?' + pMensal, 'mensal', (data) => onMensalLoaded(data, somenteDoisMeses, mesAnt, mesAtual));
+  carregarTabelaAcumulado();
 }
 
 // ── Fetch com polling automático ─────────────────────────────────────────
@@ -521,6 +531,178 @@ function onMensalLoaded(data, somenteDoisMeses = false, mesAnt = null, mesAtual 
 
   renderizarGraficoMensal(state.mensalData);
   renderizarGraficoAcumulado(state.mensalData, state.mes);
+}
+
+// ── Tabela Acumulada YTD (Margem de Contribuição e MARGEM) ─────────────────
+async function carregarTabelaAcumulado() {
+  const tbody = document.getElementById('tabelaAcumuladoBody');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-row"><div class="spinner"></div> Atualizando acumulado…</td></tr>';
+  }
+  try {
+    const p = new URLSearchParams({
+      ano: getAnoParam(),
+      mes: getMesParam(),
+      emp: getEmpParam(),
+      cenc: getCencParam(),
+    });
+    const res = await fetch('/api/dre/tabela-acumulado?' + p);
+    const data = await res.json();
+    state.tabelaAcumuladoData = data;
+    renderizarTabelaAcumulado(data);
+  } catch (e) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="5" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar acumulado: ${e.message}</td></tr>`;
+    }
+  }
+}
+
+function fmtAcumInt(v) {
+  if (v == null || isNaN(v)) return '0';
+  const n = Math.round(Number(v));
+  return n.toLocaleString('pt-BR');
+}
+
+function fmtAcumDec(v) {
+  if (v == null || isNaN(v)) return '0,00';
+  const n = Number(v);
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+
+function fmtAcumPct(v) {
+  if (v == null || isNaN(v)) return '0,00%';
+  const n = Number(v);
+  return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+}
+
+function renderizarTabelaAcumulado(data) {
+  const tbody = document.getElementById('tabelaAcumuladoBody');
+  if (!tbody) return;
+  if (!data || !data.margem) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Nenhum dado acumulado disponível.</td></tr>';
+    return;
+  }
+
+  const mc = data.margem_contribuicao || {};
+  const margem = data.margem || {};
+  const blocos = margem.blocos || [];
+
+  let html = '';
+
+  // 1. Linha Margem de Contribuição
+  const mcDifClass = (mc.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+  html += `
+    <tr class="row-total-mc row-desvio">
+      <td class="col-desvio-bloco">
+        <span class="exp-icon" style="visibility:hidden;">−</span>
+        <strong style="color:#ffffff;">${mc.nome || 'Margem de Contribuição'}</strong>
+      </td>
+      <td class="col-num"><strong>${fmtAcumInt(mc.orcado)}</strong></td>
+      <td class="col-num"><strong>${fmtAcumInt(mc.realizado)}</strong></td>
+      <td class="col-num ${mcDifClass}"><strong>${fmtAcumDec(mc.dif)}</strong></td>
+      <td class="col-ro"><strong style="color:var(--gold);">${fmtAcumPct(mc.pct)}</strong></td>
+    </tr>
+  `;
+
+  // 2. Linha MARGEM
+  const isMargemAberta = state.acumuladoExpandAll || state.margemAcumuladaAberta;
+  const margemIcon = isMargemAberta ? '−' : '+';
+  const margemDifClass = (margem.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+  html += `
+    <tr class="row-total-margem row-desvio" onclick="toggleMargemAcumulada()" title="Clique para expandir/recolher blocos">
+      <td class="col-desvio-bloco">
+        <span class="exp-icon">${margemIcon}</span>
+        <strong style="color:var(--gold);">${margem.nome || 'MARGEM'}</strong>
+      </td>
+      <td class="col-num"><strong style="color:var(--gold);">${fmtAcumInt(margem.orcado)}</strong></td>
+      <td class="col-num"><strong style="color:var(--gold);">${fmtAcumInt(margem.realizado)}</strong></td>
+      <td class="col-num ${margemDifClass}"><strong>${fmtAcumDec(margem.dif)}</strong></td>
+      <td class="col-ro"><strong style="color:var(--gold); font-size:12.5px;">${fmtAcumPct(margem.pct)}</strong></td>
+    </tr>
+  `;
+
+  // 3. Filhos de MARGEM (Blocos 1 a 7)
+  if (isMargemAberta) {
+    blocos.forEach((b) => {
+      const bKey = b.bloco;
+      const isBlocoAberto = state.acumuladoExpandAll || state.blocosAcumuladoAbertos.has(bKey);
+      const blocoIcon = isBlocoAberto ? '−' : '+';
+      const bLower = (b.bloco || '').toLowerCase();
+      const isReceita = bLower.includes('venda') && !bLower.includes('despesa');
+      const bDifClass = isReceita ? ((b.dif || 0) >= 0 ? 'val-pos' : 'val-neg') : ((b.dif || 0) >= 0 ? 'val-pos' : 'val-neg');
+
+      html += `
+        <tr class="row-bloco row-desvio" onclick="toggleBlocoAcumulado('${bKey.replace(/'/g, "\\'")}')" title="Clique para expandir títulos">
+          <td class="col-desvio-bloco" style="padding-left: 24px;">
+            <span class="exp-icon">${blocoIcon}</span>
+            <span style="color:#ffffff;">${b.bloco}</span>
+          </td>
+          <td class="col-num">${fmtAcumInt(b.orcado)}</td>
+          <td class="col-num">${fmtAcumInt(b.realizado)}</td>
+          <td class="col-num ${bDifClass}">${fmtAcumDec(b.dif)}</td>
+          <td class="col-ro">${fmtAcumPct(b.pct)}</td>
+        </tr>
+      `;
+
+      // 4. Filhos do Bloco (Títulos)
+      if (isBlocoAberto && b.titulos && b.titulos.length > 0) {
+        b.titulos.forEach(t => {
+          const tDifClass = (t.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+          html += `
+            <tr class="row-titulo row-desvio">
+              <td class="col-desvio-tit" style="padding-left: 52px;">
+                <span style="display:inline-block; width:8px; height:1px; background:rgba(203, 151, 39, 0.6); margin-right:8px; vertical-align:middle;"></span>
+                <span>${t.titulo}</span>
+              </td>
+              <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.orcado)}</td>
+              <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.realizado)}</td>
+              <td class="col-num ${tDifClass}">${fmtAcumDec(t.dif)}</td>
+              <td class="col-ro" style="opacity:0.9;">${fmtAcumPct(t.pct)}</td>
+            </tr>
+          `;
+        });
+      }
+    });
+  }
+
+  tbody.innerHTML = html;
+
+  // Atualiza subtítulo com período acumulado
+  const sub = document.getElementById('subtituloTabelaAcumulado');
+  if (sub) {
+    const NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+    const mNome = NOMES[(data.mes || 8) - 1];
+    sub.textContent = `Valores acumulados de Janeiro até ${mNome} de ${data.ano || 2026}`;
+  }
+}
+
+function toggleMargemAcumulada() {
+  state.margemAcumuladaAberta = !state.margemAcumuladaAberta;
+  if (state.tabelaAcumuladoData) renderizarTabelaAcumulado(state.tabelaAcumuladoData);
+}
+
+function toggleBlocoAcumulado(bKey) {
+  if (state.blocosAcumuladoAbertos.has(bKey)) {
+    state.blocosAcumuladoAbertos.delete(bKey);
+  } else {
+    state.blocosAcumuladoAbertos.add(bKey);
+  }
+  if (state.tabelaAcumuladoData) renderizarTabelaAcumulado(state.tabelaAcumuladoData);
+}
+
+function toggleExpandAllAcumulado() {
+  state.acumuladoExpandAll = !state.acumuladoExpandAll;
+  const btn = document.getElementById('btnToggleExpandAcumulado');
+  if (btn) {
+    btn.textContent = state.acumuladoExpandAll ? 'Recolher tudo' : 'Expandir tudo';
+  }
+  if (state.acumuladoExpandAll && state.tabelaAcumuladoData && state.tabelaAcumuladoData.margem) {
+    (state.tabelaAcumuladoData.margem.blocos || []).forEach(b => state.blocosAcumuladoAbertos.add(b.bloco));
+    state.margemAcumuladaAberta = true;
+  } else {
+    state.blocosAcumuladoAbertos.clear();
+  }
+  if (state.tabelaAcumuladoData) renderizarTabelaAcumulado(state.tabelaAcumuladoData);
 }
 
 
@@ -1071,7 +1253,9 @@ const barValueLabelsPlugin = {
 
 // ── Gráficos ─────────────────────────────────────────────────────────────
 function renderizarGraficoMensal(data) {
-  const ctx = document.getElementById('chartMensal').getContext('2d');
+  const canvas = document.getElementById('chartMensal');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
   if (state.chartMensal) state.chartMensal.destroy();
   if (!data || data.length === 0) return;
 

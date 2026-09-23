@@ -1710,3 +1710,126 @@ td.col-desvio-bloco {
   font-weight: 800;
   text-shadow: 0 0 6px rgba(203, 151, 39, 0.6);
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════
+   TABELA ACUMULADA YTD — LAYOUT IDÊNTICO AO QUADRO DE DESVIOS EXECUTIVOS
+   ═══════════════════════════════════════════════════════════════════════════ */
+.matrix-acumulado-card {
+  border-left: 3px solid var(--gold) !important;
+  display: flex;
+  flex-direction: column;
+}
+
+.acum-desvios-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-family: var(--font-primary, 'Montserrat', sans-serif);
+}
+
+.acum-desvios-table th {
+  background: var(--surface2) !important;
+  color: #CB9727 !important;
+  font-weight: 800;
+  font-size: 10.5px;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  padding: 10px 14px;
+  border-bottom: 2px solid rgba(203, 151, 39, 0.4) !important;
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.acum-desvios-table td {
+  padding: 8px 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  border-right: 1px solid rgba(255, 255, 255, 0.03);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.acum-desvios-table tr:hover {
+  background: rgba(203, 151, 39, 0.08) !important;
+}
+
+/* Linhas Especiais da Matriz Acumulada */
+.acum-desvios-table tr.row-total-mc {
+  background: rgba(255, 255, 255, 0.04);
+  font-weight: 700;
+  color: #ffffff;
+  border-top: 1px solid rgba(255, 255, 255, 0.12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+.acum-desvios-table tr.row-total-margem {
+  background: rgba(203, 151, 39, 0.12) !important;
+  font-weight: 800;
+  color: #CB9727;
+  border-top: 1px solid rgba(203, 151, 39, 0.35);
+  border-bottom: 1px solid rgba(203, 151, 39, 0.35);
+  cursor: pointer;
+}
+
+.acum-desvios-table tr.row-bloco {
+  background: rgba(255, 255, 255, 0.015);
+  font-weight: 600;
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.acum-desvios-table tr.row-bloco:hover {
+  background: rgba(203, 151, 39, 0.14) !important;
+}
+
+.acum-desvios-table tr.row-titulo {
+  background: transparent;
+  font-size: 11.5px;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.acum-desvios-table tr.row-titulo:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  color: #ffffff;
+}
+
+.acum-desvios-table tr.row-titulo td.td-item {
+  padding-left: 44px;
+}
+
+.acum-desvios-table .td-num,
+.acum-desvios-table .td-pct {
+  text-align: right;
+}
+
+/* Ícone de expansão [+] e [-] dourado MQ */
+.exp-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid rgba(203, 151, 39, 0.5);
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1;
+  margin-right: 8px;
+  cursor: pointer;
+  user-select: none;
+  background: rgba(203, 151, 39, 0.12);
+  color: #CB9727;
+  transition: all 0.15s ease;
+  vertical-align: middle;
+}
+
+.exp-icon:hover {
+  background: #CB9727;
+  border-color: #CB9727;
+  color: #000000;
+}
+
+

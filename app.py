@@ -465,6 +465,161 @@ def dre_por_empresa():
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  DRE TABELA ACUMULADA (Quadro Acumulado YTD idêntico ao modelo PBI)
+# ═══════════════════════════════════════════════════════════════════════════
+@app.route("/api/dre/tabela-acumulado")
+def dre_tabela_acumulado():
+    try:
+        ano_raw = request.args.get("ano", "2026")
+        mes_raw = request.args.get("mes", "8")
+        emp_raw = request.args.get("emp", "ALL")
+        cenc_raw = request.args.get("cenc", "ALL")
+
+        key = f"tabela_acum_{ano_raw}_{mes_raw}_{emp_raw}_{cenc_raw}"
+        cached = cache_get(key)
+        if cached:
+            return jsonify(cached)
+
+        anos = parse_int_list(ano_raw, [2026])
+        meses = parse_int_list(mes_raw, [8])
+        ano_val = anos[0] if anos else 2026
+        mes_val = max(meses) if meses else 8
+
+        emps = parse_str_list(emp_raw)
+        cenc_list = parse_cenc_param(cenc_raw)
+
+        where = ["ano = ?", "mes <= ?", "codcencus != ?"]
+        params = [ano_val, mes_val, EXCLUDED_CODCENCUS]
+
+        if emps:
+            ph_emp = ",".join(["?"] * len(emps))
+            where.append(f"empresa IN ({ph_emp})")
+            params.extend(emps)
+        else:
+            placeholders = ",".join(["?"] * len(ALLOWED_COMPANIES))
+            where.append(f"empresa IN ({placeholders})")
+            params.extend(ALLOWED_COMPANIES)
+
+        if cenc_list:
+            if len(cenc_list) == 1:
+                where.append("codcencus = ?")
+                params.append(cenc_list[0])
+            else:
+                ph_cenc = ",".join(["?"] * len(cenc_list))
+                where.append(f"codcencus IN ({ph_cenc})")
+                params.extend(cenc_list)
+
+        where_sql = " AND ".join(where)
+
+        sql = f"""
+            SELECT
+                bloco,
+                titulo,
+                SUM(orcado) AS orcado,
+                SUM(realizado) AS realizado
+            FROM dre_data
+            WHERE {where_sql}
+            GROUP BY bloco, titulo
+            ORDER BY bloco, titulo
+        """
+
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, params)
+            rows = [dict(r) for r in cur.fetchall()]
+
+        # Agrupa por bloco e títulos
+        blocos_dict = OrderedDict()
+        bloco_ordem = [
+            "1.Venda Liquida",
+            "2.Custo Mercadoria Vendida",
+            "3.Despesas com Vendas",
+            "4.Despesas Comercial Operacional",
+            "5.Despesas Administrativa Operacional",
+            "6.Receitas/Despesas Financeiras",
+            "7.Vendas IC"
+        ]
+        for bo in bloco_ordem:
+            blocos_dict[bo] = {"bloco": bo, "orcado": 0.0, "realizado": 0.0, "titulos": []}
+
+        for r in rows:
+            b = r.get("bloco")
+            if not b:
+                continue
+            if b not in blocos_dict:
+                blocos_dict[b] = {"bloco": b, "orcado": 0.0, "realizado": 0.0, "titulos": []}
+            orc = float(r.get("orcado") or 0.0)
+            real = float(r.get("realizado") or 0.0)
+            blocos_dict[b]["orcado"] += orc
+            blocos_dict[b]["realizado"] += real
+            dif = real - orc
+            pct = (real / orc * 100) if abs(orc) > 0.001 else 0.0
+            blocos_dict[b]["titulos"].append({
+                "titulo": r.get("titulo") or "Sem Título",
+                "orcado": orc,
+                "realizado": real,
+                "dif": dif,
+                "pct": pct
+            })
+
+        # Calcula totais
+        # 1. Margem de Contribuição = 1.Venda Liquida + 2.Custo Mercadoria Vendida
+        vl = blocos_dict.get("1.Venda Liquida", {"orcado": 0.0, "realizado": 0.0})
+        cmv = blocos_dict.get("2.Custo Mercadoria Vendida", {"orcado": 0.0, "realizado": 0.0})
+        mc_orc = vl["orcado"] + cmv["orcado"]
+        mc_real = vl["realizado"] + cmv["realizado"]
+        mc_dif = mc_real - mc_orc
+        mc_pct = (mc_real / mc_orc * 100) if abs(mc_orc) > 0.001 else 0.0
+
+        # 2. MARGEM = Soma de todos os blocos
+        margem_orc = sum(b["orcado"] for b in blocos_dict.values())
+        margem_real = sum(b["realizado"] for b in blocos_dict.values())
+        margem_dif = margem_real - margem_orc
+        margem_pct = (margem_real / margem_orc * 100) if abs(margem_orc) > 0.001 else 0.0
+
+        # Lista formatada de blocos
+        blocos_list = []
+        for b_nome in bloco_ordem:
+            if b_nome in blocos_dict:
+                b_info = blocos_dict[b_nome]
+                b_orc = b_info["orcado"]
+                b_real = b_info["realizado"]
+                b_dif = b_real - b_orc
+                b_pct = (b_real / b_orc * 100) if abs(b_orc) > 0.001 else 0.0
+                blocos_list.append({
+                    "bloco": b_nome,
+                    "orcado": b_orc,
+                    "realizado": b_real,
+                    "dif": b_dif,
+                    "pct": b_pct,
+                    "titulos": b_info["titulos"]
+                })
+
+        result = {
+            "ano": ano_val,
+            "mes": mes_val,
+            "margem_contribuicao": {
+                "nome": "Margem de Contribuição",
+                "orcado": mc_orc,
+                "realizado": mc_real,
+                "dif": mc_dif,
+                "pct": mc_pct
+            },
+            "margem": {
+                "nome": "MARGEM",
+                "orcado": margem_orc,
+                "realizado": margem_real,
+                "dif": margem_dif,
+                "pct": margem_pct,
+                "blocos": blocos_list
+            }
+        }
+        cache_set(key, result)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  HELPER: Constrói Árvore Hierárquica do DRE
 # ═══════════════════════════════════════════════════════════════════════════
 def _build_dre_tree(detalhe, bonif_total, mes_primario=8):

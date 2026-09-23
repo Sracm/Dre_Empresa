@@ -183,16 +183,35 @@
   <!-- ════ GRÁFICOS: EVOLUÇÃO MENSAL E ACUMULADO COM DIAGNÓSTICO ═══════════ -->
   <div class="charts-grid">
 
-    <!-- Card 1: Evolução Mensal -->
-    <section class="card chart-card">
+    <!-- Card 1: Tabela Acumulada YTD (Mesmo Layout do Quadro de Desvios Executivos) -->
+    <section class="card desvios-card matrix-acumulado-card" id="cardAcumulado">
       <div class="card-header">
-        <h2 id="tituloGraficoMensal" style="color: #CB9727 !important; font-weight: 800;">Margem — Evolução Mensal (Mês a Mês)</h2>
+        <div class="desvios-header-left">
+          <span class="desvios-icon">∑</span>
+          <div>
+            <h2 id="tituloTabelaAcumulado" style="color: #CB9727 !important; font-weight: 800;">Margem — Acumulado (YTD)</h2>
+            <span class="desvios-subtitle" id="subtituloTabelaAcumulado">Valores acumulados de Janeiro até o mês selecionado</span>
+          </div>
+        </div>
         <div class="card-header-right">
-          <button class="btn-reset-linha" id="btnResetLinha" style="display:none;" title="Voltar para a visão geral da DRE">Ver Margem</button>
+          <button class="btn-reset-linha" id="btnToggleExpandAcumulado" title="Expandir ou recolher todos os blocos">Expandir tudo</button>
         </div>
       </div>
-      <div class="chart-wrapper">
-        <canvas id="chartMensal"></canvas>
+      <div class="table-wrapper desvios-table-wrap">
+        <table class="desvios-table acum-desvios-table" id="tabelaAcumulado">
+          <thead>
+            <tr>
+              <th class="col-desvio-bloco">Item</th>
+              <th class="col-num">Orçado (R$)</th>
+              <th class="col-num">Realizado (R$)</th>
+              <th class="col-num">Desvio Acum. (R$)</th>
+              <th class="col-ro">Desvio Acum. (%)</th>
+            </tr>
+          </thead>
+          <tbody id="tabelaAcumuladoBody">
+            <tr><td colspan="5" class="loading-row"><div class="spinner"></div> Carregando acumulado…</td></tr>
+          </tbody>
+        </table>
       </div>
     </section>
 
@@ -359,6 +378,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260923_v6"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260923_v8"></script>
 </body>
 </html>
