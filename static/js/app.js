@@ -115,14 +115,7 @@ function evolClass(v) {
 }
 
 function renderYtdCell(v) {
-  if (v == null) return '<td class="col-num val-zero">-</td>';
-  const n = Number(v);
-  const formatted = fmtBRL(n);
-  if (n > 0) {
-    return `<td class="col-num val-pos">${formatted}</td>`;
-  }
-  const cls = n < 0 ? 'val-neg' : 'val-zero';
-  return `<td class="col-num ${cls}">${formatted}</td>`;
+  return `<td class="col-var ${evolClass(v)}">${fmtEvol(v)}</td>`;
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────
@@ -629,7 +622,7 @@ function renderizarDRE() {
           <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
           <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
           <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-          ${renderYtdCell(bloco.real_ytd)}
+          <td class="col-var ${evolClass(bloco.ytd_yoy)}">${fmtEvol(bloco.ytd_yoy)}</td>
           <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
         </tr>`);
       return;
@@ -652,7 +645,7 @@ function renderizarDRE() {
         <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
         <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
         <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-        ${renderYtdCell(bloco.real_ytd)}
+        <td class="col-var ${evolClass(bloco.ytd_yoy)}">${fmtEvol(bloco.ytd_yoy)}</td>
         <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
       </tr>`);
 
@@ -675,7 +668,7 @@ function renderizarDRE() {
           <td class="col-pct">${pctBadge(titulo.pct_real)}</td>
           <td class="col-var ${evolClass(titulo.mom)}">${fmtEvol(titulo.mom)}</td>
           <td class="col-var ${evolClass(titulo.yoy)}">${fmtEvol(titulo.yoy)}</td>
-          ${renderYtdCell(titulo.real_ytd)}
+          <td class="col-var ${evolClass(titulo.ytd_yoy)}">${fmtEvol(titulo.ytd_yoy)}</td>
           <td class="col-ro ${roClass(titulo.ro)}">${fmtRO(titulo.ro)}</td>
         </tr>`);
 
@@ -693,7 +686,7 @@ function renderizarDRE() {
             <td class="col-pct">${pctBadge(ln.pct_real)}</td>
             <td class="col-var ${evolClass(ln.mom)}">${fmtEvol(ln.mom)}</td>
             <td class="col-var ${evolClass(ln.yoy)}">${fmtEvol(ln.yoy)}</td>
-            ${renderYtdCell(ln.real_ytd)}
+            <td class="col-var ${evolClass(ln.ytd_yoy)}">${fmtEvol(ln.ytd_yoy)}</td>
             <td class="col-ro ${roClass(ln.ro)}">${fmtRO(ln.ro)}</td>
           </tr>`);
       });
