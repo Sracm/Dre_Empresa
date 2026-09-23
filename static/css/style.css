@@ -1765,12 +1765,28 @@ td.col-desvio-bloco {
 }
 
 .acum-desvios-table tr.row-total-margem {
-  background: rgba(203, 151, 39, 0.12) !important;
+  background: rgba(203, 151, 39, 0.08) !important;
   font-weight: 800;
-  color: #CB9727;
+  color: #ffffff !important;
   border-top: 1px solid rgba(203, 151, 39, 0.35);
   border-bottom: 1px solid rgba(203, 151, 39, 0.35);
   cursor: pointer;
+}
+
+.acum-desvios-table tr.row-total-margem td {
+  color: #ffffff !important;
+}
+
+.acum-desvios-table tr.row-total-margem td.col-desvio-bloco strong {
+  color: #CB9727 !important;
+}
+
+.acum-desvios-table tr.row-total-margem td.val-pos {
+  color: var(--success, #2ed573) !important;
+}
+
+.acum-desvios-table tr.row-total-margem td.val-neg {
+  color: var(--danger, #ff4757) !important;
 }
 
 .acum-desvios-table tr.row-bloco {

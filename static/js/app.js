@@ -597,10 +597,10 @@ function renderizarTabelaAcumulado(data) {
         <span class="exp-icon" style="visibility:hidden;">−</span>
         <strong style="color:#ffffff;">${mc.nome || 'Margem de Contribuição'}</strong>
       </td>
-      <td class="col-num"><strong>${fmtAcumInt(mc.orcado)}</strong></td>
-      <td class="col-num"><strong>${fmtAcumInt(mc.realizado)}</strong></td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.orcado)}</strong></td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.realizado)}</strong></td>
       <td class="col-num ${mcDifClass}"><strong>${fmtAcumDec(mc.dif)}</strong></td>
-      <td class="col-ro"><strong style="color:var(--gold);">${fmtAcumPct(mc.pct)}</strong></td>
+      <td class="col-ro"><strong style="color:#ffffff;">${fmtAcumPct(mc.pct)}</strong></td>
     </tr>
   `;
 
@@ -614,10 +614,10 @@ function renderizarTabelaAcumulado(data) {
         <span class="exp-icon">${margemIcon}</span>
         <strong style="color:var(--gold);">${margem.nome || 'MARGEM'}</strong>
       </td>
-      <td class="col-num"><strong style="color:var(--gold);">${fmtAcumInt(margem.orcado)}</strong></td>
-      <td class="col-num"><strong style="color:var(--gold);">${fmtAcumInt(margem.realizado)}</strong></td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.orcado)}</strong></td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.realizado)}</strong></td>
       <td class="col-num ${margemDifClass}"><strong>${fmtAcumDec(margem.dif)}</strong></td>
-      <td class="col-ro"><strong style="color:var(--gold); font-size:12.5px;">${fmtAcumPct(margem.pct)}</strong></td>
+      <td class="col-ro"><strong style="color:#ffffff;">${fmtAcumPct(margem.pct)}</strong></td>
     </tr>
   `;
 
