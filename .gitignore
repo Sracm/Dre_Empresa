@@ -1,5 +1,12 @@
 .env
-*.db
+*.db*
+*.bak
+scratch/
+Comparativo_*.xlsx
+Gabarito_*.xlsx
+etl_oracle.py
+migrate_db.py
+test_cols.py
 __pycache__/
 venv/
 .venv/

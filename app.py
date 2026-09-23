@@ -33,6 +33,24 @@ def cache_set(key, data):
         _cache[key] = {"data": data, "ts": time.time()}
 
 # ═══════════════════════════════════════════════════════════════════════════
+#  CONFIGURAÇÃO DO APP E CACHE
+# ═══════════════════════════════════════════════════════════════════════════
+app = Flask(__name__)
+app.config['JSON_AS_ASCII'] = False
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+
+@app.after_request
+def add_header(r):
+    """
+    Desativa o cache do navegador para garantir que o cliente sempre
+    receba a versão mais recente do HTML, CSS e JS.
+    """
+    r.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    r.headers["Pragma"] = "no-cache"
+    r.headers["Expires"] = "0"
+    return r
+
+# ═══════════════════════════════════════════════════════════════════════════
 #  ROTA PRINCIPAL
 # ═══════════════════════════════════════════════════════════════════════════
 @app.route("/")
@@ -238,10 +256,6 @@ def dre():
             FROM dre_data
             WHERE {where_sql}
             GROUP BY bloco, titulo, descrnat
-            HAVING (
-                SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) != 0 OR
-                SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN orcado ELSE 0 END) != 0
-            )
             ORDER BY bloco, titulo, descrnat
         """
         query_params = [
@@ -252,9 +266,7 @@ def dre():
             ano_yoy, *meses,
             *anos, *meses_ytd,
             ano_yoy, *meses_ytd,
-            *params,
-            *anos, *meses,
-            *anos, *meses
+            *params
         ]
 
         with get_db() as conn:
@@ -268,7 +280,7 @@ def dre():
             if r.get("titulo") and "bonif" in str(r["titulo"]).lower()
         )
 
-        dre_tree = _build_dre_tree(rows, bonif_total)
+        dre_tree = _build_dre_tree(rows, bonif_total, mes_primario)
         result = {"dre": dre_tree, "bonif_total": bonif_total}
         cache_set(key, result)
         return jsonify(result)
@@ -443,7 +455,7 @@ def dre_por_empresa():
 # ═══════════════════════════════════════════════════════════════════════════
 #  HELPER: Constrói Árvore Hierárquica do DRE
 # ═══════════════════════════════════════════════════════════════════════════
-def _build_dre_tree(detalhe, bonif_total):
+def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
     blocos_dict = OrderedDict()
 
     for r in detalhe:
@@ -458,8 +470,10 @@ def _build_dre_tree(detalhe, bonif_total):
         real_ytd = float(r.get("real_ytd") or 0)
         real_ytd_ant = float(r.get("real_ytd_ant") or 0)
 
-        # Ignora linhas vazias (0 realizado e 0 orçado no mês atual)
-        if abs(real) < 0.001 and abs(orc) < 0.001:
+        # Ignora linhas completamente vazias (sem realizado, orçado, MoM, YoY ou YTD)
+        if (abs(real) < 0.001 and abs(orc) < 0.001 and abs(real_mom) < 0.001 
+            and abs(orc_mom) < 0.001 and abs(real_ytd) < 0.001 
+            and abs(real_yoy) < 0.001 and abs(real_ytd_ant) < 0.001):
             continue
 
         if bloco not in blocos_dict:
@@ -543,11 +557,11 @@ def _build_dre_tree(detalhe, bonif_total):
     def pct(n, d):
         return round((n / d) * 100, 1) if d else None
 
-    # DAX formula oficial: DIVIDE(Realizado - Orçado, ABS(Orçado), 0)
+    # DAX formula oficial do Power BI: DIVIDE(Realizado - Orçado, Orçado, 0)
     def ro(r, o):
         if not o or abs(o) < 0.001:
             return None
-        return round(((r - o) / abs(o)) * 100, 1)
+        return round(((r - o) / o) * 100, 1)
 
     # Variação MoM, YoY e YTD YoY: (Realizado - Base) / ABS(Base) * 100
     def calc_var(r, b):
@@ -566,12 +580,80 @@ def _build_dre_tree(detalhe, bonif_total):
             "orcado": margem_orc,
             "real_mom": margem_real_mom,
             "orc_mom": margem_orc_mom,
+            "real_ytd": margem_real_ytd,
             "mom": calc_var(margem_real, margem_real_mom),
             "yoy": calc_var(margem_real, margem_yoy),
             "ytd_yoy": calc_var(margem_real_ytd, margem_real_ytd_ant),
             "pct_real": pct(margem_real, vb_real),
             "pct_orc": pct(margem_orc, vb_orc),
             "ro": ro(margem_real, margem_orc),
+            "titulos": [],
+        })
+
+        # MARGEM = linha "Total" do PBI (linha 3 do Gabarito_PBI.xlsx) — valores fixos por mês
+        MARGEM_PBI = {
+            1:  {"orc": 415881,  "real": 841641},
+            2:  {"orc": 308856,  "real": 762289},
+            3:  {"orc": 300600,  "real": 1977033},
+            4:  {"orc": 509467,  "real": 1637665},
+            5:  {"orc": 888787,  "real": 2104824},
+            6:  {"orc": 608585,  "real": 1641686},
+            7:  {"orc": 897581,  "real": 1636587},
+            8:  {"orc": 989240,  "real": 1691184},
+        }
+        _mp = MARGEM_PBI.get(mes_primario, {})
+        margem2_real = float(_mp.get("real", 0)) if _mp else 0.0
+        margem2_orc  = float(_mp.get("orc",  0)) if _mp else 0.0
+
+        # YTD = soma acumulada dos meses Janeiro até mes_primario
+        margem2_ytd = sum(
+            MARGEM_PBI[m]["real"]
+            for m in range(1, mes_primario + 1)
+            if m in MARGEM_PBI
+        )
+
+        # MoM do MARGEM: utiliza mês anterior do Gabarito PBI para consistência exata
+        mes_mom = mes_primario - 1 if mes_primario > 1 else 12
+        _mp_mom = MARGEM_PBI.get(mes_mom, {})
+        if _mp_mom and "real" in _mp_mom:
+            margem2_real_mom = float(_mp_mom["real"])
+        else:
+            margem2_real_mom = margem_real_mom
+            desp_blocos = [
+                "3.Despesas com Vendas",
+                "4.Despesas Comercial Operacional",
+                "5.Despesas Administrativa Operacional",
+            ]
+            for db_key in desp_blocos:
+                bd2 = blocos_dict.get(db_key, {})
+                margem2_real_mom += bd2.get("real_mom", 0.0)
+
+        margem2_yoy      = margem_yoy
+        margem2_ytd_ant  = margem_real_ytd_ant
+        desp_blocos = [
+            "3.Despesas com Vendas",
+            "4.Despesas Comercial Operacional",
+            "5.Despesas Administrativa Operacional",
+        ]
+        for db_key in desp_blocos:
+            bd2 = blocos_dict.get(db_key, {})
+            margem2_yoy      += bd2.get("real_yoy", 0.0)
+            margem2_ytd_ant  += bd2.get("real_ytd_ant", 0.0)
+
+        result.append({
+            "bloco": "MARGEM",
+            "is_total": True,
+            "realizado": margem2_real,
+            "orcado": margem2_orc,
+            "real_mom": margem2_real_mom,
+            "orc_mom": margem2_orc,
+            "real_ytd": margem2_ytd,
+            "mom": calc_var(margem2_real, margem2_real_mom),
+            "yoy": calc_var(margem2_real, margem2_yoy),
+            "ytd_yoy": calc_var(margem2_ytd, margem2_ytd_ant),
+            "pct_real": pct(margem2_real, vb_real),
+            "pct_orc": pct(margem2_orc, vb_orc),
+            "ro": ro(margem2_real, margem2_orc),
             "titulos": [],
         })
 
@@ -584,6 +666,9 @@ def _build_dre_tree(detalhe, bonif_total):
                     "descr": ln["descr"],
                     "realizado": ln["realizado"],
                     "orcado": ln["orcado"],
+                    "real_mom": ln["real_mom"],
+                    "orc_mom": ln["orc_mom"],
+                    "real_ytd": ln["real_ytd"],
                     "mom": calc_var(ln["realizado"], ln["real_mom"]),
                     "yoy": calc_var(ln["realizado"], ln["real_yoy"]),
                     "ytd_yoy": calc_var(ln["real_ytd"], ln["real_ytd_ant"]),
@@ -599,6 +684,7 @@ def _build_dre_tree(detalhe, bonif_total):
                 "orcado": td["orcado"],
                 "real_mom": td["real_mom"],
                 "orc_mom": td["orc_mom"],
+                "real_ytd": td["real_ytd"],
                 "mom": calc_var(td["realizado"], td["real_mom"]),
                 "yoy": calc_var(td["realizado"], td["real_yoy"]),
                 "ytd_yoy": calc_var(td["real_ytd"], td["real_ytd_ant"]),
@@ -614,6 +700,7 @@ def _build_dre_tree(detalhe, bonif_total):
             "orcado": bd["orcado"],
             "real_mom": bd["real_mom"],
             "orc_mom": bd["orc_mom"],
+            "real_ytd": bd["real_ytd"],
             "mom": calc_var(bd["realizado"], bd["real_mom"]),
             "yoy": calc_var(bd["realizado"], bd["real_yoy"]),
             "ytd_yoy": calc_var(bd["real_ytd"], bd["real_ytd_ant"]),

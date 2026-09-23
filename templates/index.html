@@ -7,7 +7,7 @@
   <meta name="description" content="Demonstrativo de Resultado do Exercício por Empresa MQ Hair — Realizado vs Orçado por centro de custo e empresa." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260911_v35" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260922_v8" />
 </head>
 <body>
 
@@ -269,11 +269,11 @@
             <th class="col-descr">Descrição</th>
             <th class="col-num">Orçado (R$)</th>
             <th class="col-num">Realizado (R$)</th>
-            <th class="col-var" title="Month over Month — Evolução vs Mês Anterior">MoM</th>
-            <th class="col-var" title="Year over Year — Evolução vs Mesmo Mês do Ano Anterior">YoY</th>
-            <th class="col-var" title="Year-to-Date Year-over-Year — Evolução Acumulada no Ano vs Mesmo Período do Ano Anterior">YTD YoY</th>
             <th class="col-pct">% VB Orç.</th>
             <th class="col-pct">% VB Real.</th>
+            <th class="col-var" title="Month over Month — Evolução vs Mês Anterior">MoM</th>
+            <th class="col-var" title="Year over Year — Evolução vs Mesmo Mês do Ano Anterior">YoY</th>
+            <th class="col-num" title="Year to Date — Realizado Acumulado do Ano">YTD Real.</th>
             <th class="col-ro">R/O</th>
           </tr>
         </thead>
@@ -305,7 +305,32 @@
 <!-- ════ TOAST ══════════════════════════════════════════════════════════════ -->
 <div class="toast" id="toast"></div>
 
+<!-- ════ AGENTE DE IA (N8N) ══════════════════════════════════════════════════ -->
+<div id="ai-chat-widget" class="ai-chat-collapsed">
+  <div class="ai-chat-header" id="ai-chat-header">
+    <div class="ai-chat-title">
+      <span class="ai-icon">
+        <img src="{{ url_for('static', filename='img/ai_avatar.png') }}" alt="Avatar IA" class="ai-avatar-img">
+      </span>
+      <span>Agente MQIA</span>
+    </div>
+    <div class="ai-chat-controls">
+      <button id="ai-chat-config" title="Configurar Webhook">⚙️</button>
+      <button id="ai-chat-toggle" title="Minimizar/Expandir">_</button>
+    </div>
+  </div>
+  <div class="ai-chat-body" id="ai-chat-body">
+    <div class="ai-message ai">Olá! Sou o Agente MQIA. Como posso ajudar a analisar os resultados hoje?</div>
+  </div>
+  <div class="ai-chat-footer">
+    <input type="text" id="ai-chat-input" placeholder="Faça uma pergunta sobre a DRE..." />
+    <button id="ai-chat-send" title="Enviar">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></svg>
+    </button>
+  </div>
+</div>
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260911_v35"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260922_v6"></script>
 </body>
 </html>

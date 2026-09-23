@@ -115,14 +115,14 @@ function evolClass(v) {
 }
 
 function renderYtdCell(v) {
-  if (v == null) return '<td class="col-var val-zero">—</td>';
+  if (v == null) return '<td class="col-num val-zero">-</td>';
   const n = Number(v);
-  const formatted = fmtEvol(n);
+  const formatted = fmtBRL(n);
   if (n > 0) {
-    return `<td class="col-var val-pos"><span class="ytd-blink">${formatted}</span></td>`;
+    return `<td class="col-num val-pos">${formatted}</td>`;
   }
   const cls = n < 0 ? 'val-neg' : 'val-zero';
-  return `<td class="col-var ${cls}">${formatted}</td>`;
+  return `<td class="col-num ${cls}">${formatted}</td>`;
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────
@@ -625,11 +625,11 @@ function renderizarDRE() {
           <td class="col-descr">${bloco.bloco}</td>
           <td class="col-num ${numClass(bloco.orcado)}">${fmtBRL(bloco.orcado)}</td>
           <td class="col-num ${numClass(bloco.realizado)}">${fmtBRL(bloco.realizado)}</td>
-          <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
-          <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-          ${renderYtdCell(bloco.ytd_yoy)}
           <td class="col-pct">${pctBadge(bloco.pct_orc)}</td>
           <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
+          <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
+          <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
+          ${renderYtdCell(bloco.real_ytd)}
           <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
         </tr>`);
       return;
@@ -648,11 +648,11 @@ function renderizarDRE() {
         </td>
         <td class="col-num ${numClass(bloco.orcado)}">${fmtBRL(bloco.orcado)}</td>
         <td class="col-num ${numClass(bloco.realizado)}">${fmtBRL(bloco.realizado)}</td>
-        <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
-        <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-        ${renderYtdCell(bloco.ytd_yoy)}
         <td class="col-pct">${pctBadge(bloco.pct_orc)}</td>
         <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
+        <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
+        <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
+        ${renderYtdCell(bloco.real_ytd)}
         <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
       </tr>`);
 
@@ -671,11 +671,11 @@ function renderizarDRE() {
           </td>
           <td class="col-num ${numClass(titulo.orcado)}">${fmtBRL(titulo.orcado)}</td>
           <td class="col-num ${numClass(titulo.realizado)}">${fmtBRL(titulo.realizado)}</td>
-          <td class="col-var ${evolClass(titulo.mom)}">${fmtEvol(titulo.mom)}</td>
-          <td class="col-var ${evolClass(titulo.yoy)}">${fmtEvol(titulo.yoy)}</td>
-          ${renderYtdCell(titulo.ytd_yoy)}
           <td class="col-pct">${pctBadge(titulo.pct_orc)}</td>
           <td class="col-pct">${pctBadge(titulo.pct_real)}</td>
+          <td class="col-var ${evolClass(titulo.mom)}">${fmtEvol(titulo.mom)}</td>
+          <td class="col-var ${evolClass(titulo.yoy)}">${fmtEvol(titulo.yoy)}</td>
+          ${renderYtdCell(titulo.real_ytd)}
           <td class="col-ro ${roClass(titulo.ro)}">${fmtRO(titulo.ro)}</td>
         </tr>`);
 
@@ -689,11 +689,11 @@ function renderizarDRE() {
             <td class="col-descr" style="padding-left:44px">${ln.descr || '—'}</td>
             <td class="col-num ${numClass(ln.orcado)}">${fmtBRL(ln.orcado)}</td>
             <td class="col-num ${numClass(ln.realizado)}">${fmtBRL(ln.realizado)}</td>
-            <td class="col-var ${evolClass(ln.mom)}">${fmtEvol(ln.mom)}</td>
-            <td class="col-var ${evolClass(ln.yoy)}">${fmtEvol(ln.yoy)}</td>
-            ${renderYtdCell(ln.ytd_yoy)}
             <td class="col-pct">${pctBadge(ln.pct_orc)}</td>
             <td class="col-pct">${pctBadge(ln.pct_real)}</td>
+            <td class="col-var ${evolClass(ln.mom)}">${fmtEvol(ln.mom)}</td>
+            <td class="col-var ${evolClass(ln.yoy)}">${fmtEvol(ln.yoy)}</td>
+            ${renderYtdCell(ln.real_ytd)}
             <td class="col-ro ${roClass(ln.ro)}">${fmtRO(ln.ro)}</td>
           </tr>`);
       });
@@ -1248,16 +1248,16 @@ function atualizarTimestamp() {
 // ── Export CSV ───────────────────────────────────────────────────────────
 function exportarCSV() {
   if (!state.dre?.length) { showToast('Sem dados para exportar', 'error'); return; }
-  const linhas = [['Bloco','Título','Descrição','Orçado (R$)','Realizado (R$)','MoM','YoY','YTD YoY','% VB Orç.','% VB Real.','R/O']];
+  const linhas = [['Bloco','Título','Descrição','Orçado (R$)','Realizado (R$)','MoM','YoY','YTD Real.','% VB Orç.','% VB Real.','R/O']];
   state.dre.forEach(bloco => {
     if (bloco.is_total) {
-      linhas.push([bloco.bloco,'','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.ytd_yoy,bloco.pct_orc,bloco.pct_real,bloco.ro]);
+      linhas.push([bloco.bloco,'','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.real_ytd,bloco.pct_orc,bloco.pct_real,bloco.ro]);
     } else {
-      linhas.push([bloco.bloco,'Subtotal','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.ytd_yoy,bloco.pct_orc,bloco.pct_real,bloco.ro]);
+      linhas.push([bloco.bloco,'Subtotal','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.real_ytd,bloco.pct_orc,bloco.pct_real,bloco.ro]);
       (bloco.titulos||[]).forEach(t => {
-        linhas.push([bloco.bloco,t.titulo,'',t.orcado,t.realizado,t.mom,t.yoy,t.ytd_yoy,t.pct_orc,t.pct_real,t.ro]);
+        linhas.push([bloco.bloco,t.titulo,'',t.orcado,t.realizado,t.mom,t.yoy,t.real_ytd,t.pct_orc,t.pct_real,t.ro]);
         (t.linhas||[]).forEach(ln => {
-          linhas.push([bloco.bloco,t.titulo,ln.descr,ln.orcado,ln.realizado,ln.mom,ln.yoy,ln.ytd_yoy,ln.pct_orc,ln.pct_real,ln.ro]);
+          linhas.push([bloco.bloco,t.titulo,ln.descr,ln.orcado,ln.realizado,ln.mom,ln.yoy,ln.real_ytd,ln.pct_orc,ln.pct_real,ln.ro]);
         });
       });
     }
@@ -1271,3 +1271,157 @@ function exportarCSV() {
   a.click();
   showToast('CSV exportado!', 'success');
 }
+
+
+// ════ AGENTE DE IA (N8N WEBHOOK) ═════════════════════════════════════════════
+const DEFAULT_WEBHOOK = 'https://n8n.seu-dominio.com.br/webhook/dre-agent';
+function getWebhookUrl() {
+  return localStorage.getItem('n8n_webhook_url') || DEFAULT_WEBHOOK;
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const widget = document.getElementById('ai-chat-widget');
+  const header = document.getElementById('ai-chat-header');
+  const btnToggle = document.getElementById('ai-chat-toggle');
+  const input = document.getElementById('ai-chat-input');
+  const btnSend = document.getElementById('ai-chat-send');
+  const body = document.getElementById('ai-chat-body');
+
+  if(!widget) return;
+
+  // Arrastar widget
+  let isDragging = false;
+  let currentX;
+  let currentY;
+  let initialX;
+  let initialY;
+  let xOffset = 0;
+  let yOffset = 0;
+
+  header.addEventListener('mousedown', dragStart);
+  document.addEventListener('mousemove', drag);
+  document.addEventListener('mouseup', dragEnd);
+
+  function dragStart(e) {
+    initialX = e.clientX - xOffset;
+    initialY = e.clientY - yOffset;
+    if (e.target === header || header.contains(e.target)) {
+      isDragging = true;
+    }
+  }
+
+  function drag(e) {
+    if (isDragging) {
+      e.preventDefault();
+      currentX = e.clientX - initialX;
+      currentY = e.clientY - initialY;
+      xOffset = currentX;
+      yOffset = currentY;
+      setTranslate(currentX, currentY, widget);
+    }
+  }
+
+  function dragEnd(e) {
+    initialX = currentX;
+    initialY = currentY;
+    isDragging = false;
+  }
+
+  function setTranslate(xPos, yPos, el) {
+    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+  }
+
+  function toggleChat(e) {
+    // Só expande/colapsa se não estiver arrastando
+    if(xOffset !== currentX || yOffset !== currentY) return; 
+    widget.classList.toggle('ai-chat-collapsed');
+    btnToggle.textContent = widget.classList.contains('ai-chat-collapsed') ? '↑' : '_';
+    if(!widget.classList.contains('ai-chat-collapsed')) {
+      input.focus();
+    }
+  }
+
+  // Header click now handles dragging vs toggling 
+  // We'll make it only toggle if movement was small
+  let startX, startY;
+  header.addEventListener('mousedown', (e) => {
+      startX = e.clientX; startY = e.clientY;
+  });
+  header.addEventListener('mouseup', (e) => {
+      let diffX = Math.abs(e.clientX - startX);
+      let diffY = Math.abs(e.clientY - startY);
+      if(diffX < 5 && diffY < 5) {
+          toggleChat(e);
+      }
+  });
+
+  const btnConfig = document.getElementById('ai-chat-config');
+  if(btnConfig) {
+    btnConfig.addEventListener('click', (e) => {
+      e.stopPropagation(); // Prevent toggling the chat when clicking the gear
+      let currentUrl = getWebhookUrl();
+      let newUrl = prompt('Configuração do Agente IA\n\nInsira a URL do Webhook do n8n:', currentUrl);
+      if(newUrl !== null && newUrl.trim() !== '') {
+        localStorage.setItem('n8n_webhook_url', newUrl.trim());
+        alert('Webhook configurado com sucesso!');
+      }
+    });
+  }
+  
+  function addMessage(text, sender) {
+    const msg = document.createElement('div');
+    msg.className = `ai-message ${sender}`;
+    msg.textContent = text;
+    body.appendChild(msg);
+    body.scrollTop = body.scrollHeight;
+  }
+
+  async function sendMessage() {
+    const text = input.value.trim();
+    if(!text) return;
+    
+    addMessage(text, 'user');
+    input.value = '';
+    
+    const loadingId = 'loading-' + Date.now();
+    const loading = document.createElement('div');
+    loading.className = 'ai-message ai';
+    loading.id = loadingId;
+    loading.textContent = 'Analisando...';
+    body.appendChild(loading);
+    body.scrollTop = body.scrollHeight;
+
+    try {
+      const contextoDRE = {
+        filtros: { ano: state.ano, mes: state.mes, empresa: state.empresa, centroCusto: state.centroCusto },
+        margem: document.getElementById('kpiMargemVal')?.textContent || '',
+        vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''
+      };
+
+      const url = getWebhookUrl();
+      const response = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt: text, contexto: contextoDRE })
+      });
+
+      const result = await response.json();
+      document.getElementById(loadingId).remove();
+      
+      if(result && result.resposta) {
+        addMessage(result.resposta, 'ai');
+      } else {
+        addMessage('Resposta recebida, mas em formato desconhecido.', 'ai');
+      }
+    } catch(err) {
+      document.getElementById(loadingId).remove();
+      addMessage('Desculpe, não consegui conectar ao Agente de IA. Verifique a URL do Webhook.', 'ai');
+      console.error('Erro N8N:', err);
+    }
+  }
+
+  btnSend.addEventListener('click', sendMessage);
+  input.addEventListener('keypress', (e) => {
+    if(e.key === 'Enter') sendMessage();
+  });
+});
