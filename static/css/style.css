@@ -171,15 +171,21 @@ body {
 
 .btn-refresh svg { width: 15px; height: 15px; }
 
-/* ── FILTROS ────────────────────────────────────────────────────────────── */
+/* ── FILTROS (CONGELADO NO TOPO / STICKY) ────────────────────────────────── */
 .filtros-bar {
   display: flex;
   align-items: flex-end;
   gap: 16px;
-  padding: 12px 28px;
-  background: var(--black2);
+  padding: 10px 28px;
+  background: rgba(24, 24, 24, 0.96);
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
+  position: sticky;
+  top: 54px;
+  z-index: 95;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
 }
 
 .filtro-group { display: flex; flex-direction: column; gap: 5px; }
@@ -406,29 +412,131 @@ body {
   color: var(--text-muted);
 }
 
-.btn-aplicar {
+.btn-aplicar,
+.btn-carregar {
   background: linear-gradient(135deg, var(--gold-light), var(--gold));
   border: none;
   color: var(--black);
   font-family: 'Montserrat', sans-serif;
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: 1px;
+  letter-spacing: 0.8px;
   text-transform: uppercase;
   height: 36px;
-  padding: 0 20px;
+  padding: 0 18px;
   border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
   box-shadow: var(--shadow-gold);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  white-space: nowrap;
 }
 
-.btn-aplicar:hover {
+.btn-aplicar:hover,
+.btn-carregar:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(203,151,39,.35);
 }
 
-.btn-aplicar:active { transform: translateY(0); }
+.btn-aplicar:active,
+.btn-carregar:active { transform: translateY(0); }
+
+/* ── Badge de Congelamento dos Meses Anteriores ───────────────────────── */
+.freeze-status-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(203, 151, 39, 0.12);
+  border: 1px solid rgba(203, 151, 39, 0.35);
+  color: #f0f0f0;
+  padding: 0 12px;
+  border-radius: 8px;
+  font-size: 11px;
+  font-weight: 600;
+  height: 36px;
+  box-sizing: border-box;
+  white-space: nowrap;
+  user-select: none;
+  transition: var(--transition);
+}
+
+.freeze-status-pill:hover {
+  background: rgba(203, 151, 39, 0.18);
+  border-color: var(--gold);
+}
+
+.freeze-status-pill .freeze-icon {
+  font-size: 13px;
+  filter: drop-shadow(0 0 4px rgba(203,151,39,0.5));
+}
+
+.freeze-status-pill .freeze-text {
+  color: #ffffff;
+  font-size: 10.5px;
+  letter-spacing: 0.2px;
+}
+
+/* ── Botão Descongelar / Carregar Tudo ────────────────────────────────── */
+.btn-unfreeze {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: #cccccc;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.btn-unfreeze:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: var(--gold);
+  color: #ffffff;
+  box-shadow: 0 0 10px rgba(203, 151, 39, 0.25);
+  transform: translateY(-1px);
+}
+
+.btn-unfreeze:active { transform: translateY(0); }
+
+/* ── Botão Exportar Excel ─────────────────────────────────────────────── */
+.btn-export {
+  background: rgba(46, 213, 115, 0.12);
+  border: 1px solid rgba(46, 213, 115, 0.4);
+  color: #2ed573;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
+.btn-export:hover {
+  background: rgba(46, 213, 115, 0.22);
+  border-color: #2ed573;
+  color: #ffffff;
+  box-shadow: 0 4px 14px rgba(46, 213, 115, 0.35);
+  transform: translateY(-1px);
+}
+
+.btn-export:active { transform: translateY(0); }
 
 /* ── KPI CARDS (7 CARDS COM MÉTRICAS E MÊS ANTERIOR) ─────────────────── */
 .kpi-section {
@@ -985,11 +1093,17 @@ td.col-desvio-bloco {
 /* Mini-painel de Diagnóstico Executivo */
 .acum-diag-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(4, 1fr);
   gap: 12px;
   padding: 10px 16px 10px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   background: rgba(255, 255, 255, 0.015);
+}
+
+@media (max-width: 900px) {
+  .acum-diag-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .diag-item {
@@ -1025,6 +1139,29 @@ td.col-desvio-bloco {
   overflow-x: auto;
 }
 
+#dreTableWrapper {
+  max-height: calc(100vh - 210px);
+  min-height: 480px;
+  overflow-y: auto;
+  overflow-x: auto;
+  position: relative;
+}
+
+#dreTableWrapper::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+#dreTableWrapper::-webkit-scrollbar-track {
+  background: var(--black2);
+}
+#dreTableWrapper::-webkit-scrollbar-thumb {
+  background: var(--surface3);
+  border-radius: 4px;
+}
+#dreTableWrapper::-webkit-scrollbar-thumb:hover {
+  background: var(--gold);
+}
+
 .dre-table {
   width: 100%;
   border-collapse: collapse;
@@ -1032,7 +1169,7 @@ td.col-desvio-bloco {
   table-layout: fixed;
 }
 
-/* CABEÇALHO COM LETRA NA COR BRANCA */
+/* CABEÇALHO COM LETRA NA COR BRANCA E CONGELADO */
 .dre-table thead th {
   background: #181818;
   color: #FFFFFF !important;
@@ -1040,14 +1177,14 @@ td.col-desvio-bloco {
   font-weight: 700;
   letter-spacing: 0.7px;
   text-transform: uppercase;
-  padding: 10px 12px;
+  padding: 11px 12px;
   text-align: right;
   white-space: nowrap;
-  border-bottom: 2px solid rgba(255,255,255,.2);
+  border-bottom: 2px solid var(--gold);
   position: sticky;
   top: 0;
-  z-index: 10;
-  box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  z-index: 25;
+  box-shadow: 0 4px 10px rgba(0,0,0,.6);
 }
 
 .dre-table thead th.col-descr {
@@ -1544,4 +1681,32 @@ td.col-desvio-bloco {
 #ai-chat-send svg {
   width: 16px;
   height: 16px;
+}
+
+/* ── Ordenação de Colunas no Quadro de Desvios (Menor para Maior) ──────── */
+.desvios-table th.th-sortable {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.18s ease, color 0.18s ease;
+  position: relative;
+}
+
+.desvios-table th.th-sortable:hover {
+  color: #CB9727 !important;
+  background: rgba(203, 151, 39, 0.14) !important;
+}
+
+.desvios-table th.th-sortable .sort-indicator {
+  display: inline-block;
+  font-size: 11px;
+  margin-left: 4px;
+  color: rgba(255, 255, 255, 0.45);
+  transition: color 0.18s ease, transform 0.18s ease;
+  vertical-align: middle;
+}
+
+.desvios-table th.th-sortable .sort-indicator.sort-active {
+  color: #CB9727 !important;
+  font-weight: 800;
+  text-shadow: 0 0 6px rgba(203, 151, 39, 0.6);
 }

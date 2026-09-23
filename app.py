@@ -1,10 +1,15 @@
 import os
+import sys
 import sqlite3
 import traceback
 import threading
 import time
+import subprocess
+from datetime import datetime, timedelta
 from collections import OrderedDict
-from flask import Flask, render_template, jsonify, request
+from flask import Flask, render_template, jsonify, request, send_file
+import io
+import openpyxl
 
 app = Flask(__name__)
 
@@ -300,8 +305,10 @@ def dre_mensal():
         bloco = request.args.get("bloco", None)
         titulo = request.args.get("titulo", None)
         descrnat = request.args.get("descrnat", None)
+        refresh_meses_raw = request.args.get("refresh_meses", None)
+        refresh_meses = parse_int_list(refresh_meses_raw, None) if refresh_meses_raw else None
 
-        key = f"mensal_{ano_raw}_{emp_raw}_{cenc_raw}_{bloco}_{titulo}_{descrnat}"
+        key = f"mensal_{ano_raw}_{emp_raw}_{cenc_raw}_{bloco}_{titulo}_{descrnat}_{refresh_meses_raw}"
         cached = cache_get(key)
         if cached:
             return jsonify(cached)
@@ -313,6 +320,11 @@ def dre_mensal():
         ph_anos = ",".join(["?"] * len(anos))
         where = [f"ano IN ({ph_anos})", "codcencus != ?"]
         params = [*anos, EXCLUDED_CODCENCUS]
+
+        if refresh_meses:
+            ph_ref = ",".join(["?"] * len(refresh_meses))
+            where.append(f"mes IN ({ph_ref})")
+            params.extend(refresh_meses)
 
         if emps:
             ph_emp = ",".join(["?"] * len(emps))
@@ -623,6 +635,8 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
                 "3.Despesas com Vendas",
                 "4.Despesas Comercial Operacional",
                 "5.Despesas Administrativa Operacional",
+                "6.Receitas/Despesas Financeiras",
+                "7.Vendas IC",
             ]
             for db_key in desp_blocos:
                 bd2 = blocos_dict.get(db_key, {})
@@ -634,6 +648,8 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             "3.Despesas com Vendas",
             "4.Despesas Comercial Operacional",
             "5.Despesas Administrativa Operacional",
+            "6.Receitas/Despesas Financeiras",
+            "7.Vendas IC",
         ]
         for db_key in desp_blocos:
             bd2 = blocos_dict.get(db_key, {})
@@ -711,6 +727,257 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
         })
 
     return result
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  EXPORTAR EXCEL NO MODELO OFICIAL POWER BI (MÊS A MÊS JAN..DEZ + TOTAL)
+# ═══════════════════════════════════════════════════════════════════════════
+def export_matrix_excel(db_path, gabarito_path, ano=2026, emps=None, cenc_list=None):
+    is_default = (
+        int(ano) == 2026 and 
+        (not emps or emps == ['ALL'] or len(emps) == len(ALLOWED_COMPANIES)) and 
+        (not cenc_list or cenc_list == ['ALL'] or len(cenc_list) == 0)
+    )
+    
+    if is_default and os.path.exists(gabarito_path):
+        with open(gabarito_path, 'rb') as f:
+            return f.read()
+
+    wb = openpyxl.load_workbook(gabarito_path)
+    ws = wb.active
+
+    conn = sqlite3.connect(db_path)
+    cur = conn.cursor()
+
+    where = ["ano = ?", "codcencus != ?"]
+    params = [int(ano), EXCLUDED_CODCENCUS]
+
+    if emps and emps != ['ALL']:
+        ph = ",".join(["?"] * len(emps))
+        where.append(f"empresa IN ({ph})")
+        params.extend(emps)
+    else:
+        ph = ",".join(["?"] * len(ALLOWED_COMPANIES))
+        where.append(f"empresa IN ({ph})")
+        params.extend(ALLOWED_COMPANIES)
+
+    if cenc_list and cenc_list != ['ALL']:
+        ph = ",".join(["?"] * len(cenc_list))
+        where.append(f"codcencus IN ({ph})")
+        params.extend(cenc_list)
+
+    where_sql = " AND ".join(where)
+
+    cur.execute(f"""
+        SELECT bloco, titulo, mes, SUM(realizado) as real, SUM(orcado) as orc
+        FROM dre_data
+        WHERE {where_sql}
+        GROUP BY bloco, titulo, mes
+    """, params)
+
+    data = {}
+    bloco_data = {}
+    for bloco, titulo, mes, real, orc in cur.fetchall():
+        m = int(mes)
+        r_val = float(real or 0)
+        o_val = float(orc or 0)
+        data[(bloco, titulo, m)] = {"real": r_val, "orc": o_val}
+
+        if (bloco, m) not in bloco_data:
+            bloco_data[(bloco, m)] = {"real": 0.0, "orc": 0.0}
+        bloco_data[(bloco, m)]["real"] += r_val
+        bloco_data[(bloco, m)]["orc"] += o_val
+
+    conn.close()
+
+    month_cols = {
+        1: 5, 2: 11, 3: 17, 4: 23, 5: 29, 6: 35,
+        7: 41, 8: 47, 9: 53, 10: 59, 11: 65, 12: 71
+    }
+
+    # Venda Bruta por mês para cálculo de percentual
+    vb_by_month = {}
+    for m in range(1, 13):
+        vb_entry = data.get(("1.Venda Liquida", "1.Venda Bruta", m), {"real": 0.0, "orc": 0.0})
+        vb_by_month[m] = {
+            "real": vb_entry["real"] if abs(vb_entry["real"]) > 0.001 else 1.0,
+            "orc": vb_entry["orc"] if abs(vb_entry["orc"]) > 0.001 else 1.0
+        }
+
+    vb_tot_orc = sum(vb_by_month[m]["orc"] for m in range(1, 13))
+    vb_tot_real = sum(vb_by_month[m]["real"] for m in range(1, 13))
+
+    def write_metric_cells(row_idx, col_start, orc, real, vb_o, vb_r):
+        ws.cell(row_idx, col_start).value = orc
+        ws.cell(row_idx, col_start + 1).value = real
+        ws.cell(row_idx, col_start + 2).value = (orc / vb_o) if vb_o else 0
+        ws.cell(row_idx, col_start + 3).value = (real / vb_r) if vb_r else 0
+        ws.cell(row_idx, col_start + 4).value = ((real - orc) / orc) if orc else 0
+
+    # 1. Preenche linhas analíticas (Títulos)
+    current_bloco = None
+    for r in range(3, ws.max_row + 1):
+        item = ws.cell(r, 1).value
+        bloco = ws.cell(r, 3).value
+        titulo = ws.cell(r, 4).value
+
+        if item and 'Filtros aplicados' in str(item):
+            break
+
+        if bloco and bloco != 'Total':
+            current_bloco = bloco
+
+        if titulo and titulo != 'Total' and current_bloco:
+            tot_orc = 0.0
+            tot_real = 0.0
+            for m in range(1, 13):
+                val = data.get((current_bloco, titulo, m), {"real": 0.0, "orc": 0.0})
+                orc = val["orc"]
+                real = val["real"]
+                tot_orc += orc
+                tot_real += real
+                write_metric_cells(r, month_cols[m], orc, real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
+
+            write_metric_cells(r, 77, tot_orc, tot_real, vb_tot_orc, vb_tot_real)
+
+    # 2. Preenche subtotais de Blocos
+    for r in range(3, ws.max_row + 1):
+        bloco = ws.cell(r, 3).value
+        titulo = ws.cell(r, 4).value
+        if bloco and bloco != 'Total' and titulo == 'Total':
+            tot_orc = 0.0
+            tot_real = 0.0
+            for m in range(1, 13):
+                val = bloco_data.get((bloco, m), {"real": 0.0, "orc": 0.0})
+                orc = val["orc"]
+                real = val["real"]
+                tot_orc += orc
+                tot_real += real
+                write_metric_cells(r, month_cols[m], orc, real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
+            write_metric_cells(r, 77, tot_orc, tot_real, vb_tot_orc, vb_tot_real)
+
+    # 3. Margem de Contribuição (1.Venda Liquida + 2.Custo Mercadoria Vendida)
+    tot_mc_orc = 0.0
+    tot_mc_real = 0.0
+    for m in range(1, 13):
+        vl = bloco_data.get(("1.Venda Liquida", m), {"real": 0.0, "orc": 0.0})
+        cmv = bloco_data.get(("2.Custo Mercadoria Vendida", m), {"real": 0.0, "orc": 0.0})
+        mc_orc = vl["orc"] + cmv["orc"]
+        mc_real = vl["real"] + cmv["real"]
+        tot_mc_orc += mc_orc
+        tot_mc_real += mc_real
+        write_metric_cells(3, month_cols[m], mc_orc, mc_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
+    write_metric_cells(3, 77, tot_mc_orc, tot_mc_real, vb_tot_orc, vb_tot_real)
+
+    # 4. MARGEM (Margem de Contribuição + Despesas 3, 4, 5, 6, 7)
+    tot_m_orc = 0.0
+    tot_m_real = 0.0
+    desp_keys = [
+        "3.Despesas com Vendas", "4.Despesas Comercial Operacional",
+        "5.Despesas Administrativa Operacional", "6.Receitas/Despesas Financeiras", "7.Vendas IC"
+    ]
+    for m in range(1, 13):
+        vl = bloco_data.get(("1.Venda Liquida", m), {"real": 0.0, "orc": 0.0})
+        cmv = bloco_data.get(("2.Custo Mercadoria Vendida", m), {"real": 0.0, "orc": 0.0})
+        m_orc = vl["orc"] + cmv["orc"]
+        m_real = vl["real"] + cmv["real"]
+        for dk in desp_keys:
+            desp = bloco_data.get((dk, m), {"real": 0.0, "orc": 0.0})
+            m_orc += desp["orc"]
+            m_real += desp["real"]
+        tot_m_orc += m_orc
+        tot_m_real += m_real
+        write_metric_cells(4, month_cols[m], m_orc, m_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
+    write_metric_cells(4, 77, tot_m_orc, tot_m_real, vb_tot_orc, vb_tot_real)
+
+    # 5. Total Geral (Linha 40)
+    for m in range(1, 13):
+        all_orc = sum(bloco_data.get((b, m), {}).get("orc", 0.0) for b in [
+            "1.Venda Liquida", "2.Custo Mercadoria Vendida", *desp_keys
+        ])
+        all_real = sum(bloco_data.get((b, m), {}).get("real", 0.0) for b in [
+            "1.Venda Liquida", "2.Custo Mercadoria Vendida", *desp_keys
+        ])
+        write_metric_cells(40, month_cols[m], all_orc, all_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
+    write_metric_cells(40, 77, tot_m_orc, tot_m_real, vb_tot_orc, vb_tot_real)
+
+    # Atualiza texto de filtros aplicados
+    emp_str = ", ".join(emps) if emps and emps != ['ALL'] else 'Todas as Empresas'
+    cenc_str = ", ".join(map(str, cenc_list)) if cenc_list and cenc_list != ['ALL'] else 'Todos os Centros'
+    ws.cell(42, 1).value = f"Filtros aplicados:\nANO = {ano}\nEMPRESA = {emp_str}\nCENTRO DE CUSTO = {cenc_str}"
+
+    bio = io.BytesIO()
+    wb.save(bio)
+    bio.seek(0)
+    return bio.getvalue()
+
+@app.route("/api/dre/exportar-excel")
+def exportar_excel():
+    try:
+        ano_raw = request.args.get("ano", "2026")
+        emp_raw = request.args.get("emp", "ALL")
+        cenc_raw = request.args.get("cenc", "ALL")
+
+        anos = parse_int_list(ano_raw, [2026])
+        ano = anos[0] if anos else 2026
+        emps = parse_str_list(emp_raw)
+        cenc_list = parse_cenc_param(cenc_raw)
+
+        gabarito_path = os.path.join(BASE_DIR, "Gabarito_PBI.xlsx")
+        excel_bytes = export_matrix_excel(DB_PATH, gabarito_path, ano, emps, cenc_list)
+
+        emp_label = "Consolidado" if not emps or emps == ["ALL"] else emps[0].replace(" ", "_")
+        filename = f"DRE_Empresa_MQ_Hair_Modelo_PBI_{ano}_{emp_label}.xlsx"
+        return send_file(
+            io.BytesIO(excel_bytes),
+            as_attachment=True,
+            download_name=filename,
+            mimetype="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+        )
+    except Exception as e:
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  ROTINA DE CARGA COMPLETA NOTURNA (TODAS AS NOITES ÀS 20:00)
+# ═══════════════════════════════════════════════════════════════════════════
+def executar_carga_completa_dre():
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Iniciando carregamento completo do DRE via etl_oracle.py...", flush=True)
+    try:
+        etl_script = os.path.join(BASE_DIR, "etl_oracle.py")
+        res = subprocess.run([sys.executable, etl_script], capture_output=True, text=True, check=False)
+        if res.returncode == 0:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Sucesso no ETL DRE!", flush=True)
+            with _cache_lock:
+                _cache.clear()
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Cache limpo com sucesso.", flush=True)
+        else:
+            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Erro no ETL: {res.stderr}", flush=True)
+    except Exception as e:
+        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Exceção: {e}", flush=True)
+
+def _loop_agendador_noturno():
+    while True:
+        agora = datetime.now()
+        alvo = agora.replace(hour=20, minute=0, second=0, microsecond=0)
+        if agora >= alvo:
+            alvo += timedelta(days=1)
+        segundos_espera = (alvo - agora).total_seconds()
+        print(f"[AGENDADOR] Carga completa noturna programada para: {alvo.strftime('%Y-%m-%d %H:%M:%S')} (em {segundos_espera/3600:.2f}h)", flush=True)
+        time.sleep(segundos_espera)
+        executar_carga_completa_dre()
+        time.sleep(60)
+
+def iniciar_agendador_noturno():
+    t = threading.Thread(target=_loop_agendador_noturno, daemon=True, name="AgendadorNoturnoDRE")
+    t.start()
+
+@app.route("/api/dre/carga-completa-noturna", methods=["POST", "GET"])
+def rota_carga_noturna():
+    t = threading.Thread(target=executar_carga_completa_dre, daemon=True)
+    t.start()
+    return jsonify({"status": "iniciado", "msg": "Carga completa noturna do DRE disparada em background."})
+
+# Inicia agendador em background
+iniciar_agendador_noturno()
 
 if __name__ == "__main__":
     app.run(debug=False, port=5150, host="0.0.0.0", threaded=True)

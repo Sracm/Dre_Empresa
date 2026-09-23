@@ -25,6 +25,10 @@ const state = {
   expandAll: false,
   selectedLine: null,
   mensalData: [],
+  congelado: true,
+  mesesCongeladosCache: {},
+  desviosSortCol: 'diff',
+  desviosSortAsc: true,
   polling: {},  // { key: intervalId }
 };
 
@@ -130,13 +134,24 @@ function showToast(msg, type = '') {
 // ── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await carregarFiltros();
-  carregarTudo();
+  carregarTudo(false); // Carga inicial completa de todo o histórico
 
-  document.getElementById('btnAplicar').addEventListener('click', carregarTudo);
+  const btnCarregar = document.getElementById('btnCarregar');
+  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(true));
+
+  const btnAplicar = document.getElementById('btnAplicar');
+  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(true));
+
+  const btnExportExcel = document.getElementById('btnExportExcel');
+  if (btnExportExcel) btnExportExcel.addEventListener('click', exportarParaExcel);
+
+  const btnExportExcelTop = document.getElementById('btnExportExcelTop');
+  if (btnExportExcelTop) btnExportExcelTop.addEventListener('click', exportarParaExcel);
+
   const btnRefresh = document.getElementById('btnRefresh'); if(btnRefresh) btnRefresh.addEventListener('click', () => {
     Object.values(state.polling).forEach(id => clearInterval(id));
     state.polling = {};
-    carregarTudo();
+    carregarTudo(true);
   });
 
   const btnExp = document.getElementById('btnExpandAll');
@@ -403,20 +418,34 @@ async function carregarFiltros() {
   });
 }
 
-// ── Carrega tudo com polling ─────────────────────────────────────────────
-function carregarTudo() {
+// ── Carrega o dashboard completo com polling ─────────────────────────────
+function carregarTudo(somenteDoisMeses = false) {
+  const mesAtual = state.mes || 8;
+  const mesAnt = mesAtual > 1 ? mesAtual - 1 : 12;
+
   const p = new URLSearchParams({
     ano: getAnoParam(),
-    mes: getMesParam(),
+    mes: mesAtual,
     emp: getEmpParam(),
     cenc: getCencParam(),
   });
 
-  setLoadingDRE('Iniciando consulta…');
+  const pMensal = new URLSearchParams({
+    ano: getAnoParam(),
+    emp: getEmpParam(),
+    cenc: getCencParam(),
+  });
+
+  if (somenteDoisMeses && state.mensalData && state.mensalData.length > 0) {
+    pMensal.set('refresh_meses', `${mesAnt},${mesAtual}`);
+    setLoadingDRE(`Atualizando mês atual (${mesAtual}) e anterior (${mesAnt}) — meses fechados congelados…`);
+  } else {
+    setLoadingDRE('Carregando dashboard completo…');
+  }
 
   // Dispara DRE e Evolução Mensal em paralelo
-  fetchComPolling('/api/dre?' + p, 'dre', onDRELoaded);
-  fetchComPolling('/api/dre/mensal?' + p, 'mensal', onMensalLoaded);
+  fetchComPolling('/api/dre?' + p, 'dre', (data) => onDRELoaded(data, somenteDoisMeses));
+  fetchComPolling('/api/dre/mensal?' + pMensal, 'mensal', (data) => onMensalLoaded(data, somenteDoisMeses, mesAnt, mesAtual));
 }
 
 // ── Fetch com polling automático ─────────────────────────────────────────
@@ -465,22 +494,35 @@ async function fetchComPolling(url, tag, onDone) {
 }
 
 // ── Callbacks ────────────────────────────────────────────────────────────
-function onDRELoaded(data) {
+function onDRELoaded(data, somenteDoisMeses = false) {
   state.dre        = data.dre || [];
   state.bonifTotal = data.bonif_total || 0;
   renderizarDRE();
   renderizarQuadroDesvios();
   atualizarKPIs();
   atualizarTimestamp();
-  showToast('DRE carregado!', 'success');
+  if (somenteDoisMeses) {
+    showToast('Mês atual e mês anterior atualizados. Outros meses congelados!', 'success');
+  } else {
+    showToast('Dashboard carregado com sucesso!', 'success');
+  }
 }
 
-function onMensalLoaded(data) {
-  const mensal = data.mensal || [];
-  state.mensalData = mensal;
-  renderizarGraficoMensal(mensal);
-  renderizarGraficoAcumulado(mensal, state.mes);
+function onMensalLoaded(data, somenteDoisMeses = false, mesAnt = null, mesAtual = null) {
+  const novosMeses = data.mensal || [];
+  
+  if (somenteDoisMeses && mesAnt && mesAtual && state.mensalData && state.mensalData.length > 0) {
+    // Mantém todos os meses congelados que não sejam o mês atual nem o mês anterior
+    const congelados = state.mensalData.filter(d => d.mes !== mesAnt && d.mes !== mesAtual);
+    state.mensalData = [...congelados, ...novosMeses];
+  } else {
+    state.mensalData = novosMeses;
+  }
+
+  renderizarGraficoMensal(state.mensalData);
+  renderizarGraficoAcumulado(state.mensalData, state.mes);
 }
+
 
 // ── UI Loading/Error ─────────────────────────────────────────────────────
 function setLoadingDRE(msg) {
@@ -511,14 +553,17 @@ function renderizarQuadroDesvios() {
     (b.titulos || []).forEach(t => {
       const ro = t.ro;
       if (ro != null && Math.abs(ro) >= 10) {
-        const diff = (t.realizado || 0) - (t.orcado || 0);
-        const isDespesa = (b.bloco || '').toLowerCase().includes('despesa') || (t.orcado || 0) < 0;
+        const orc = t.orcado || 0;
+        const real = t.realizado || 0;
+        const diff = real - orc;
+        const bLower = (b.bloco || '').toLowerCase();
+        const isReceita = bLower.includes('venda') && !bLower.includes('despesa') && orc >= 0;
 
         let statusTxt = '';
         let statusClass = '';
 
-        if (!isDespesa) {
-          if (diff >= 0) {
+        if (isReceita) {
+          if (real >= orc) {
             statusTxt = '▲ Superávit s/ Meta';
             statusClass = 'status-fav';
           } else {
@@ -526,18 +571,21 @@ function renderizarQuadroDesvios() {
             statusClass = 'status-desfav';
           }
         } else {
-          // Em despesas: se ro < 0 significa que gastou a mais do que o orçado
-          if (ro < 0) {
+          // Despesas e Custos:
+          // Gastar menos em magnitude do que o orçado é economia (Favorável / Abaixo do Orçado)
+          // Ex: Guelta orçado -20.806 e realizado -573 => economizou R$ 20.233 (Abaixo do Orçado)
+          const orcMag = Math.abs(orc);
+          const realMag = Math.abs(real);
+
+          if (realMag > orcMag) {
+            // Estouro orçamentário: gastou a mais do que o teto
             statusTxt = '▲ Acima do Orçado';
             statusClass = 'status-desfav blink-intermitente';
           } else {
+            // Economia orçamentária: gastou menos que o teto
             statusTxt = '▼ Abaixo do Orçado';
             statusClass = 'status-fav';
           }
-        }
-
-        if (statusTxt.includes('Acima do Orçado') && !statusClass.includes('blink-intermitente')) {
-          statusClass += ' blink-intermitente';
         }
 
         desvios.push({
@@ -554,8 +602,40 @@ function renderizarQuadroDesvios() {
     });
   });
 
-  // Ordena por maior desvio absoluto em R$ (mais impactantes primeiro)
-  desvios.sort((a, b) => Math.abs(b.diff) - Math.abs(a.diff));
+  // Ordenação dinâmica configurável por coluna (padrão: menor para maior)
+  const col = state.desviosSortCol || 'diff';
+  const asc = state.desviosSortAsc !== false; // true = menor para o maior (crescente)
+
+  desvios.sort((a, b) => {
+    let vA = a[col];
+    let vB = b[col];
+
+    // Para colunas de texto (bloco, titulo, statusTxt)
+    if (typeof vA === 'string' || typeof vB === 'string') {
+      const sA = String(vA || '').toLowerCase();
+      const sB = String(vB || '').toLowerCase();
+      return asc ? sA.localeCompare(sB, 'pt-BR') : sB.localeCompare(sA, 'pt-BR');
+    }
+
+    // Para colunas numéricas (orcado, realizado, diff, ro)
+    const nA = vA != null ? Number(vA) : (asc ? Infinity : -Infinity);
+    const nB = vB != null ? Number(vB) : (asc ? Infinity : -Infinity);
+    return asc ? nA - nB : nB - nA;
+  });
+
+  // Atualiza indicadores visuais no cabeçalho da tabela de desvios
+  ['bloco', 'titulo', 'orcado', 'realizado', 'diff', 'ro', 'statusTxt'].forEach(c => {
+    const el = document.getElementById('sort-desvio-' + c);
+    if (el) {
+      if (c === col) {
+        el.textContent = asc ? ' ▲' : ' ▼';
+        el.className = 'sort-indicator sort-active';
+      } else {
+        el.textContent = ' ⇅';
+        el.className = 'sort-indicator';
+      }
+    }
+  });
 
   if (countBadge) {
     countBadge.textContent = `${desvios.length} ${desvios.length === 1 ? 'desvio relevante' : 'desvios relevantes (≥ 10%)'}`;
@@ -580,6 +660,19 @@ function renderizarQuadroDesvios() {
 
   tbody.innerHTML = rows;
 }
+
+// ── Função Global para Ordenar por Cabeçalho (Menor para Maior) ──────────
+window.ordenarDesvios = function(col) {
+  if (state.desviosSortCol === col) {
+    // Alterna entre menor para maior (asc) e maior para menor (desc)
+    state.desviosSortAsc = !state.desviosSortAsc;
+  } else {
+    // Primeiro clique na coluna: sempre classifica do MENOR para o MAIOR!
+    state.desviosSortCol = col;
+    state.desviosSortAsc = true;
+  }
+  renderizarQuadroDesvios();
+};
 
 function filtrarLinhaPorNome(bloco, titulo) {
   state.selectedLine = { tipo: 'titulo', nome: titulo, bloco: bloco, titulo: titulo };
@@ -982,6 +1075,11 @@ function renderizarGraficoMensal(data) {
   if (state.chartMensal) state.chartMensal.destroy();
   if (!data || data.length === 0) return;
 
+  const tit = document.getElementById('tituloGraficoMensal');
+  if (tit && !state.selectedLine) {
+    tit.textContent = 'Margem — Evolução Mensal (Mês a Mês)';
+  }
+
   const NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const porMes = {};
   data.forEach(r => {
@@ -1085,9 +1183,9 @@ function renderizarGraficoAcumulado(data, mesFiltro, filtroNome) {
   const elTitulo = document.getElementById('tituloAcumulado');
   if (elTitulo) {
     if (filtroNome) {
-      elTitulo.textContent = `Acumulado até ${MESES_COMPLETO[mMax - 1]} — ${filtroNome}`;
+      elTitulo.textContent = `Margem — Acumulado até ${MESES_COMPLETO[mMax - 1]} (${filtroNome})`;
     } else {
-      elTitulo.textContent = `Acumulado até ${MESES_COMPLETO[mMax - 1]} (Jan–${NOMES[mMax - 1]})`;
+      elTitulo.textContent = `Margem — Acumulado até ${MESES_COMPLETO[mMax - 1]} (Jan–${NOMES[mMax - 1]})`;
     }
   }
 
@@ -1098,11 +1196,17 @@ function renderizarGraficoAcumulado(data, mesFiltro, filtroNome) {
   }
 
   // Atualiza mini-cards de diagnóstico
+  const elOrc = document.getElementById('acumOrcVal');
+  if (elOrc) elOrc.textContent = fmtBRL(totalOrc);
+
   const elReal = document.getElementById('acumRealVal');
   if (elReal) elReal.textContent = fmtBRL(totalReal);
 
-  const elOrc = document.getElementById('acumOrcVal');
-  if (elOrc) elOrc.textContent = fmtBRL(totalOrc);
+  const elDiff = document.getElementById('acumDiffVal');
+  if (elDiff) {
+    elDiff.textContent = (diff >= 0 ? '+' : '') + fmtBRL(diff);
+    elDiff.className = 'diag-val ' + (diff >= 0 ? 'val-pos' : 'val-neg');
+  }
 
   const elPct = document.getElementById('acumPctVal');
   if (elPct) {
@@ -1263,6 +1367,18 @@ function exportarCSV() {
   });
   a.click();
   showToast('CSV exportado!', 'success');
+}
+
+// ── Exportar para Excel (.xlsx) no Modelo Oficial Power BI (Mês a Mês Jan..Dez + Total) ──
+function exportarParaExcel() {
+  const p = new URLSearchParams({
+    ano: getAnoParam(),
+    emp: getEmpParam(),
+    cenc: getCencParam(),
+  });
+
+  showToast('Gerando DRE no Modelo Oficial Power BI (Mês a Mês)...', 'info');
+  window.location.href = '/api/dre/exportar-excel?' + p.toString();
 }
 
 

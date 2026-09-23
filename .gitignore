@@ -10,3 +10,4 @@ test_cols.py
 __pycache__/
 venv/
 .venv/
+*.png

@@ -7,7 +7,7 @@
   <meta name="description" content="Demonstrativo de Resultado do Exercício por Empresa MQ Hair — Realizado vs Orçado por centro de custo e empresa." />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260922_v8" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260923_v3" />
 </head>
 <body>
 
@@ -120,7 +120,22 @@
     </div>
   </div>
 
-  <button class="btn-aplicar" id="btnAplicar">Aplicar</button>
+  <button class="btn-aplicar btn-carregar" id="btnCarregar" title="Carregar: atualiza somente o mês selecionado e o mês anterior (meses anteriores ficam congelados)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="23 4 23 10 17 10"></polyline>
+      <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+    </svg>
+    Carregar
+  </button>
+  <button class="btn-aplicar" id="btnAplicar" style="display:none;">Aplicar</button>
+  <button class="btn-export" id="btnExportExcelTop" title="Exportar demonstrativo completo para Excel (.xlsx)">
+    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+      <polyline points="7 10 12 15 17 10"></polyline>
+      <line x1="12" y1="15" x2="12" y2="3"></line>
+    </svg>
+    Exportar Excel
+  </button>
 </section>
 
 <!-- ════ KPI CARDS ═════════════════════════════════════════════════════════ -->
@@ -171,9 +186,9 @@
     <!-- Card 1: Evolução Mensal -->
     <section class="card chart-card">
       <div class="card-header">
-        <h2 id="tituloGraficoMensal" style="color: #CB9727 !important; font-weight: 800;">Evolução Mensal (Mês a Mês)</h2>
+        <h2 id="tituloGraficoMensal" style="color: #CB9727 !important; font-weight: 800;">Margem — Evolução Mensal (Mês a Mês)</h2>
         <div class="card-header-right">
-          <button class="btn-reset-linha" id="btnResetLinha" style="display:none;" title="Voltar para a visão geral da DRE">Ver Total</button>
+          <button class="btn-reset-linha" id="btnResetLinha" style="display:none;" title="Voltar para a visão geral da DRE">Ver Margem</button>
         </div>
       </div>
       <div class="chart-wrapper">
@@ -185,7 +200,7 @@
     <section class="card chart-card chart-acumulado-card">
       <div class="card-header">
         <div class="card-header-left">
-          <h2 id="tituloAcumulado" style="color: #CB9727 !important; font-weight: 800;">Acumulado até o Mês (YTD)</h2>
+          <h2 id="tituloAcumulado" style="color: #CB9727 !important; font-weight: 800;">Margem — Acumulado até o Mês (YTD)</h2>
         </div>
         <div class="card-header-right">
           <span class="status-badge" id="badgeStatusPlanejado">—</span>
@@ -201,6 +216,10 @@
         <div class="diag-item">
           <span class="diag-label" style="color: #ffffff !important;">Realizado Acumulado</span>
           <span class="diag-val" id="acumRealVal" style="color: #ffffff !important;">—</span>
+        </div>
+        <div class="diag-item">
+          <span class="diag-label" style="color: #ffffff !important;">Desvio Acumulado (R$)</span>
+          <span class="diag-val" id="acumDiffVal">—</span>
         </div>
         <div class="diag-item">
           <span class="diag-label" style="color: #ffffff !important;">Desvio da Meta (%)</span>
@@ -231,13 +250,13 @@
       <table class="desvios-table" id="desviosTable">
         <thead>
           <tr>
-            <th class="col-desvio-bloco">Bloco</th>
-            <th class="col-desvio-tit">Título</th>
-            <th class="col-num">Orçado (R$)</th>
-            <th class="col-num">Realizado (R$)</th>
-            <th class="col-num">Desvio (R$)</th>
-            <th class="col-ro">Desvio (%)</th>
-            <th class="col-status">Status / Impacto</th>
+            <th class="col-desvio-bloco th-sortable" onclick="ordenarDesvios('bloco')" title="Clique para ordenar por Bloco">Bloco <span class="sort-indicator" id="sort-desvio-bloco">⇅</span></th>
+            <th class="col-desvio-tit th-sortable" onclick="ordenarDesvios('titulo')" title="Clique para ordenar por Título">Título <span class="sort-indicator" id="sort-desvio-titulo">⇅</span></th>
+            <th class="col-num th-sortable" onclick="ordenarDesvios('orcado')" title="Clique para ordenar por Orçado (menor para o maior)">Orçado (R$) <span class="sort-indicator" id="sort-desvio-orcado">⇅</span></th>
+            <th class="col-num th-sortable" onclick="ordenarDesvios('realizado')" title="Clique para ordenar por Realizado (menor para o maior)">Realizado (R$) <span class="sort-indicator" id="sort-desvio-realizado">⇅</span></th>
+            <th class="col-num th-sortable" onclick="ordenarDesvios('diff')" title="Clique para ordenar por Desvio R$ (menor para o maior)">Desvio (R$) <span class="sort-indicator" id="sort-desvio-diff">⇅</span></th>
+            <th class="col-ro th-sortable" onclick="ordenarDesvios('ro')" title="Clique para ordenar por Desvio % (menor para o maior)">Desvio (%) <span class="sort-indicator" id="sort-desvio-ro">⇅</span></th>
+            <th class="col-status th-sortable" onclick="ordenarDesvios('statusTxt')" title="Clique para ordenar por Status">Status / Impacto <span class="sort-indicator" id="sort-desvio-statusTxt">⇅</span></th>
           </tr>
         </thead>
         <tbody id="desviosBody">
@@ -259,6 +278,14 @@
       </div>
       <div class="card-header-right">
         <button class="btn-expand-all" id="btnExpandAll">Expandir tudo</button>
+        <button class="btn-export" id="btnExportExcel" title="Exportar demonstrativo completo para Excel (.xlsx)">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+            <polyline points="7 10 12 15 17 10"></polyline>
+            <line x1="12" y1="15" x2="12" y2="3"></line>
+          </svg>
+          Exportar Excel
+        </button>
       </div>
     </div>
 
@@ -331,6 +358,7 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260923_v1"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260923_v6"></script>
 </body>
 </html>
