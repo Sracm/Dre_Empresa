@@ -11,6 +11,8 @@ from flask import Flask, render_template, jsonify, request, send_file
 import io
 import json
 import openpyxl
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
 
 app = Flask(__name__)
 
@@ -183,6 +185,100 @@ def dre_status():
 # ═══════════════════════════════════════════════════════════════════════════
 #  DRE — DADOS PRINCIPAIS
 # ═══════════════════════════════════════════════════════════════════════════
+def get_dre_tree_data(ano_raw="2026", mes_raw="8", emp_raw="ALL", cenc_raw="ALL"):
+    anos = parse_int_list(ano_raw, [2026])
+    meses = parse_int_list(mes_raw, [8])
+    emps = parse_str_list(emp_raw)
+    cenc_list = parse_cenc_param(cenc_raw)
+
+    ano_primario = max(anos) if anos else 2026
+    mes_primario = max(meses) if meses else 8
+
+    ano_mom, mes_mom = (ano_primario, mes_primario - 1) if mes_primario > 1 else (ano_primario - 1, 12)
+    ano_yoy = ano_primario - 1
+
+    # Meses YTD (de janeiro até o maior mês selecionado)
+    meses_ytd = list(range(1, mes_primario + 1))
+    meses_ant = list(set(meses_ytd + ([12] if mes_primario == 1 else [])))
+
+    ph_anos = ",".join(["?"] * len(anos))
+    ph_meses = ",".join(["?"] * len(meses))
+    ph_ytd = ",".join(["?"] * len(meses_ytd))
+    ph_ant = ",".join(["?"] * len(meses_ant))
+
+    where = [
+        "codcencus != ?",
+        f"((ano IN ({ph_anos}) AND mes IN ({ph_ytd})) OR (ano = ? AND mes IN ({ph_ant})))"
+    ]
+    params = [
+        EXCLUDED_CODCENCUS,
+        *anos, *meses_ytd,
+        ano_yoy, *meses_ant
+    ]
+
+    if emps:
+        ph_emp = ",".join(["?"] * len(emps))
+        where.append(f"empresa IN ({ph_emp})")
+        params.extend(emps)
+    else:
+        # Filtro oficial do Power BI para DRE Gestores
+        placeholders = ",".join(["?"] * len(ALLOWED_COMPANIES))
+        where.append(f"empresa IN ({placeholders})")
+        params.extend(ALLOWED_COMPANIES)
+
+    if cenc_list:
+        if len(cenc_list) == 1:
+            where.append("codcencus = ?")
+            params.append(cenc_list[0])
+        else:
+            ph_cenc = ",".join(["?"] * len(cenc_list))
+            where.append(f"codcencus IN ({ph_cenc})")
+            params.extend(cenc_list)
+
+    where_sql = " AND ".join(where)
+
+    sql = f"""
+        SELECT
+            bloco,
+            titulo,
+            descrnat,
+            SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS realizado,
+            SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN orcado ELSE 0 END) AS orcado,
+            SUM(CASE WHEN ano = ? AND mes = ? THEN realizado ELSE 0 END) AS real_mom,
+            SUM(CASE WHEN ano = ? AND mes = ? THEN orcado ELSE 0 END) AS real_mom,
+            SUM(CASE WHEN ano = ? AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS real_yoy,
+            SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd,
+            SUM(CASE WHEN ano = ? AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd_ant
+        FROM dre_data
+        WHERE {where_sql}
+        GROUP BY bloco, titulo, descrnat
+        ORDER BY bloco, titulo, descrnat
+    """
+    query_params = [
+        *anos, *meses,
+        *anos, *meses,
+        ano_mom, mes_mom,
+        ano_mom, mes_mom,
+        ano_yoy, *meses,
+        *anos, *meses_ytd,
+        ano_yoy, *meses_ytd,
+        *params
+    ]
+
+    with get_db() as conn:
+        cur = conn.cursor()
+        cur.execute(sql, query_params)
+        rows = [dict(r) for r in cur.fetchall()]
+
+    bonif_total = sum(
+        float(r.get("realizado") or 0)
+        for r in rows
+        if r.get("titulo") and "bonif" in str(r["titulo"]).lower()
+    )
+
+    dre_tree = _build_dre_tree(rows, bonif_total, mes_primario)
+    return dre_tree, bonif_total, ano_primario, mes_primario, emps, cenc_list
+
 @app.route("/api/dre")
 def dre():
     try:
@@ -196,97 +292,7 @@ def dre():
         if cached:
             return jsonify(cached)
 
-        anos = parse_int_list(ano_raw, [2026])
-        meses = parse_int_list(mes_raw, [8])
-        emps = parse_str_list(emp_raw)
-        cenc_list = parse_cenc_param(cenc_raw)
-
-        ano_primario = max(anos) if anos else 2026
-        mes_primario = max(meses) if meses else 8
-
-        ano_mom, mes_mom = (ano_primario, mes_primario - 1) if mes_primario > 1 else (ano_primario - 1, 12)
-        ano_yoy = ano_primario - 1
-
-        # Meses YTD (de janeiro até o maior mês selecionado)
-        meses_ytd = list(range(1, mes_primario + 1))
-        meses_ant = list(set(meses_ytd + ([12] if mes_primario == 1 else [])))
-
-        ph_anos = ",".join(["?"] * len(anos))
-        ph_meses = ",".join(["?"] * len(meses))
-        ph_ytd = ",".join(["?"] * len(meses_ytd))
-        ph_ant = ",".join(["?"] * len(meses_ant))
-
-        where = [
-            "codcencus != ?",
-            f"((ano IN ({ph_anos}) AND mes IN ({ph_ytd})) OR (ano = ? AND mes IN ({ph_ant})))"
-        ]
-        params = [
-            EXCLUDED_CODCENCUS,
-            *anos, *meses_ytd,
-            ano_yoy, *meses_ant
-        ]
-
-        if emps:
-            ph_emp = ",".join(["?"] * len(emps))
-            where.append(f"empresa IN ({ph_emp})")
-            params.extend(emps)
-        else:
-            # Filtro oficial do Power BI para DRE Gestores
-            placeholders = ",".join(["?"] * len(ALLOWED_COMPANIES))
-            where.append(f"empresa IN ({placeholders})")
-            params.extend(ALLOWED_COMPANIES)
-
-        if cenc_list:
-            if len(cenc_list) == 1:
-                where.append("codcencus = ?")
-                params.append(cenc_list[0])
-            else:
-                ph_cenc = ",".join(["?"] * len(cenc_list))
-                where.append(f"codcencus IN ({ph_cenc})")
-                params.extend(cenc_list)
-
-        where_sql = " AND ".join(where)
-
-        sql = f"""
-            SELECT
-                bloco,
-                titulo,
-                descrnat,
-                SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS realizado,
-                SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN orcado ELSE 0 END) AS orcado,
-                SUM(CASE WHEN ano = ? AND mes = ? THEN realizado ELSE 0 END) AS real_mom,
-                SUM(CASE WHEN ano = ? AND mes = ? THEN orcado ELSE 0 END) AS orc_mom,
-                SUM(CASE WHEN ano = ? AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS real_yoy,
-                SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd,
-                SUM(CASE WHEN ano = ? AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd_ant
-            FROM dre_data
-            WHERE {where_sql}
-            GROUP BY bloco, titulo, descrnat
-            ORDER BY bloco, titulo, descrnat
-        """
-        query_params = [
-            *anos, *meses,
-            *anos, *meses,
-            ano_mom, mes_mom,
-            ano_mom, mes_mom,
-            ano_yoy, *meses,
-            *anos, *meses_ytd,
-            ano_yoy, *meses_ytd,
-            *params
-        ]
-
-        with get_db() as conn:
-            cur = conn.cursor()
-            cur.execute(sql, query_params)
-            rows = [dict(r) for r in cur.fetchall()]
-
-        bonif_total = sum(
-            float(r.get("realizado") or 0)
-            for r in rows
-            if r.get("titulo") and "bonif" in str(r["titulo"]).lower()
-        )
-
-        dre_tree = _build_dre_tree(rows, bonif_total, mes_primario)
+        dre_tree, bonif_total, *_ = get_dre_tree_data(ano_raw, mes_raw, emp_raw, cenc_raw)
         result = {"dre": dre_tree, "bonif_total": bonif_total}
         cache_set(key, result)
         return jsonify(result)
@@ -885,181 +891,154 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
     return result
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  EXPORTAR EXCEL NO MODELO OFICIAL POWER BI (MÊS A MÊS JAN..DEZ + TOTAL)
+#  EXPORTAR EXCEL NO MODELO OFICIAL HIERÁRQUICO (9 COLUNAS, AZUL #1F4E79)
 # ═══════════════════════════════════════════════════════════════════════════
-def export_matrix_excel(db_path, gabarito_path, ano=2026, emps=None, cenc_list=None):
-    is_default = (
-        int(ano) == 2026 and 
-        (not emps or emps == ['ALL'] or len(emps) == len(ALLOWED_COMPANIES)) and 
-        (not cenc_list or cenc_list == ['ALL'] or len(cenc_list) == 0)
-    )
-    
-    if is_default and os.path.exists(gabarito_path):
-        with open(gabarito_path, 'rb') as f:
-            return f.read()
-
-    wb = openpyxl.load_workbook(gabarito_path)
+def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_list=None):
+    wb = openpyxl.Workbook()
     ws = wb.active
+    ws.title = "DRE Consolidado"
+    ws.views.sheetView[0].showGridLines = True
 
-    conn = sqlite3.connect(db_path)
-    cur = conn.cursor()
+    # Colors & Styles
+    header_fill = PatternFill(start_color="1F4E79", end_color="1F4E79", fill_type="solid")
+    header_font = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+    bold_font = Font(name="Calibri", size=10, bold=True, color="000000")
+    bloco_fill = PatternFill(start_color="F2F2F2", end_color="F2F2F2", fill_type="solid")
+    titulo_font = Font(name="Calibri", size=9.5, bold=True, color="000000")
+    regular_font = Font(name="Calibri", size=9, bold=False, color="000000")
 
-    where = ["ano = ?", "codcencus != ?"]
-    params = [int(ano), EXCLUDED_CODCENCUS]
+    align_left = Alignment(horizontal="left", vertical="center")
+    align_right = Alignment(horizontal="right", vertical="center")
+    align_center = Alignment(horizontal="center", vertical="center")
 
-    if emps and emps != ['ALL']:
-        ph = ",".join(["?"] * len(emps))
-        where.append(f"empresa IN ({ph})")
-        params.extend(emps)
-    else:
-        ph = ",".join(["?"] * len(ALLOWED_COMPANIES))
-        where.append(f"empresa IN ({ph})")
-        params.extend(ALLOWED_COMPANIES)
+    thin_border_side = Side(style='thin', color='D9D9D9')
+    cell_border = Border(left=thin_border_side, right=thin_border_side, top=thin_border_side, bottom=thin_border_side)
 
-    if cenc_list and cenc_list != ['ALL']:
-        ph = ",".join(["?"] * len(cenc_list))
-        where.append(f"codcencus IN ({ph})")
-        params.extend(cenc_list)
-
-    where_sql = " AND ".join(where)
-
-    cur.execute(f"""
-        SELECT bloco, titulo, mes, SUM(realizado) as real, SUM(orcado) as orc
-        FROM dre_data
-        WHERE {where_sql}
-        GROUP BY bloco, titulo, mes
-    """, params)
-
-    data = {}
-    bloco_data = {}
-    for bloco, titulo, mes, real, orc in cur.fetchall():
-        m = int(mes)
-        r_val = float(real or 0)
-        o_val = float(orc or 0)
-        data[(bloco, titulo, m)] = {"real": r_val, "orc": o_val}
-
-        if (bloco, m) not in bloco_data:
-            bloco_data[(bloco, m)] = {"real": 0.0, "orc": 0.0}
-        bloco_data[(bloco, m)]["real"] += r_val
-        bloco_data[(bloco, m)]["orc"] += o_val
-
-    conn.close()
-
-    month_cols = {
-        1: 5, 2: 11, 3: 17, 4: 23, 5: 29, 6: 35,
-        7: 41, 8: 47, 9: 53, 10: 59, 11: 65, 12: 71
-    }
-
-    # Venda Bruta por mês para cálculo de percentual
-    vb_by_month = {}
-    for m in range(1, 13):
-        vb_entry = data.get(("1.Venda Liquida", "1.Venda Bruta", m), {"real": 0.0, "orc": 0.0})
-        vb_by_month[m] = {
-            "real": vb_entry["real"] if abs(vb_entry["real"]) > 0.001 else 1.0,
-            "orc": vb_entry["orc"] if abs(vb_entry["orc"]) > 0.001 else 1.0
-        }
-
-    vb_tot_orc = sum(vb_by_month[m]["orc"] for m in range(1, 13))
-    vb_tot_real = sum(vb_by_month[m]["real"] for m in range(1, 13))
-
-    def write_metric_cells(row_idx, col_start, orc, real, vb_o, vb_r):
-        ws.cell(row_idx, col_start).value = orc
-        ws.cell(row_idx, col_start + 1).value = real
-        ws.cell(row_idx, col_start + 2).value = (orc / vb_o) if vb_o else 0
-        ws.cell(row_idx, col_start + 3).value = (real / vb_r) if vb_r else 0
-        ws.cell(row_idx, col_start + 4).value = ((real - orc) / orc) if orc else 0
-
-    # 1. Preenche linhas analíticas (Títulos)
-    current_bloco = None
-    for r in range(3, ws.max_row + 1):
-        item = ws.cell(r, 1).value
-        bloco = ws.cell(r, 3).value
-        titulo = ws.cell(r, 4).value
-
-        if item and 'Filtros aplicados' in str(item):
-            break
-
-        if bloco and bloco != 'Total':
-            current_bloco = bloco
-
-        if titulo and titulo != 'Total' and current_bloco:
-            tot_orc = 0.0
-            tot_real = 0.0
-            for m in range(1, 13):
-                val = data.get((current_bloco, titulo, m), {"real": 0.0, "orc": 0.0})
-                orc = val["orc"]
-                real = val["real"]
-                tot_orc += orc
-                tot_real += real
-                write_metric_cells(r, month_cols[m], orc, real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
-
-            write_metric_cells(r, 77, tot_orc, tot_real, vb_tot_orc, vb_tot_real)
-
-    # 2. Preenche subtotais de Blocos
-    for r in range(3, ws.max_row + 1):
-        bloco = ws.cell(r, 3).value
-        titulo = ws.cell(r, 4).value
-        if bloco and bloco != 'Total' and titulo == 'Total':
-            tot_orc = 0.0
-            tot_real = 0.0
-            for m in range(1, 13):
-                val = bloco_data.get((bloco, m), {"real": 0.0, "orc": 0.0})
-                orc = val["orc"]
-                real = val["real"]
-                tot_orc += orc
-                tot_real += real
-                write_metric_cells(r, month_cols[m], orc, real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
-            write_metric_cells(r, 77, tot_orc, tot_real, vb_tot_orc, vb_tot_real)
-
-    # 3. Margem de Contribuição (1.Venda Liquida + 2.Custo Mercadoria Vendida)
-    tot_mc_orc = 0.0
-    tot_mc_real = 0.0
-    for m in range(1, 13):
-        vl = bloco_data.get(("1.Venda Liquida", m), {"real": 0.0, "orc": 0.0})
-        cmv = bloco_data.get(("2.Custo Mercadoria Vendida", m), {"real": 0.0, "orc": 0.0})
-        mc_orc = vl["orc"] + cmv["orc"]
-        mc_real = vl["real"] + cmv["real"]
-        tot_mc_orc += mc_orc
-        tot_mc_real += mc_real
-        write_metric_cells(3, month_cols[m], mc_orc, mc_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
-    write_metric_cells(3, 77, tot_mc_orc, tot_mc_real, vb_tot_orc, vb_tot_real)
-
-    # 4. MARGEM (Margem de Contribuição + Despesas 3, 4, 5, 6, 7)
-    tot_m_orc = 0.0
-    tot_m_real = 0.0
-    desp_keys = [
-        "3.Despesas com Vendas", "4.Despesas Comercial Operacional",
-        "5.Despesas Administrativa Operacional", "6.Receitas/Despesas Financeiras", "7.Vendas IC"
+    headers = [
+        'Descrição da Conta / Classificação',
+        'Orçado (R$)',
+        'Realizado (R$)',
+        '% VB Orç.',
+        '% VB Real.',
+        'MoM',
+        'YoY',
+        'YTD Real.',
+        'R/O'
     ]
-    for m in range(1, 13):
-        vl = bloco_data.get(("1.Venda Liquida", m), {"real": 0.0, "orc": 0.0})
-        cmv = bloco_data.get(("2.Custo Mercadoria Vendida", m), {"real": 0.0, "orc": 0.0})
-        m_orc = vl["orc"] + cmv["orc"]
-        m_real = vl["real"] + cmv["real"]
-        for dk in desp_keys:
-            desp = bloco_data.get((dk, m), {"real": 0.0, "orc": 0.0})
-            m_orc += desp["orc"]
-            m_real += desp["real"]
-        tot_m_orc += m_orc
-        tot_m_real += m_real
-        write_metric_cells(4, month_cols[m], m_orc, m_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
-    write_metric_cells(4, 77, tot_m_orc, tot_m_real, vb_tot_orc, vb_tot_real)
 
-    # 5. Total Geral (Linha 40)
-    for m in range(1, 13):
-        all_orc = sum(bloco_data.get((b, m), {}).get("orc", 0.0) for b in [
-            "1.Venda Liquida", "2.Custo Mercadoria Vendida", *desp_keys
-        ])
-        all_real = sum(bloco_data.get((b, m), {}).get("real", 0.0) for b in [
-            "1.Venda Liquida", "2.Custo Mercadoria Vendida", *desp_keys
-        ])
-        write_metric_cells(40, month_cols[m], all_orc, all_real, vb_by_month[m]["orc"], vb_by_month[m]["real"])
-    write_metric_cells(40, 77, tot_m_orc, tot_m_real, vb_tot_orc, vb_tot_real)
+    ws.row_dimensions[1].height = 24
+    for col_idx, h in enumerate(headers, 1):
+        c = ws.cell(row=1, column=col_idx, value=h)
+        c.fill = header_fill
+        c.font = header_font
+        c.alignment = align_left if col_idx == 1 else align_right
 
-    # Atualiza texto de filtros aplicados
+    col_widths = {1: 44, 2: 16, 3: 16, 4: 13, 5: 13, 6: 12, 7: 12, 8: 13, 9: 12}
+    for col_idx, width in col_widths.items():
+        ws.column_dimensions[get_column_letter(col_idx)].width = width
+
+    current_row = 2
+
+    def write_data_row(row_idx, descr, item, font_style, fill_style=None):
+        ws.row_dimensions[row_idx].height = 19
+        c_desc = ws.cell(row=row_idx, column=1, value=descr)
+        c_desc.font = font_style
+        c_desc.alignment = align_left
+        c_desc.border = cell_border
+        if fill_style:
+            c_desc.fill = fill_style
+
+        orc = item.get('orcado')
+        real = item.get('realizado')
+        pct_o = item.get('pct_orc')
+        pct_r = item.get('pct_real')
+        mom = item.get('mom')
+        yoy = item.get('yoy')
+        ytd = item.get('ytd_yoy')
+        ro = item.get('ro')
+
+        # Orçado
+        c_orc = ws.cell(row=row_idx, column=2, value=float(orc) if orc is not None else 0.0)
+        c_orc.font = font_style
+        c_orc.alignment = align_right
+        c_orc.number_format = '"R$ "#,##0;[Red]-"R$ "#,##0;"R$ 0"'
+        c_orc.border = cell_border
+        if fill_style:
+            c_orc.fill = fill_style
+
+        # Realizado
+        c_real = ws.cell(row=row_idx, column=3, value=float(real) if real is not None else 0.0)
+        c_real.font = font_style
+        c_real.alignment = align_right
+        c_real.number_format = '"R$ "#,##0;[Red]-"R$ "#,##0;"R$ 0"'
+        c_real.border = cell_border
+        if fill_style:
+            c_real.fill = fill_style
+
+        # % VB Orç.
+        c_pct_o = ws.cell(row=row_idx, column=4, value=(float(pct_o) / 100.0) if pct_o is not None else 0.0)
+        c_pct_o.font = font_style
+        c_pct_o.alignment = align_right
+        c_pct_o.number_format = '0.0%'
+        c_pct_o.border = cell_border
+        if fill_style:
+            c_pct_o.fill = fill_style
+
+        # % VB Real.
+        c_pct_r = ws.cell(row=row_idx, column=5, value=(float(pct_r) / 100.0) if pct_r is not None else 0.0)
+        c_pct_r.font = font_style
+        c_pct_r.alignment = align_right
+        c_pct_r.number_format = '0.0%'
+        c_pct_r.border = cell_border
+        if fill_style:
+            c_pct_r.fill = fill_style
+
+        # MoM, YoY, YTD, R/O
+        for col_i, val in enumerate([mom, yoy, ytd, ro], 6):
+            c = ws.cell(row=row_idx, column=col_i)
+            c.font = font_style
+            c.border = cell_border
+            if fill_style:
+                c.fill = fill_style
+            if val is None:
+                c.value = "—"
+                c.alignment = align_center
+            else:
+                c.value = float(val) / 100.0
+                c.alignment = align_right
+                c.number_format = '+0.0%;-0.0%;"0.0%"'
+
+    # 1. Total Rows on Top (MARGEM DE CONTRIBUIÇÃO e MARGEM)
+    margens = [b for b in dre_tree if b.get('is_total')]
+    for m in margens:
+        write_data_row(current_row, m.get('bloco'), m, bold_font)
+        current_row += 1
+
+    # Spacer row
+    current_row += 1
+
+    # 2. Hierarchical Blocos
+    blocos = [b for b in dre_tree if not b.get('is_total')]
+    for b in blocos:
+        write_data_row(current_row, b.get('bloco'), b, bold_font, fill_style=bloco_fill)
+        current_row += 1
+
+        for t in b.get('titulos', []):
+            t_name = f"  ▼ {t.get('titulo')}"
+            write_data_row(current_row, t_name, t, titulo_font)
+            current_row += 1
+
+            for ln in t.get('linhas', []):
+                d_name = f"    {ln.get('descr') or '—'}"
+                write_data_row(current_row, d_name, ln, regular_font)
+                current_row += 1
+
+    # Rodapé com filtros aplicados
+    current_row += 1
     emp_str = ", ".join(emps) if emps and emps != ['ALL'] else 'Todas as Empresas'
-    cenc_str = ", ".join(map(str, cenc_list)) if cenc_list and cenc_list != ['ALL'] else 'Todos os Centros'
-    ws.cell(42, 1).value = f"Filtros aplicados:\nANO = {ano}\nEMPRESA = {emp_str}\nCENTRO DE CUSTO = {cenc_str}"
+    cenc_str = ", ".join(map(str, cenc_list)) if cenc_list and cenc_list != ['ALL'] else 'Todos os Centros de Custo'
+    c_info = ws.cell(row=current_row, column=1, value=f"Filtros aplicados: Ano {ano} | Mês {mes} | Empresas: {emp_str} | Centros de Custo: {cenc_str}")
+    c_info.font = Font(name="Calibri", size=9, italic=True, color="666666")
 
     bio = io.BytesIO()
     wb.save(bio)
@@ -1070,19 +1049,15 @@ def export_matrix_excel(db_path, gabarito_path, ano=2026, emps=None, cenc_list=N
 def exportar_excel():
     try:
         ano_raw = request.args.get("ano", "2026")
+        mes_raw = request.args.get("mes", "8")
         emp_raw = request.args.get("emp", "ALL")
         cenc_raw = request.args.get("cenc", "ALL")
 
-        anos = parse_int_list(ano_raw, [2026])
-        ano = anos[0] if anos else 2026
-        emps = parse_str_list(emp_raw)
-        cenc_list = parse_cenc_param(cenc_raw)
-
-        gabarito_path = os.path.join(BASE_DIR, "Gabarito_PBI.xlsx")
-        excel_bytes = export_matrix_excel(DB_PATH, gabarito_path, ano, emps, cenc_list)
+        dre_tree, bonif_total, ano, mes, emps, cenc_list = get_dre_tree_data(ano_raw, mes_raw, emp_raw, cenc_raw)
+        excel_bytes = generate_hierarchical_dre_excel(dre_tree, ano=ano, mes=mes, emps=emps, cenc_list=cenc_list)
 
         emp_label = "Consolidado" if not emps or emps == ["ALL"] else emps[0].replace(" ", "_")
-        filename = f"DRE_Empresa_MQ_Hair_Modelo_PBI_{ano}_{emp_label}.xlsx"
+        filename = f"DRE_Empresa_MQ_Hair_{ano}_M{mes:02d}_{emp_label}.xlsx"
         return send_file(
             io.BytesIO(excel_bytes),
             as_attachment=True,

@@ -1038,19 +1038,26 @@ td.col-desvio-bloco {
 }
 
 /* ── GRÁFICOS: GRID COM EVOLUÇÃO MENSAL E ACUMULADO COM DIAGNÓSTICO ───── */
-.charts-grid {
+.charts-grid,
+.charts-grid-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
   width: 100%;
 }
 
 @media (max-width: 1100px) {
-  .charts-grid { grid-template-columns: 1fr; }
+  .charts-grid,
+  .charts-grid-row { grid-template-columns: 1fr; }
 }
 
-.chart-card {
+.chart-card,
+.matrix-acumulado-card {
   width: 100%;
+}
+
+.charts-grid .card {
+  margin-bottom: 0 !important;
 }
 
 .chart-wrapper {
@@ -1849,3 +1856,44 @@ td.col-desvio-bloco {
 }
 
 
+
+/* ── AJUSTES DE LAYOUT E ELIMINAÇÃO DE SCROLL VERTICAL ── */
+#wrapTabelaAcumuladoSwitch,
+.matrix-acumulado-card .desvios-table-wrap,
+.chart-acumulado-card .desvios-table-wrap {
+  max-height: none !important;
+  overflow-y: visible !important;
+  height: auto !important;
+}
+
+.acum-desvios-table {
+  width: 100% !important;
+  table-layout: auto !important;
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  transition: all 0.25s ease;
+}
+
+.status-badge.dentro {
+  background: rgba(34, 197, 94, 0.16) !important;
+  color: #4ade80 !important;
+  border: 1px solid rgba(34, 197, 94, 0.4) !important;
+  box-shadow: 0 0 8px rgba(34, 197, 94, 0.12);
+}
+
+.status-badge.fora {
+  background: rgba(239, 68, 68, 0.2) !important;
+  color: #ef4444 !important;
+  border: 1px solid rgba(239, 68, 68, 0.45) !important;
+  box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+}

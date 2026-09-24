@@ -699,7 +699,7 @@ function toggleExpandAllAcumulado() {
   state.acumuladoExpandAll = !state.acumuladoExpandAll;
   const btn = document.getElementById('btnToggleExpandAcumulado');
   if (btn) {
-    btn.textContent = state.acumuladoExpandAll ? 'Recolher tudo' : 'Expandir tudo';
+    btn.textContent = state.acumuladoExpandAll ? 'RECOLHER TUDO' : 'EXPANDIR TUDO';
   }
   if (state.acumuladoExpandAll && state.tabelaAcumuladoData && state.tabelaAcumuladoData.margem) {
     (state.tabelaAcumuladoData.margem.blocos || []).forEach(b => state.blocosAcumuladoAbertos.add(b.bloco));
@@ -1686,17 +1686,21 @@ function exportarCSV() {
   showToast('CSV exportado!', 'success');
 }
 
-// ── Exportar para Excel (.xlsx) no Modelo Oficial Power BI (Mês a Mês Jan..Dez + Total) ──
+// ── Exportar para Excel (.xlsx) no Modelo Oficial Analítico Hierárquico ──
 function exportarParaExcel() {
   const p = new URLSearchParams({
     ano: getAnoParam(),
+    mes: getMesParam(),
     emp: getEmpParam(),
     cenc: getCencParam(),
   });
 
-  showToast('Gerando DRE no Modelo Oficial Power BI (Mês a Mês)...', 'info');
+  showToast('Gerando DRE em Excel no modelo analítico...', 'info');
   window.location.href = '/api/dre/exportar-excel?' + p.toString();
 }
+window.exportarParaExcel = exportarParaExcel;
+window.toggleExpandAll = toggleExpandAll;
+window.toggleExpandAllAcumulado = toggleExpandAllAcumulado;
 
 
 // ════ AGENTE DE IA (N8N WEBHOOK) ═════════════════════════════════════════════
@@ -1715,70 +1719,79 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if(!widget) return;
 
-  // Arrastar widget
-  let isDragging = false;
-  let currentX;
-  let currentY;
-  let initialX;
-  let initialY;
-  let xOffset = 0;
-  let yOffset = 0;
-
-  header.addEventListener('mousedown', dragStart);
-  document.addEventListener('mousemove', drag);
-  document.addEventListener('mouseup', dragEnd);
-
-  function dragStart(e) {
-    initialX = e.clientX - xOffset;
-    initialY = e.clientY - yOffset;
-    if (e.target === header || header.contains(e.target)) {
-      isDragging = true;
+  function toggleChat(forceOpen = null) {
+    if (forceOpen === true) {
+      widget.classList.remove('ai-chat-collapsed');
+    } else if (forceOpen === false) {
+      widget.classList.add('ai-chat-collapsed');
+    } else {
+      widget.classList.toggle('ai-chat-collapsed');
+    }
+    const isCollapsed = widget.classList.contains('ai-chat-collapsed');
+    if (btnToggle) btnToggle.textContent = isCollapsed ? '↑' : '_';
+    if (!isCollapsed && input) {
+      setTimeout(() => input.focus(), 120);
     }
   }
 
-  function drag(e) {
-    if (isDragging) {
+  // Quando recolhido (avatar flutuante), clique no widget abre o chat imediatamente!
+  widget.addEventListener('click', (e) => {
+    if (widget.classList.contains('ai-chat-collapsed')) {
+      toggleChat(true);
+    }
+  });
+
+  if (btnToggle) {
+    btnToggle.addEventListener('click', (e) => {
+      e.stopPropagation();
+      toggleChat();
+    });
+  }
+
+  // Arrastar widget pelo cabeçalho
+  let isDragging = false;
+  let hasMoved = false;
+  let startMouseX = 0;
+  let startMouseY = 0;
+  let initialX = 0;
+  let initialY = 0;
+  let currentX = 0;
+  let currentY = 0;
+  let xOffset = 0;
+  let yOffset = 0;
+
+  header.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#ai-chat-config') || e.target.closest('#ai-chat-toggle')) return;
+    startMouseX = e.clientX;
+    startMouseY = e.clientY;
+    initialX = e.clientX - xOffset;
+    initialY = e.clientY - yOffset;
+    isDragging = true;
+    hasMoved = false;
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!isDragging) return;
+    const diffX = Math.abs(e.clientX - startMouseX);
+    const diffY = Math.abs(e.clientY - startMouseY);
+    if (diffX > 4 || diffY > 4) {
+      hasMoved = true;
       e.preventDefault();
       currentX = e.clientX - initialX;
       currentY = e.clientY - initialY;
       xOffset = currentX;
       yOffset = currentY;
-      setTranslate(currentX, currentY, widget);
+      widget.style.transform = `translate3d(${currentX}px, ${currentY}px, 0)`;
     }
-  }
-
-  function dragEnd(e) {
-    initialX = currentX;
-    initialY = currentY;
-    isDragging = false;
-  }
-
-  function setTranslate(xPos, yPos, el) {
-    el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-  }
-
-  function toggleChat(e) {
-    // Só expande/colapsa se não estiver arrastando
-    if(xOffset !== currentX || yOffset !== currentY) return; 
-    widget.classList.toggle('ai-chat-collapsed');
-    btnToggle.textContent = widget.classList.contains('ai-chat-collapsed') ? '↑' : '_';
-    if(!widget.classList.contains('ai-chat-collapsed')) {
-      input.focus();
-    }
-  }
-
-  // Header click now handles dragging vs toggling 
-  // We'll make it only toggle if movement was small
-  let startX, startY;
-  header.addEventListener('mousedown', (e) => {
-      startX = e.clientX; startY = e.clientY;
   });
-  header.addEventListener('mouseup', (e) => {
-      let diffX = Math.abs(e.clientX - startX);
-      let diffY = Math.abs(e.clientY - startY);
-      if(diffX < 5 && diffY < 5) {
-          toggleChat(e);
-      }
+
+  document.addEventListener('mouseup', (e) => {
+    if (!isDragging) return;
+    isDragging = false;
+    // Se foi apenas clique (sem arrastar) no header, alterna o chat
+    if (!hasMoved && !e.target.closest('#ai-chat-config') && !e.target.closest('#ai-chat-toggle')) {
+      toggleChat();
+    }
   });
 
   const btnConfig = document.getElementById('ai-chat-config');
