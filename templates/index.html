@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v10" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v10" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v10" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260924_v10" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260924_v10" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v15" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v15" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v15" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260924_v15" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260924_v15" />
 </head>
 <body class="dre-empresa-app">
 
@@ -142,15 +142,27 @@
   </div>
 </section>
 
-<!-- ════ KPI CARDS (7 CARDS COM PADRÃO FIGMA & VARIANTES SEMÂNTICAS) ═════ -->
+<!-- ════ KPI CARDS (8 CARDS COM PADRÃO FIGMA & VARIANTES SEMÂNTICAS) ═════ -->
 <section class="kpi-section metrics-grid-container" id="kpiSection" style="margin: 0 24px 20px 24px;">
+  <!-- Card 0: Venda Líquida -->
+  <div class="metric-kpi-card" id="kpiVL" data-kpi="vl" title="Clique para filtrar no gráfico">
+    <div class="metric-card-header">
+      <div class="metric-card-icon-box">
+        <span class="material-symbols-outlined metric-card-icon-symbol">point_of_sale</span>
+      </div>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Venda Líquida</p>
+    </div>
+    <p class="metric-main-value" id="kpiVLVal">—</p>
+    <div class="kpi-sub" id="kpiVLSub"></div>
+  </div>
+
   <!-- Card 1: Venda Bruta -->
   <div class="metric-kpi-card" id="kpiVB" data-kpi="vb" title="Clique para filtrar no gráfico">
     <div class="metric-card-header">
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">trending_up</span>
       </div>
-      <p class="metric-card-title">Venda Bruta</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Venda Bruta</p>
     </div>
     <p class="metric-main-value" id="kpiVBVal">—</p>
     <div class="kpi-sub" id="kpiVBSub"></div>
@@ -162,7 +174,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">account_balance_wallet</span>
       </div>
-      <p class="metric-card-title">Margem de Contribuição</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Margem de Contribuição</p>
     </div>
     <p class="metric-main-value" id="kpiMargemVal">—</p>
     <div class="kpi-sub" id="kpiMargemSub"></div>
@@ -174,7 +186,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">card_giftcard</span>
       </div>
-      <p class="metric-card-title">Bonificação</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Bonificação</p>
     </div>
     <p class="metric-main-value" id="kpiBonifVal">—</p>
     <div class="kpi-sub" id="kpiBonifSub"></div>
@@ -186,7 +198,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">payments</span>
       </div>
-      <p class="metric-card-title">Comissão</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Comissão</p>
     </div>
     <p class="metric-main-value" id="kpiComissaoVal">—</p>
     <div class="kpi-sub" id="kpiComissaoSub"></div>
@@ -198,7 +210,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">loyalty</span>
       </div>
-      <p class="metric-card-title">Guelta</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Guelta</p>
     </div>
     <p class="metric-main-value" id="kpiGueltaVal">—</p>
     <div class="kpi-sub" id="kpiGueltaSub"></div>
@@ -210,7 +222,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">storefront</span>
       </div>
-      <p class="metric-card-title">Despesa Comercial Operacional</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Despesa Comercial Operacional</p>
     </div>
     <p class="metric-main-value" id="kpiDespComercialVal">—</p>
     <div class="kpi-sub" id="kpiDespComercialSub"></div>
@@ -222,7 +234,7 @@
       <div class="metric-card-icon-box">
         <span class="material-symbols-outlined metric-card-icon-symbol">groups</span>
       </div>
-      <p class="metric-card-title">Folha e Benefícios</p>
+      <p class="metric-card-title" style="color: #CB9727 !important; font-weight: 700;">Folha e Benefícios</p>
     </div>
     <p class="metric-main-value" id="kpiFolhaVal">—</p>
     <div class="kpi-sub" id="kpiFolhaSub"></div>
@@ -241,11 +253,14 @@
         <div class="desvios-header-left">
           <span class="desvios-icon">∑</span>
           <div>
-            <h2 id="tituloTabelaAcumulado" style="color: #CB9727 !important; font-weight: 800;">Margem — Acumulado (YTD)</h2>
+            <h2 id="tituloTabelaAcumulado" style="color: #CB9727 !important; font-weight: 800;">Detalhe da Margem — Acumulado até Agosto (Jan–Ago)</h2>
             <span class="desvios-subtitle" id="subtituloTabelaAcumulado">Valores acumulados de Janeiro até o mês selecionado</span>
           </div>
         </div>
-        <div class="card-header-right">
+        <div class="card-header-right" style="display: flex; align-items: center; gap: 8px;">
+          <button class="btn-reset-linha" id="btnToggleFullscreenAcumulado" onclick="toggleFullscreenAcumulado()" title="Alternar tela cheia" style="display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px;">
+            <span class="material-symbols-outlined" id="iconFullscreenAcumulado" style="font-size: 14px; vertical-align: middle;">open_in_full</span>
+          </button>
           <button class="btn-reset-linha" id="btnToggleExpandAcumulado" title="Expandir ou recolher todos os blocos">EXPANDIR TUDO</button>
         </div>
       </div>
@@ -254,9 +269,9 @@
           <thead>
             <tr>
               <th class="col-desvio-bloco">ITEM</th>
-              <th class="col-num">ORÇADO (R$)</th>
-              <th class="col-num">REALIZADO (R$)</th>
-              <th class="col-num">DESVIO ACUM. (R$)</th>
+              <th class="col-num">ORÇADO</th>
+              <th class="col-num">REALIZADO</th>
+              <th class="col-num">DESVIO (R$)</th>
               <th class="col-ro">DESVIO (%)</th>
             </tr>
           </thead>
@@ -333,7 +348,7 @@
           <input type="text" id="dre-search-input" placeholder="Pesquisar conta (ex: Frete, Amazon, Parlux)..." oninput="filterDRETable(this.value)" style="background: transparent; border: none; outline: none; color: #fff; font-size: 12px; width: 220px;">
         </div>
         <button class="btn-expand-all dre-btn-toggle-all" id="btnExpandAll" style="padding: 6px 12px; font-size: 11px; border-radius: 6px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.12); cursor: pointer;">Expandir tudo</button>
-        <button class="btn-export" id="btnExportExcel" onclick="exportarParaExcel()" title="Exportar demonstrativo completo para Excel (.xlsx)" style="padding: 6px 14px; font-size: 11px; border-radius: 6px; background: var(--brand-secondary-dourado); color: #000; font-weight: 700; border: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
+        <button class="btn-export" id="btnExportExcel" onclick="exportarParaExcel(event)" title="Exportar demonstrativo completo para Excel (.xlsx)" style="padding: 6px 14px; font-size: 11px; border-radius: 6px; background: var(--brand-secondary-dourado); color: #000; font-weight: 700; border: none; display: inline-flex; align-items: center; gap: 6px; cursor: pointer;">
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
             <polyline points="7 10 12 15 17 10"></polyline>
@@ -435,6 +450,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260924_v10"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260924_v15"></script>
 </body>
 </html>

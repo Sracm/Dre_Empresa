@@ -1,0 +1,151 @@
+/* ==========================================================================
+   MQ PROFESSIONAL - RESPONSIVE & MOBILE STYLES
+   ========================================================================== */
+
+/* Mobile Menu Backdrop */
+.mobile-drawer-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(2px);
+  z-index: 998;
+  display: none;
+}
+
+.mobile-drawer-backdrop.active {
+  display: block;
+}
+
+/* Tablet & Laptop Adjustments (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .app-content {
+    padding: var(--spacing-5) var(--spacing-5);
+  }
+
+  .home-dashboard-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .charts-grid-row {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-two-cols-row {
+    grid-template-columns: 1fr;
+  }
+
+  .perfil-page-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .filter-toolbar-card {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .filter-group-container {
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  }
+
+  .btn-pill-primary {
+    width: 100%;
+    text-align: center;
+  }
+}
+
+/* Mobile Devices (max-width: 768px) */
+@media (max-width: 768px) {
+  .app-header {
+    height: 64px;
+    padding: 0 var(--spacing-4);
+  }
+
+  .header-subtitle {
+    display: none;
+  }
+
+  .header-logo-box {
+    border-right: none;
+    padding-right: 0;
+  }
+
+  .header-logo {
+    height: 32px;
+  }
+
+  .user-name-label {
+    display: none;
+  }
+
+  .btn-admin-header {
+    padding: 6px 10px;
+    font-size: 12px;
+  }
+
+  /* Off-canvas Mobile Sidebar */
+  .app-sidebar {
+    position: fixed;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 999;
+    transform: translateX(-100%);
+    box-shadow: var(--shadow-lg);
+    width: 280px !important;
+  }
+
+  .app-sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-content {
+    padding: var(--spacing-4) var(--spacing-3);
+  }
+
+  .page-main-title {
+    font-size: 20px;
+  }
+
+  .metrics-grid-container {
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--spacing-3);
+  }
+
+  .metric-main-value {
+    font-size: 20px;
+  }
+
+  .form-two-cols,
+  .form-three-cols {
+    grid-template-columns: 1fr;
+  }
+
+  .ferramentas-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-pessoal-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-footer {
+    flex-direction: column;
+    height: auto;
+    padding: var(--spacing-4) var(--spacing-4);
+    gap: 8px;
+    text-align: center;
+  }
+
+  .popover-container {
+    right: 10px;
+    left: 10px;
+    width: auto !important;
+    top: 60px;
+  }
+
+  .auth-form-card {
+    padding: var(--spacing-5);
+  }
+}

@@ -141,16 +141,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   carregarTudo(false); // Carga inicial completa de todo o histórico
 
   const btnCarregar = document.getElementById('btnCarregar');
-  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(true));
+  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(false));
 
   const btnAplicar = document.getElementById('btnAplicar');
-  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(true));
+  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(false));
 
   const btnExportExcel = document.getElementById('btnExportExcel');
-  if (btnExportExcel) btnExportExcel.addEventListener('click', exportarParaExcel);
+  if (btnExportExcel) btnExportExcel.addEventListener('click', (e) => exportarParaExcel(e));
 
   const btnExportExcelTop = document.getElementById('btnExportExcelTop');
-  if (btnExportExcelTop) btnExportExcelTop.addEventListener('click', exportarParaExcel);
+  if (btnExportExcelTop) btnExportExcelTop.addEventListener('click', (e) => exportarParaExcel(e));
 
   const btnRefresh = document.getElementById('btnRefresh'); if(btnRefresh) btnRefresh.addEventListener('click', () => {
     Object.values(state.polling).forEach(id => clearInterval(id));
@@ -429,6 +429,11 @@ async function carregarFiltros() {
 
 // ── Carrega o dashboard completo com polling ─────────────────────────────
 function carregarTudo(somenteDoisMeses = false) {
+  // Limpa cache de meses antigos ao carregar ou aplicar filtros para que os números correspondam exatamente ao banco
+  if (!somenteDoisMeses) {
+    state.mensalData = [];
+  }
+
   const mesAtual = state.mes || 8;
   const mesAnt = mesAtual > 1 ? mesAtual - 1 : 12;
 
@@ -447,9 +452,9 @@ function carregarTudo(somenteDoisMeses = false) {
 
   if (somenteDoisMeses && state.mensalData && state.mensalData.length > 0) {
     pMensal.set('refresh_meses', `${mesAnt},${mesAtual}`);
-    setLoadingDRE(`Atualizando mês atual (${mesAtual}) e anterior (${mesAnt}) — meses fechados congelados…`);
+    setLoadingDRE(`Atualizando mês atual (${mesAtual}) e anterior (${mesAnt})…`);
   } else {
-    setLoadingDRE('Carregando dashboard completo…');
+    setLoadingDRE('Carregando demonstrativo completo do banco…');
   }
 
   // Dispara DRE, Evolução Mensal e Tabela Acumulada em paralelo
@@ -672,11 +677,19 @@ function renderizarTabelaAcumulado(data) {
 
   tbody.innerHTML = html;
 
-  // Atualiza subtítulo com período acumulado
+  // Atualiza título dinâmico com período acumulado
+  const tit = document.getElementById('tituloTabelaAcumulado');
+  const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const MES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
+  const mNum = Number(data.mes || state.mes || 8);
+  const mNome = NOMES_MES[mNum - 1] || 'Agosto';
+  const mAbrev = MES_ABREV[mNum - 1] || 'Ago';
+  if (tit) {
+    tit.textContent = `Detalhe da Margem — Acumulado até ${mNome} (Jan–${mAbrev})`;
+  }
+
   const sub = document.getElementById('subtituloTabelaAcumulado');
   if (sub) {
-    const NOMES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-    const mNome = NOMES[(data.mes || 8) - 1];
     sub.textContent = `Valores acumulados de Janeiro até ${mNome} de ${data.ano || 2026}`;
   }
 }
@@ -698,17 +711,38 @@ function toggleBlocoAcumulado(bKey) {
 function toggleExpandAllAcumulado() {
   state.acumuladoExpandAll = !state.acumuladoExpandAll;
   const btn = document.getElementById('btnToggleExpandAcumulado');
+  const card = document.getElementById('cardAcumulado');
+  const iconFs = document.getElementById('iconFullscreenAcumulado');
+
   if (btn) {
     btn.textContent = state.acumuladoExpandAll ? 'RECOLHER TUDO' : 'EXPANDIR TUDO';
   }
-  if (state.acumuladoExpandAll && state.tabelaAcumuladoData && state.tabelaAcumuladoData.margem) {
-    (state.tabelaAcumuladoData.margem.blocos || []).forEach(b => state.blocosAcumuladoAbertos.add(b.bloco));
-    state.margemAcumuladaAberta = true;
+
+  // Quando clicar em expandir, deixar em tela cheia (grid-column: 1 / -1)
+  if (state.acumuladoExpandAll) {
+    if (card) card.classList.add('fullscreen-mode');
+    if (iconFs) iconFs.textContent = 'close_fullscreen';
+    if (state.tabelaAcumuladoData && state.tabelaAcumuladoData.margem) {
+      (state.tabelaAcumuladoData.margem.blocos || []).forEach(b => state.blocosAcumuladoAbertos.add(b.bloco));
+      state.margemAcumuladaAberta = true;
+    }
   } else {
+    if (card) card.classList.remove('fullscreen-mode');
+    if (iconFs) iconFs.textContent = 'open_in_full';
     state.blocosAcumuladoAbertos.clear();
   }
+
   if (state.tabelaAcumuladoData) renderizarTabelaAcumulado(state.tabelaAcumuladoData);
 }
+
+function toggleFullscreenAcumulado() {
+  const card = document.getElementById('cardAcumulado');
+  const iconFs = document.getElementById('iconFullscreenAcumulado');
+  if (!card) return;
+  const isFs = card.classList.toggle('fullscreen-mode');
+  if (iconFs) iconFs.textContent = isFs ? 'close_fullscreen' : 'open_in_full';
+}
+window.toggleFullscreenAcumulado = toggleFullscreenAcumulado;
 
 
 // ── UI Loading/Error ─────────────────────────────────────────────────────
@@ -1687,20 +1721,40 @@ function exportarCSV() {
 }
 
 // ── Exportar para Excel (.xlsx) no Modelo Oficial Analítico Hierárquico ──
-function exportarParaExcel() {
-  const p = new URLSearchParams({
-    ano: getAnoParam(),
-    mes: getMesParam(),
-    emp: getEmpParam(),
-    cenc: getCencParam(),
-  });
+function exportarParaExcel(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  try {
+    const p = new URLSearchParams({
+      ano: getAnoParam(),
+      mes: getMesParam(),
+      emp: getEmpParam(),
+      cenc: getCencParam(),
+    });
 
-  showToast('Gerando DRE em Excel no modelo analítico...', 'info');
-  window.location.href = '/api/dre/exportar-excel?' + p.toString();
+    showToast('Gerando DRE em Excel no modelo analítico...', 'info');
+    const url = '/api/dre/exportar-excel?' + p.toString();
+    const a = document.createElement('a');
+    a.href = url;
+    a.setAttribute('download', `DRE_MQ_EMPRESA_${getAnoParam()}_M${getMesParam()}.xlsx`);
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      if (a.parentNode) a.parentNode.removeChild(a);
+    }, 1000);
+  } catch (err) {
+    console.error('Erro ao exportar Excel:', err);
+    window.location.href = '/api/dre/exportar-excel?' + new URLSearchParams({
+      ano: getAnoParam(),
+      mes: getMesParam(),
+      emp: getEmpParam(),
+      cenc: getCencParam(),
+    }).toString();
+  }
 }
 window.exportarParaExcel = exportarParaExcel;
 window.toggleExpandAll = toggleExpandAll;
 window.toggleExpandAllAcumulado = toggleExpandAllAcumulado;
+window.toggleFullscreenAcumulado = toggleFullscreenAcumulado;
 
 
 // ════ AGENTE DE IA (N8N WEBHOOK) ═════════════════════════════════════════════

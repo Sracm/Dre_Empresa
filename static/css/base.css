@@ -1,0 +1,275 @@
+/* ==========================================================================
+   MQ PROFESSIONAL - BASE & LAYOUT STYLES
+   ========================================================================== */
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html, body {
+  width: 100%;
+  height: 100%;
+  background-color: var(--surface-bg);
+  color: var(--status-secondary-100);
+  font-family: var(--font-family);
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Custom Sleek Dark Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090d0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #252a32;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--brand-secondary-dourado);
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  background: none;
+  border: none;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease-in-out;
+}
+
+input, select, textarea {
+  font-family: var(--font-family);
+  font-size: 14px;
+  outline: none;
+  border: none;
+}
+
+/* App Container Layout */
+.app-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: var(--surface-bg);
+}
+
+/* Header */
+.app-header {
+  height: 72px;
+  background-color: var(--surface-header);
+  box-shadow: var(--shadow-header);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-6);
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+.header-logo-box {
+  border-right: 1px solid var(--brand-primary-branco);
+  padding-right: var(--spacing-6);
+  display: flex;
+  align-items: center;
+}
+
+.header-logo {
+  height: 40px;
+  width: auto;
+  display: block;
+}
+
+.header-subtitle {
+  font-weight: 300;
+  font-size: 16px;
+  color: var(--brand-primary-branco);
+  letter-spacing: 0.5px;
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-6);
+}
+
+/* Administration Button in Header */
+.btn-admin-header {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+  padding: 6px 14px;
+  background: rgba(203, 151, 39, 0.08);
+  border: 1px solid var(--brand-secondary-dourado);
+  border-radius: var(--radius-md);
+  color: var(--status-warning-600);
+  font-weight: 600;
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.btn-admin-header:hover {
+  background: var(--brand-secondary-dourado);
+  color: #000;
+  box-shadow: var(--shadow-gold);
+}
+
+.btn-admin-header .admin-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-admin-header.active {
+  background: var(--brand-secondary-dourado);
+  color: #000;
+  box-shadow: var(--shadow-gold);
+}
+
+/* Header Separator */
+.header-divider {
+  width: 1px;
+  height: 32px;
+  background-color: var(--status-secondary-900);
+}
+
+/* Notification Bell */
+.header-notification-btn {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
+}
+
+.header-notification-btn:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.header-notification-btn .bell-icon {
+  width: 22px;
+  height: 22px;
+}
+
+.notification-badge-dot {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  width: 8px;
+  height: 8px;
+  background-color: var(--status-error-500);
+  border-radius: 50%;
+  box-shadow: 0 0 6px var(--status-error-500);
+}
+
+/* User Profile Trigger */
+.header-user-trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-3);
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.header-user-trigger:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.user-avatar-img {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 1px solid var(--brand-secondary-dourado);
+}
+
+.user-name-label {
+  font-weight: 500;
+  font-size: 15px;
+  color: var(--brand-primary-branco);
+}
+
+.chevron-icon {
+  width: 16px;
+  height: 16px;
+  transition: transform 0.2s;
+}
+
+.header-user-trigger.open .chevron-icon {
+  transform: rotate(180deg);
+}
+
+/* Main Body Workspace (Sidebar + Content) */
+.app-body {
+  display: flex;
+  flex: 1;
+  position: relative;
+}
+
+/* Main Content Area */
+.app-content {
+  flex: 1;
+  padding: var(--spacing-6) var(--spacing-10);
+  background-color: var(--surface-bg);
+  min-width: 0; /* Prevents overflow in flexbox */
+}
+
+/* Footer */
+.app-footer {
+  height: 60px;
+  background-color: #000000;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 var(--spacing-10);
+  font-size: 12px;
+  color: var(--status-secondary-600);
+}
+
+.footer-left {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-2);
+}
+
+.footer-mq-brand {
+  font-weight: 700;
+  color: var(--brand-secondary-dourado);
+}
+
+.footer-right {
+  font-weight: 400;
+  color: var(--status-secondary-700);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
