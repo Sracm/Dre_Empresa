@@ -1224,6 +1224,134 @@ function atualizarKPIs() {
   const elFSub = document.getElementById('kpiFolhaSub');
   if (elFVal) elFVal.textContent = fmtBRL(folha.realizado);
   if (elFSub) elFSub.innerHTML = renderKpiSub(folha.orcado, folha.ro, folha.mom, folha.yoy, folha.ytd_yoy, folha.pct_orc, folha.pct_real);
+
+  // Variantes semânticas dos 7 cards conforme valores orçados vs realizados:
+  // Para despesas: se orçado >= realizado, positivo (economia); se realizado > orçado, negativo (estouro).
+  // Para receitas/margem: se realizado >= orçado, positivo (meta superada); se realizado < orçado, negativo.
+  applyKpiVariant('kpiVB', false, vb.realizado, vb.orcado);
+  applyKpiVariant('kpiMargem', false, margem.realizado, margem.orcado);
+  applyKpiVariant('kpiBonif', true, bonif.realizado, bonif.orcado);
+  applyKpiVariant('kpiComissao', true, comissao.realizado, comissao.orcado);
+  applyKpiVariant('kpiGuelta', true, guelta.realizado, guelta.orcado);
+  applyKpiVariant('kpiDespComercial', true, despCom.realizado, despCom.orcado);
+  applyKpiVariant('kpiFolha', true, folha.realizado, folha.orcado);
+}
+
+function applyKpiVariant(cardId, isDespesa, realizado, orcado) {
+  const cardEl = document.getElementById(cardId);
+  if (!cardEl) return;
+  cardEl.classList.remove('variant-positivo', 'variant-negativo', 'variant-neutro');
+  if (orcado == null || isNaN(Number(orcado)) || Number(orcado) === 0) {
+    cardEl.classList.add('variant-neutro');
+    return;
+  }
+  const r = Number(realizado) || 0;
+  const o = Number(orcado) || 0;
+  if (isDespesa) {
+    if (Math.abs(r) <= Math.abs(o)) {
+      cardEl.classList.add('variant-positivo');
+    } else {
+      cardEl.classList.add('variant-negativo');
+    }
+  } else {
+    if (r >= o) {
+      cardEl.classList.add('variant-positivo');
+    } else {
+      cardEl.classList.add('variant-negativo');
+    }
+  }
+}
+
+// ── Alternância de Modos da Tabela DRE e Busca Instantânea ─────────────────
+function setDRETableMode(mode) {
+  const btnDev = document.getElementById('btn-mode-deviations');
+  const btnTree = document.getElementById('btn-mode-tree');
+  const cardDev = document.getElementById('cardDesvios');
+  const cardTree = document.getElementById('dreTableWrapper');
+  const mainHeading = document.getElementById('dreMainHeading');
+  const subHeading = document.getElementById('dreSubHeading');
+  
+  if (mode === 'deviations') {
+    if (btnDev) btnDev.classList.add('active');
+    if (btnTree) btnTree.classList.remove('active');
+    if (cardDev) cardDev.style.display = 'block';
+    if (cardTree) cardTree.style.display = 'none';
+    if (mainHeading) mainHeading.textContent = 'Quadro de Desvios Executivos (|R/O| ≥ 10%)';
+    if (subHeading) subHeading.textContent = 'Títulos com desvio orçamentário igual ou superior a 10% no período';
+  } else {
+    if (btnDev) btnDev.classList.remove('active');
+    if (btnTree) btnTree.classList.add('active');
+    if (cardDev) cardDev.style.display = 'none';
+    if (cardTree) cardTree.style.display = 'block';
+    if (mainHeading) mainHeading.textContent = 'Demonstrativo de Resultado & Desvios';
+    if (subHeading) subHeading.textContent = 'Visão contábil detalhada por Bloco, Título e Centro de Custo';
+  }
+}
+
+function filterDRETable(query) {
+  query = (query || '').toLowerCase().trim();
+  const rows = document.querySelectorAll('#dreBody tr');
+  rows.forEach(tr => {
+    if (!query) {
+      tr.style.display = '';
+      return;
+    }
+    const text = tr.textContent.toLowerCase();
+    tr.style.display = text.includes(query) ? '' : 'none';
+  });
+}
+
+function setAcumuladoMode(mode) {
+  const tableWrap = document.getElementById('wrapTabelaAcumuladoSwitch');
+  const chartWrap = document.getElementById('chartAcumuladoContainer');
+  const btnChart = document.getElementById('btn-view-acum-chart');
+  const btnTable = document.getElementById('btn-view-acum-table');
+  if (mode === 'table') {
+    if (tableWrap) tableWrap.style.display = 'block';
+    if (chartWrap) chartWrap.style.display = 'none';
+    if (btnTable) btnTable.classList.add('active');
+    if (btnChart) btnChart.classList.remove('active');
+  } else {
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (chartWrap) chartWrap.style.display = 'block';
+    if (btnTable) btnTable.classList.remove('active');
+    if (btnChart) btnChart.classList.add('active');
+  }
+}
+
+function setMensalMode(mode) {
+  const tableWrap = document.getElementById('wrapTabelaMensalSwitch');
+  const chartWrap = document.getElementById('chartMensalContainer');
+  const btnChart = document.getElementById('btn-view-mom-chart');
+  const btnTable = document.getElementById('btn-view-mom-table');
+  if (mode === 'table') {
+    if (tableWrap) tableWrap.style.display = 'block';
+    if (chartWrap) chartWrap.style.display = 'none';
+    if (btnTable) btnTable.classList.add('active');
+    if (btnChart) btnChart.classList.remove('active');
+    renderizarTabelaMensal(state.mensalData);
+  } else {
+    if (tableWrap) tableWrap.style.display = 'none';
+    if (chartWrap) chartWrap.style.display = 'block';
+    if (btnTable) btnTable.classList.remove('active');
+    if (btnChart) btnChart.classList.add('active');
+  }
+}
+
+function renderizarTabelaMensal(mensalData) {
+  const tbody = document.getElementById('momTableBody');
+  if (!tbody || !mensalData || !mensalData.length) return;
+  tbody.innerHTML = mensalData.map(m => {
+    const ating = m.orcado > 0 ? ((m.realizado / m.orcado) * 100).toFixed(1) + '%' : '—';
+    const diff = (m.realizado || 0) - (m.orcado || 0);
+    return `<tr>
+      <td style="font-weight: 700; color: #fff;">${m.mes_nome || m.mes}</td>
+      <td class="col-num">${fmtBRL(m.realizado)}</td>
+      <td class="col-num">${fmtBRL(m.orcado)}</td>
+      <td class="col-num ${diff < 0 ? 'val-neg' : 'val-pos'}">${fmtBRL(diff)}</td>
+      <td class="col-num">${ating}</td>
+    </tr>`;
+  }).join('');
 }
 
 // ── Plugin para Exibir Valores Compactos sobre as Colunas (Opção 2) ──────
