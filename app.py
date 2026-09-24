@@ -9,6 +9,7 @@ from datetime import datetime, timedelta
 from collections import OrderedDict
 from flask import Flask, render_template, jsonify, request, send_file
 import io
+import json
 import openpyxl
 
 app = Flask(__name__)
@@ -1092,18 +1093,47 @@ def exportar_excel():
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  ROTINA DE CARGA COMPLETA NOTURNA (TODAS AS NOITES ÀS 20:00)
+#  INTEGRAÇÃO GITHUB: AUTO-COMMIT & PUSH
+# ═══════════════════════════════════════════════════════════════════════════
+def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
+    try:
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        status_file = os.path.join(BASE_DIR, "data_sync_status.json")
+        with open(status_file, "w", encoding="utf-8") as f:
+            json.dump({
+                "ultima_sincronizacao": ts,
+                "motivo": motivo,
+                "status": "sucesso"
+            }, f, indent=2, ensure_ascii=False)
+
+        # Adiciona arquivos do projeto garantindo que não suba arquivos pesados do .gitignore
+        subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "app.py", "etl_oracle.py"], cwd=BASE_DIR, check=False)
+        commit_msg = f"{motivo} ({ts})"
+        res_c = subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, capture_output=True, text=True, check=False)
+        print(f"[{ts}] [GIT] Commit: {res_c.stdout or res_c.stderr}".strip(), flush=True)
+
+        res_p = subprocess.run(["git", "push", "origin", "master"], cwd=BASE_DIR, capture_output=True, text=True, check=False)
+        print(f"[{ts}] [GIT] Push: {res_p.stdout or res_p.stderr}".strip(), flush=True)
+        return True, "Salvo no GitHub com sucesso"
+    except Exception as e:
+        print(f"[GIT ERROR] {e}", flush=True)
+        return False, str(e)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  ROTINA DE CARGA COMPLETA NOTURNA (TODAS AS NOITES ÀS 20:00 DESDE 2022)
 # ═══════════════════════════════════════════════════════════════════════════
 def executar_carga_completa_dre():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Iniciando carregamento completo do DRE via etl_oracle.py...", flush=True)
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Iniciando carregamento completo do DRE desde 2022 via etl_oracle.py...", flush=True)
     try:
         etl_script = os.path.join(BASE_DIR, "etl_oracle.py")
-        res = subprocess.run([sys.executable, etl_script], capture_output=True, text=True, check=False)
+        res = subprocess.run([sys.executable, etl_script, "--anos", "2022,2023,2024,2025,2026,2027"], capture_output=True, text=True, check=False)
         if res.returncode == 0:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Sucesso no ETL DRE!", flush=True)
             with _cache_lock:
                 _cache.clear()
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Cache limpo com sucesso.", flush=True)
+            # SALVAR NO GITHUB APÓS A CONCLUSÃO DA CARGA NOTURNA
+            git_auto_commit_and_push("auto: carga completa noturna DRE desde 2022")
         else:
             print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Erro no ETL: {res.stderr}", flush=True)
     except Exception as e:
@@ -1131,8 +1161,15 @@ def rota_carga_noturna():
     t.start()
     return jsonify({"status": "iniciado", "msg": "Carga completa noturna do DRE disparada em background."})
 
+@app.route("/api/git/salvar", methods=["POST", "GET"])
+def rota_git_salvar():
+    t = threading.Thread(target=git_auto_commit_and_push, args=("auto: sincronização DRE via botão Carregar",), daemon=True)
+    t.start()
+    return jsonify({"status": "iniciado", "msg": "Sincronização com GitHub disparada em background."})
+
 # Inicia agendador em background
 iniciar_agendador_noturno()
 
 if __name__ == "__main__":
     app.run(debug=False, port=5150, host="0.0.0.0", threaded=True)
+

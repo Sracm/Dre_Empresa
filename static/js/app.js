@@ -456,6 +456,11 @@ function carregarTudo(somenteDoisMeses = false) {
   fetchComPolling('/api/dre?' + p, 'dre', (data) => onDRELoaded(data, somenteDoisMeses));
   fetchComPolling('/api/dre/mensal?' + pMensal, 'mensal', (data) => onMensalLoaded(data, somenteDoisMeses, mesAnt, mesAtual));
   carregarTabelaAcumulado();
+
+  // Sincroniza automaticamente com o GitHub quando o usuário clica em Carregar
+  if (somenteDoisMeses) {
+    fetch('/api/git/salvar').catch(err => console.warn('Erro ao disparar git sync:', err));
+  }
 }
 
 // ── Fetch com polling automático ─────────────────────────────────────────
@@ -512,7 +517,7 @@ function onDRELoaded(data, somenteDoisMeses = false) {
   atualizarKPIs();
   atualizarTimestamp();
   if (somenteDoisMeses) {
-    showToast('Mês atual e mês anterior atualizados. Outros meses congelados!', 'success');
+    showToast('Mês atual e anterior atualizados. Sincronizado no GitHub!', 'success');
   } else {
     showToast('Dashboard carregado com sucesso!', 'success');
   }
