@@ -1082,7 +1082,7 @@ def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
             }, f, indent=2, ensure_ascii=False)
 
         # Adiciona arquivos do projeto garantindo que não suba arquivos pesados do .gitignore
-        subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "static/css/components.css", "static/css/responsive.css", "app.py", "etl_oracle.py"], cwd=BASE_DIR, check=False)
+        subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "static/css/components.css", "static/css/responsive.css", "app.py", "etl_sync.py"], cwd=BASE_DIR, check=False)
         commit_msg = f"{motivo} ({ts})"
         res_c = subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, capture_output=True, text=True, check=False)
         print(f"[{ts}] [GIT] Commit: {res_c.stdout or res_c.stderr}".strip(), flush=True)
@@ -1142,9 +1142,33 @@ def rota_git_salvar():
     t.start()
     return jsonify({"status": "iniciado", "msg": "Sincronização com GitHub disparada em background."})
 
-# Inicia agendador em background
-iniciar_agendador_noturno()
+# ═══════════════════════════════════════════════════════════════════════════
+#  ROTAS DE SINCRONIZAÇÃO SOB DEMANDA (ORACLE SANKHYA)
+# ═══════════════════════════════════════════════════════════════════════════
+import etl_sync
+
+@app.route("/api/dre/sincronizar-oracle", methods=["POST", "GET"])
+def rota_sincronizar_oracle():
+    ano = request.args.get("ano") or (request.json.get("ano") if request.is_json and request.json else None)
+    mes = request.args.get("mes") or (request.json.get("mes") if request.is_json and request.json else None)
+    modo = request.args.get("modo", "dois_meses")
+
+    sucesso, msg = etl_sync.sincronizar_background(ano, mes, modo)
+    if sucesso:
+        return jsonify({"status": "iniciado", "msg": msg})
+    else:
+        return jsonify({"status": "ocupado", "msg": msg}), 409
+
+@app.route("/api/dre/sincronizar-status", methods=["GET"])
+def rota_sincronizar_status():
+    status = etl_sync.get_sync_status()
+    # Se finalizou com sucesso, limpa imediatamente o cache em memória do Flask
+    if status.get("status") == "success":
+        with _cache_lock:
+            _cache.clear()
+    return jsonify(status)
 
 if __name__ == "__main__":
+    iniciar_agendador_noturno()
     app.run(debug=False, port=5150, host="0.0.0.0", threaded=True)
 

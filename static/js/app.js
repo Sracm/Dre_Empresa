@@ -141,10 +141,10 @@ document.addEventListener('DOMContentLoaded', async () => {
   carregarTudo(false, false); // Carga inicial rápida a partir do cache (sem barra de progresso e sem sincronização com GitHub)
 
   const btnCarregar = document.getElementById('btnCarregar');
-  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(false, true));
+  if (btnCarregar) btnCarregar.addEventListener('click', () => iniciarSincronizacaoOracle());
 
   const btnAplicar = document.getElementById('btnAplicar');
-  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(false, true));
+  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(false, false));
 
   const btnExportExcel = document.getElementById('btnExportExcel');
   if (btnExportExcel) btnExportExcel.addEventListener('click', (e) => exportarParaExcel(e));
@@ -450,25 +450,23 @@ const ReportProgressBar = {
     this.icon = document.getElementById('reportProgressIcon');
   },
 
-  start() {
+  start(title = 'Sincronizando com o Banco Oracle Sankhya...') {
     if (!this.container) this.init();
     if (!this.container) return;
 
     this.isActive = true;
-    this.pendingLoads = 3;
-    clearInterval(this.simTimer);
-    this.currentVal = 12;
-    this.targetVal = 88;
+    if (this.pollTimer) clearInterval(this.pollTimer);
 
     this.container.style.display = 'block';
     this.container.style.opacity = '1';
     
     if (this.fill) {
       this.fill.classList.remove('success');
-      this.fill.style.width = '12%';
+      this.fill.classList.remove('error');
+      this.fill.style.width = '8%';
     }
-    if (this.pct) this.pct.textContent = '12%';
-    if (this.title) this.title.textContent = 'Carregando Report do Banco de Dados...';
+    if (this.pct) this.pct.textContent = '8%';
+    if (this.title) this.title.textContent = title;
     if (this.msg) this.msg.textContent = 'Conectando ao Oracle Sankhya e consultando lançamentos analíticos...';
     if (this.icon) {
       this.icon.className = 'material-symbols-outlined report-progress-icon';
@@ -481,56 +479,31 @@ const ReportProgressBar = {
       btnCarregar.style.opacity = '0.65';
       btnCarregar.style.pointerEvents = 'none';
     }
-
-    this.simTimer = setInterval(() => {
-      if (this.currentVal < this.targetVal) {
-        this.currentVal += Math.floor(Math.random() * 5) + 3;
-        if (this.currentVal > this.targetVal) this.currentVal = this.targetVal;
-        this.updateView(this.currentVal);
-
-        if (this.currentVal >= 35 && this.currentVal < 65) {
-          if (this.msg) this.msg.textContent = 'Calculando blocos, títulos e margens contábeis...';
-        } else if (this.currentVal >= 65) {
-          if (this.msg) this.msg.textContent = 'Consolidando indicadores executivos e tabela acumulada...';
-        }
-      }
-    }, 250);
   },
 
   step(pct, msg) {
     if (!this.isActive) return;
-    if (pct > this.currentVal) {
-      this.currentVal = pct;
-      this.updateView(this.currentVal);
-    }
+    this.currentVal = pct;
+    this.updateView(pct);
     if (msg && this.msg) this.msg.textContent = msg;
   },
 
-  notifyPartDone(partName) {
+  complete(title = 'Banco Oracle sincronizado com sucesso!', msg = 'Demonstrativo, gráficos e indicadores 100% atualizados.') {
     if (!this.isActive) return;
-    this.pendingLoads--;
-    if (this.pendingLoads === 2) {
-      this.step(55, 'Demonstrativo DRE processado com sucesso...');
-    } else if (this.pendingLoads === 1) {
-      this.step(85, 'Processando evolução mensal e acumulado...');
-    } else if (this.pendingLoads <= 0) {
-      this.complete();
-    }
-  },
-
-  complete() {
-    if (!this.isActive) return;
-    clearInterval(this.simTimer);
+    if (this.pollTimer) clearInterval(this.pollTimer);
     this.currentVal = 100;
     this.updateView(100);
 
-    if (this.fill) this.fill.classList.add('success');
+    if (this.fill) {
+      this.fill.classList.remove('error');
+      this.fill.classList.add('success');
+    }
     if (this.icon) {
       this.icon.className = 'material-symbols-outlined report-progress-icon success';
       this.icon.textContent = 'check_circle';
     }
-    if (this.title) this.title.textContent = 'Report carregado com sucesso!!';
-    if (this.msg) this.msg.textContent = 'Demonstrativo, gráficos e indicadores 100% conciliados e atualizados.';
+    if (this.title) this.title.textContent = title;
+    if (this.msg) this.msg.textContent = msg;
 
     const btnCarregar = document.getElementById('btnCarregar');
     if (btnCarregar) {
@@ -539,21 +512,53 @@ const ReportProgressBar = {
       btnCarregar.style.pointerEvents = 'auto';
     }
 
-    showToast('Report carregado com sucesso!!', 'success');
+    showToast(title, 'success');
 
     setTimeout(() => {
-      if (this.container && this.currentVal === 100) {
+      if (this.container) {
         this.container.style.transition = 'opacity 0.6s ease';
         this.container.style.opacity = '0';
         setTimeout(() => {
-          if (this.container.style.opacity === '0') {
-            this.container.style.display = 'none';
-            this.container.style.transition = '';
-            this.isActive = false;
-          }
+          this.container.style.display = 'none';
+          this.container.style.transition = '';
+          this.isActive = false;
         }, 600);
       }
-    }, 2200);
+    }, 2800);
+  },
+
+  error(msg = 'Erro na sincronização com o Oracle.') {
+    if (this.pollTimer) clearInterval(this.pollTimer);
+    if (this.fill) {
+      this.fill.classList.remove('success');
+      this.fill.classList.add('error');
+    }
+    if (this.icon) {
+      this.icon.className = 'material-symbols-outlined report-progress-icon error';
+      this.icon.textContent = 'error';
+    }
+    if (this.title) this.title.textContent = 'Falha ao sincronizar com Oracle';
+    if (this.msg) this.msg.textContent = msg;
+
+    const btnCarregar = document.getElementById('btnCarregar');
+    if (btnCarregar) {
+      btnCarregar.disabled = false;
+      btnCarregar.style.opacity = '1';
+      btnCarregar.style.pointerEvents = 'auto';
+    }
+    showToast(msg, 'error');
+
+    setTimeout(() => {
+      if (this.container) {
+        this.container.style.transition = 'opacity 0.6s ease';
+        this.container.style.opacity = '0';
+        setTimeout(() => {
+          this.container.style.display = 'none';
+          this.container.style.transition = '';
+          this.isActive = false;
+        }, 600);
+      }
+    }, 4500);
   },
 
   updateView(val) {
@@ -562,17 +567,65 @@ const ReportProgressBar = {
   }
 };
 
+// ── Sincronização Real com o Oracle ao Clicar em Carregar ────────────────
+async function iniciarSincronizacaoOracle() {
+  const ano = getAnoParam();
+  const mes = state.mes || 9;
+
+  ReportProgressBar.start(`Sincronizando ${mes}/${ano} com Oracle...`);
+
+  try {
+    const res = await fetch(`/api/dre/sincronizar-oracle?ano=${ano}&mes=${mes}&modo=dois_meses`, {
+      method: 'POST'
+    });
+    const data = await res.json();
+
+    if (res.status === 409) {
+      showToast(data.msg || 'Sincronização já em andamento.', 'info');
+    }
+
+    // Polling contínuo do status no backend
+    ReportProgressBar.pollTimer = setInterval(async () => {
+      try {
+        const sRes = await fetch('/api/dre/sincronizar-status');
+        const sData = await sRes.json();
+
+        if (sData.status === 'running') {
+          const detalheStr = sData.detalhe ? ` (${sData.detalhe})` : '';
+          ReportProgressBar.step(sData.pct || 15, `${sData.msg}${detalheStr}`);
+        } else if (sData.status === 'success') {
+          clearInterval(ReportProgressBar.pollTimer);
+          ReportProgressBar.complete(
+            'Banco Oracle sincronizado com sucesso!',
+            `${sData.linhas_afetadas || 0} lançamentos gravados em ${Math.round(sData.duracao_seg || 0)}s.`
+          );
+
+          // Salva status no Git em background
+          fetch('/api/git/salvar')
+            .then(r => r.json())
+            .then(d => console.log('[GIT SYNC]', d))
+            .catch(err => console.warn('Erro ao disparar git sync:', err));
+
+          // Recarrega todos os componentes da tela com os números frescos
+          carregarTudo(false, false);
+        } else if (sData.status === 'error') {
+          clearInterval(ReportProgressBar.pollTimer);
+          ReportProgressBar.error(sData.msg || 'Erro na extração dos dados Oracle.');
+        }
+      } catch (err) {
+        console.warn('Erro ao consultar status da sincronização:', err);
+      }
+    }, 1500);
+
+  } catch (err) {
+    ReportProgressBar.error('Erro ao conectar ao servidor: ' + err.message);
+  }
+}
+
 // ── Carrega o dashboard completo com polling ─────────────────────────────
 function carregarTudo(somenteDoisMeses = false, isUserClick = false) {
-  // A barra de progresso e a sincronização com o GitHub SÓ acontecem quando o usuário clica no botão Atualizar/Carregar!
-  if (isUserClick) {
-    ReportProgressBar.start();
-    fetch('/api/git/salvar')
-      .then(r => r.json())
-      .then(d => console.log('[GIT SYNC]', d))
-      .catch(err => console.warn('Erro ao disparar git sync:', err));
-  } else {
-    ReportProgressBar.isActive = false;
+  // Limpa barra de progresso se não for sincronização ativa
+  if (!ReportProgressBar.isActive) {
     const pContainer = document.getElementById('reportProgressBarContainer');
     if (pContainer) pContainer.style.display = 'none';
   }

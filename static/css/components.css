@@ -3947,6 +3947,11 @@ body.login-fullscreen-mode #view-login.figma-login-stage {
   color: #22c55e;
 }
 
+.report-progress-icon.error {
+  animation: none;
+  color: #ef4444;
+}
+
 .report-progress-title {
   font-size: 13.5px;
   font-weight: 700;
@@ -3982,6 +3987,11 @@ body.login-fullscreen-mode #view-login.figma-login-stage {
 .report-progress-fill.success {
   background: linear-gradient(90deg, #22c55e, #4ade80);
   box-shadow: 0 0 14px rgba(34, 197, 94, 0.6);
+}
+
+.report-progress-fill.error {
+  background: linear-gradient(90deg, #ef4444, #f87171);
+  box-shadow: 0 0 14px rgba(239, 68, 68, 0.6);
 }
 
 .report-progress-msg {
