@@ -1082,7 +1082,7 @@ def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
             }, f, indent=2, ensure_ascii=False)
 
         # Adiciona arquivos do projeto garantindo que não suba arquivos pesados do .gitignore
-        subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "app.py", "etl_oracle.py"], cwd=BASE_DIR, check=False)
+        subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "static/css/components.css", "static/css/responsive.css", "app.py", "etl_oracle.py"], cwd=BASE_DIR, check=False)
         commit_msg = f"{motivo} ({ts})"
         res_c = subprocess.run(["git", "commit", "-m", commit_msg], cwd=BASE_DIR, capture_output=True, text=True, check=False)
         print(f"[{ts}] [GIT] Commit: {res_c.stdout or res_c.stderr}".strip(), flush=True)

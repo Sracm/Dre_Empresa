@@ -138,13 +138,13 @@ function showToast(msg, type = '') {
 // ── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   await carregarFiltros();
-  carregarTudo(false); // Carga inicial completa de todo o histórico
+  carregarTudo(false, false); // Carga inicial rápida a partir do cache (sem barra de progresso e sem sincronização com GitHub)
 
   const btnCarregar = document.getElementById('btnCarregar');
-  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(false));
+  if (btnCarregar) btnCarregar.addEventListener('click', () => carregarTudo(false, true));
 
   const btnAplicar = document.getElementById('btnAplicar');
-  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(false));
+  if (btnAplicar) btnAplicar.addEventListener('click', () => carregarTudo(false, true));
 
   const btnExportExcel = document.getElementById('btnExportExcel');
   if (btnExportExcel) btnExportExcel.addEventListener('click', (e) => exportarParaExcel(e));
@@ -175,7 +175,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   }
 
   // Interatividade nos KPI cards para filtrar gráficos diretamente
-  document.querySelectorAll('.kpi-card[data-kpi]').forEach(card => {
+  document.querySelectorAll('.metric-kpi-card[data-kpi], .kpi-card[data-kpi]').forEach(card => {
     card.addEventListener('click', () => {
       const kpiKey = card.getAttribute('data-kpi');
       onKpiCardClick(kpiKey, card);
@@ -427,8 +427,156 @@ async function carregarFiltros() {
   });
 }
 
+// ── Gerenciador da Barra de Progresso de Carga do Report ─────────────────────
+const ReportProgressBar = {
+  container: null,
+  fill: null,
+  pct: null,
+  title: null,
+  msg: null,
+  icon: null,
+  simTimer: null,
+  currentVal: 0,
+  targetVal: 0,
+  isActive: false,
+  pendingLoads: 0,
+
+  init() {
+    this.container = document.getElementById('reportProgressBarContainer');
+    this.fill = document.getElementById('reportProgressFill');
+    this.pct = document.getElementById('reportProgressPct');
+    this.title = document.getElementById('reportProgressTitle');
+    this.msg = document.getElementById('reportProgressMsg');
+    this.icon = document.getElementById('reportProgressIcon');
+  },
+
+  start() {
+    if (!this.container) this.init();
+    if (!this.container) return;
+
+    this.isActive = true;
+    this.pendingLoads = 3;
+    clearInterval(this.simTimer);
+    this.currentVal = 12;
+    this.targetVal = 88;
+
+    this.container.style.display = 'block';
+    this.container.style.opacity = '1';
+    
+    if (this.fill) {
+      this.fill.classList.remove('success');
+      this.fill.style.width = '12%';
+    }
+    if (this.pct) this.pct.textContent = '12%';
+    if (this.title) this.title.textContent = 'Carregando Report do Banco de Dados...';
+    if (this.msg) this.msg.textContent = 'Conectando ao Oracle Sankhya e consultando lançamentos analíticos...';
+    if (this.icon) {
+      this.icon.className = 'material-symbols-outlined report-progress-icon';
+      this.icon.textContent = 'sync';
+    }
+
+    const btnCarregar = document.getElementById('btnCarregar');
+    if (btnCarregar) {
+      btnCarregar.disabled = true;
+      btnCarregar.style.opacity = '0.65';
+      btnCarregar.style.pointerEvents = 'none';
+    }
+
+    this.simTimer = setInterval(() => {
+      if (this.currentVal < this.targetVal) {
+        this.currentVal += Math.floor(Math.random() * 5) + 3;
+        if (this.currentVal > this.targetVal) this.currentVal = this.targetVal;
+        this.updateView(this.currentVal);
+
+        if (this.currentVal >= 35 && this.currentVal < 65) {
+          if (this.msg) this.msg.textContent = 'Calculando blocos, títulos e margens contábeis...';
+        } else if (this.currentVal >= 65) {
+          if (this.msg) this.msg.textContent = 'Consolidando indicadores executivos e tabela acumulada...';
+        }
+      }
+    }, 250);
+  },
+
+  step(pct, msg) {
+    if (!this.isActive) return;
+    if (pct > this.currentVal) {
+      this.currentVal = pct;
+      this.updateView(this.currentVal);
+    }
+    if (msg && this.msg) this.msg.textContent = msg;
+  },
+
+  notifyPartDone(partName) {
+    if (!this.isActive) return;
+    this.pendingLoads--;
+    if (this.pendingLoads === 2) {
+      this.step(55, 'Demonstrativo DRE processado com sucesso...');
+    } else if (this.pendingLoads === 1) {
+      this.step(85, 'Processando evolução mensal e acumulado...');
+    } else if (this.pendingLoads <= 0) {
+      this.complete();
+    }
+  },
+
+  complete() {
+    if (!this.isActive) return;
+    clearInterval(this.simTimer);
+    this.currentVal = 100;
+    this.updateView(100);
+
+    if (this.fill) this.fill.classList.add('success');
+    if (this.icon) {
+      this.icon.className = 'material-symbols-outlined report-progress-icon success';
+      this.icon.textContent = 'check_circle';
+    }
+    if (this.title) this.title.textContent = 'Report carregado com sucesso!!';
+    if (this.msg) this.msg.textContent = 'Demonstrativo, gráficos e indicadores 100% conciliados e atualizados.';
+
+    const btnCarregar = document.getElementById('btnCarregar');
+    if (btnCarregar) {
+      btnCarregar.disabled = false;
+      btnCarregar.style.opacity = '1';
+      btnCarregar.style.pointerEvents = 'auto';
+    }
+
+    showToast('Report carregado com sucesso!!', 'success');
+
+    setTimeout(() => {
+      if (this.container && this.currentVal === 100) {
+        this.container.style.transition = 'opacity 0.6s ease';
+        this.container.style.opacity = '0';
+        setTimeout(() => {
+          if (this.container.style.opacity === '0') {
+            this.container.style.display = 'none';
+            this.container.style.transition = '';
+            this.isActive = false;
+          }
+        }, 600);
+      }
+    }, 2200);
+  },
+
+  updateView(val) {
+    if (this.fill) this.fill.style.width = val + '%';
+    if (this.pct) this.pct.textContent = val + '%';
+  }
+};
+
 // ── Carrega o dashboard completo com polling ─────────────────────────────
-function carregarTudo(somenteDoisMeses = false) {
+function carregarTudo(somenteDoisMeses = false, isUserClick = false) {
+  // A barra de progresso e a sincronização com o GitHub SÓ acontecem quando o usuário clica no botão Atualizar/Carregar!
+  if (isUserClick) {
+    ReportProgressBar.start();
+    fetch('/api/git/salvar')
+      .then(r => r.json())
+      .then(d => console.log('[GIT SYNC]', d))
+      .catch(err => console.warn('Erro ao disparar git sync:', err));
+  } else {
+    ReportProgressBar.isActive = false;
+    const pContainer = document.getElementById('reportProgressBarContainer');
+    if (pContainer) pContainer.style.display = 'none';
+  }
+
   // Limpa cache de meses antigos ao carregar ou aplicar filtros para que os números correspondam exatamente ao banco
   if (!somenteDoisMeses) {
     state.mensalData = [];
@@ -461,11 +609,6 @@ function carregarTudo(somenteDoisMeses = false) {
   fetchComPolling('/api/dre?' + p, 'dre', (data) => onDRELoaded(data, somenteDoisMeses));
   fetchComPolling('/api/dre/mensal?' + pMensal, 'mensal', (data) => onMensalLoaded(data, somenteDoisMeses, mesAnt, mesAtual));
   carregarTabelaAcumulado();
-
-  // Sincroniza automaticamente com o GitHub quando o usuário clica em Carregar
-  if (somenteDoisMeses) {
-    fetch('/api/git/salvar').catch(err => console.warn('Erro ao disparar git sync:', err));
-  }
 }
 
 // ── Fetch com polling automático ─────────────────────────────────────────
@@ -521,10 +664,11 @@ function onDRELoaded(data, somenteDoisMeses = false) {
   renderizarQuadroDesvios();
   atualizarKPIs();
   atualizarTimestamp();
+  ReportProgressBar.notifyPartDone('dre');
   if (somenteDoisMeses) {
     showToast('Mês atual e anterior atualizados. Sincronizado no GitHub!', 'success');
-  } else {
-    showToast('Dashboard carregado com sucesso!', 'success');
+  } else if (!ReportProgressBar.isActive) {
+    showToast('Report carregado com sucesso!!', 'success');
   }
 }
 
@@ -541,6 +685,7 @@ function onMensalLoaded(data, somenteDoisMeses = false, mesAnt = null, mesAtual 
 
   renderizarGraficoMensal(state.mensalData);
   renderizarGraficoAcumulado(state.mensalData, state.mes);
+  ReportProgressBar.notifyPartDone('mensal');
 }
 
 // ── Tabela Acumulada YTD (Margem de Contribuição e MARGEM) ─────────────────
@@ -564,6 +709,8 @@ async function carregarTabelaAcumulado() {
     if (tbody) {
       tbody.innerHTML = `<tr><td colspan="5" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar acumulado: ${e.message}</td></tr>`;
     }
+  } finally {
+    ReportProgressBar.notifyPartDone('acumulado');
   }
 }
 
@@ -1121,13 +1268,16 @@ function onKpiCardClick(key, cardEl) {
     resetarFiltroLinha();
     return;
   }
-  document.querySelectorAll('.kpi-card').forEach(c => c.classList.remove('kpi-active'));
+  document.querySelectorAll('.metric-kpi-card, .kpi-card').forEach(c => c.classList.remove('kpi-active'));
   cardEl.classList.add('kpi-active');
 
   const dre = state.dre || [];
   const allTitulos = dre.flatMap(b => b.titulos || []);
 
-  if (key === 'vb') {
+  if (key === 'vl') {
+    const vl = dre.find(b => (b.bloco || '').toLowerCase().includes('venda liquida'));
+    if (vl) carregarGraficoLinha({ tipo: 'bloco', nome: vl.bloco || '1.Venda Liquida', bloco: vl.bloco || '1.Venda Liquida' });
+  } else if (key === 'vb') {
     const vb = allTitulos.find(t => (t.titulo || '').toLowerCase().includes('venda bruta'));
     if (vb) carregarGraficoLinha({ tipo: 'titulo', nome: vb.titulo, bloco: '1.Venda Liquida', titulo: vb.titulo });
   } else if (key === 'margem') {
@@ -1197,12 +1347,19 @@ async function carregarGraficoLinha(filtro) {
   }
 }
 
-// ── Atualização dos 6 KPI Cards com Métricas e Mês Anterior ─────────────
+// ── Atualização dos KPI Cards com Métricas e Mês Anterior ─────────────
 function atualizarKPIs() {
   const dre = state.dre;
   if (!dre || dre.length === 0) return;
 
   const allTitulos = dre.flatMap(b => b.titulos || []);
+
+  // 0. Venda Líquida
+  const vl = dre.find(b => (b.bloco || '').toLowerCase().includes('venda liquida')) || {};
+  const elVLVal = document.getElementById('kpiVLVal');
+  const elVLSub = document.getElementById('kpiVLSub');
+  if (elVLVal) elVLVal.textContent = fmtBRL(vl.realizado);
+  if (elVLSub) elVLSub.innerHTML = renderKpiSub(vl.orcado, vl.ro, vl.mom, vl.yoy, vl.ytd_yoy, vl.pct_orc, vl.pct_real);
 
   // 1. Venda Bruta
   const vb = allTitulos.find(t => t.titulo?.toLowerCase().includes('venda bruta')) || {};
@@ -1259,9 +1416,10 @@ function atualizarKPIs() {
   if (elFVal) elFVal.textContent = fmtBRL(folha.realizado);
   if (elFSub) elFSub.innerHTML = renderKpiSub(folha.orcado, folha.ro, folha.mom, folha.yoy, folha.ytd_yoy, folha.pct_orc, folha.pct_real);
 
-  // Variantes semânticas dos 7 cards conforme valores orçados vs realizados:
+  // Variantes semânticas dos cards conforme valores orçados vs realizados:
   // Para despesas: se orçado >= realizado, positivo (economia); se realizado > orçado, negativo (estouro).
   // Para receitas/margem: se realizado >= orçado, positivo (meta superada); se realizado < orçado, negativo.
+  applyKpiVariant('kpiVL', false, vl.realizado, vl.orcado);
   applyKpiVariant('kpiVB', false, vb.realizado, vb.orcado);
   applyKpiVariant('kpiMargem', false, margem.realizado, margem.orcado);
   applyKpiVariant('kpiBonif', true, bonif.realizado, bonif.orcado);

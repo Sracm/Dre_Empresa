@@ -277,10 +277,10 @@
 }
 
 .filter-label {
-  font-size: 11px;
-  font-weight: 600;
+  font-size: 11.5px;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--status-secondary-600);
+  color: #ffffff !important;
   letter-spacing: 0.5px;
 }
 
@@ -497,9 +497,9 @@
 
 .metric-card-title {
   font-size: 11px;
-  font-weight: 500;
+  font-weight: 700;
   text-transform: uppercase;
-  color: var(--status-secondary-600);
+  color: #CB9727 !important;
   letter-spacing: 0.5px;
   white-space: nowrap;
   overflow: hidden;
@@ -3886,6 +3886,122 @@ body.login-fullscreen-mode #view-login.figma-login-stage {
   font-size: 10.5px;
   color: #94a3b8;
   line-height: 1.3;
+}
+
+/* ==========================================================================
+   BARRA DE PROGRESSO DE CARGA DO REPORT (MQ DESIGN SYSTEM)
+   ========================================================================== */
+.report-progress-container {
+  margin: 0 24px 18px 24px;
+  animation: slideDownFade 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.report-progress-card {
+  background: rgba(18, 22, 31, 0.92);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border: 1px solid rgba(203, 151, 39, 0.35);
+  border-radius: 12px;
+  padding: 14px 22px;
+  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.45), 0 0 15px rgba(203, 151, 39, 0.12);
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  position: relative;
+  overflow: hidden;
+}
+
+.report-progress-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, #CB9727, #f6c86e, #CB9727);
+  background-size: 200% 100%;
+  animation: shimmerBorder 2s infinite linear;
+}
+
+.report-progress-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.report-progress-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.report-progress-icon {
+  font-size: 20px;
+  color: #CB9727;
+  display: inline-block;
+  animation: spinIcon 1.2s infinite linear;
+}
+
+.report-progress-icon.success {
+  animation: none;
+  color: #22c55e;
+}
+
+.report-progress-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #f4f7fb;
+  letter-spacing: 0.2px;
+}
+
+.report-progress-pct {
+  font-size: 14px;
+  font-weight: 800;
+  color: #CB9727;
+  font-variant-numeric: tabular-nums;
+}
+
+.report-progress-track {
+  width: 100%;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 999px;
+  overflow: hidden;
+  position: relative;
+}
+
+.report-progress-fill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #CB9727, #f6c86e);
+  border-radius: 999px;
+  transition: width 0.25s cubic-bezier(0.4, 0, 0.2, 1), background 0.3s ease;
+  box-shadow: 0 0 10px rgba(203, 151, 39, 0.5);
+}
+
+.report-progress-fill.success {
+  background: linear-gradient(90deg, #22c55e, #4ade80);
+  box-shadow: 0 0 14px rgba(34, 197, 94, 0.6);
+}
+
+.report-progress-msg {
+  font-size: 11.5px;
+  color: var(--status-secondary-600, #94a3b8);
+  font-style: italic;
+}
+
+@keyframes spinIcon {
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes shimmerBorder {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+@keyframes slideDownFade {
+  from { opacity: 0; transform: translateY(-8px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 

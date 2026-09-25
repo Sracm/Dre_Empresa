@@ -8,11 +8,11 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@20..48,100..700,0..1,-50..200" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v15" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v15" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v15" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260924_v15" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260924_v15" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v20" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260924_v20" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260924_v20" />
 </head>
 <body class="dre-empresa-app">
 
@@ -43,7 +43,7 @@
 <section class="filtros-bar filter-toolbar-card" id="filtrosBar" style="margin: 16px 24px; padding: 12px 18px;">
   <!-- Filtro 1: Ano -->
   <div class="filtro-group filter-field">
-    <label class="filter-label">Ano</label>
+    <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Ano</label>
     <div class="multi-select" id="multiSelectAno">
       <div class="multi-select-btn" id="anoBtn" tabindex="0" title="Clique para selecionar um ou mais Anos">
         <span class="multi-select-text" id="anoBtnText">2026</span>
@@ -63,7 +63,7 @@
 
   <!-- Filtro 2: Mês -->
   <div class="filtro-group filter-field">
-    <label class="filter-label">Mês</label>
+    <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Mês</label>
     <div class="multi-select" id="multiSelectMes">
       <div class="multi-select-btn" id="mesBtn" tabindex="0" title="Clique para selecionar um ou mais Meses">
         <span class="multi-select-text" id="mesBtnText">Agosto</span>
@@ -83,7 +83,7 @@
 
   <!-- Filtro 3: Empresa -->
   <div class="filtro-group filter-field">
-    <label class="filter-label">Empresa</label>
+    <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Empresa</label>
     <div class="multi-select" id="multiSelectEmp">
       <div class="multi-select-btn" id="empBtn" tabindex="0" title="Clique para selecionar uma ou mais Empresas">
         <span class="multi-select-text" id="empBtnText">Todas as Empresas</span>
@@ -106,7 +106,7 @@
 
   <!-- Filtro 4: Centro de Custo -->
   <div class="filtro-group cenc-filter-group filter-field">
-    <label class="filter-label">Centro de Custo</label>
+    <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Centro de Custo</label>
     <div class="multi-select" id="multiSelectCenc">
       <div class="multi-select-btn" id="cencBtn" tabindex="0" title="Clique para selecionar um ou mais Centros de Custo">
         <span class="multi-select-text" id="cencBtnText">Todos os Centros</span>
@@ -132,15 +132,32 @@
       <span class="material-symbols-outlined" style="font-size: 17px;">filter_alt</span>
       <span>Aplicar</span>
     </button>
-    <button class="btn-aplicar btn-carregar btn-pill-primary" id="btnCarregar" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;" title="Carregar: atualiza dados do banco Sankhya">
+    <button class="btn-aplicar btn-carregar btn-pill-primary" id="btnCarregar" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;" title="Atualizar: busca dados do banco Sankhya, mostra barra de progresso e salva no GitHub">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="23 4 23 10 17 10"></polyline>
         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
       </svg>
-      <span>Carregar</span>
+      <span>Atualizar</span>
     </button>
   </div>
 </section>
+
+<!-- ════ BARRA DE PROGRESSO DE CARGA DO REPORT ═════ -->
+<div id="reportProgressBarContainer" class="report-progress-container" style="display: none;">
+  <div class="report-progress-card">
+    <div class="report-progress-header">
+      <div class="report-progress-info">
+        <span class="material-symbols-outlined report-progress-icon" id="reportProgressIcon">sync</span>
+        <span class="report-progress-title" id="reportProgressTitle">Carregando Report do Banco de Dados...</span>
+      </div>
+      <span class="report-progress-pct" id="reportProgressPct">0%</span>
+    </div>
+    <div class="report-progress-track">
+      <div class="report-progress-fill" id="reportProgressFill" style="width: 0%;"></div>
+    </div>
+    <div class="report-progress-msg" id="reportProgressMsg">Conectando ao banco Oracle Sankhya e consultando lançamentos analíticos...</div>
+  </div>
+</div>
 
 <!-- ════ KPI CARDS (8 CARDS COM PADRÃO FIGMA & VARIANTES SEMÂNTICAS) ═════ -->
 <section class="kpi-section metrics-grid-container" id="kpiSection" style="margin: 0 24px 20px 24px;">
@@ -450,6 +467,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260924_v15"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260924_v20"></script>
 </body>
 </html>
