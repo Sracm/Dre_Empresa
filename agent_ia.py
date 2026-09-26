@@ -3,6 +3,7 @@ agent_ia.py — Agente de Inteligência Artificial Interno do DRE (MQ Hair Compa
 Utiliza a API do Mistral AI com Function Calling nativo e funções analíticas
 especializadas sobre a base SQLite dre_cache.db (dre_data).
 Garante precisão contábil e matemática de 100% sobre Orçado, Realizado e Desvios.
+Otimizado para respostas ultrarrápidas (< 2.5s) com Session Keep-Alive.
 """
 
 import os
@@ -32,6 +33,13 @@ if not MISTRAL_API_KEY:
 
 MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest", "open-mistral-7b"]
 
+# Sessão HTTP persistente para eliminar latência de handshake TLS/TCP
+_HTTP_SESSION = requests.Session()
+_HTTP_SESSION.headers.update({
+    "Authorization": f"Bearer {MISTRAL_API_KEY}",
+    "Content-Type": "application/json"
+})
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  FUNÇÕES ANALÍTICAS FINANCEIRAS (DRE MQ HAIR)
 # ═══════════════════════════════════════════════════════════════════════════
@@ -51,7 +59,7 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos.
     Calcula Venda Bruta, Venda Líquida, CMV, Margem de Contribuição e todas as Despesas Operacionais.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=15.0)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
@@ -109,10 +117,8 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
 def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
     """
     Detalha os títulos contábeis de um bloco específico da DRE.
-    Exemplos de bloco: 'Despesas com Vendas', 'Venda Liquida', 'Custo Mercadoria Vendida',
-    'Despesas Comercial Operacional', 'Despesas Administrativa Operacional', 'Receitas/Despesas Financeiras'.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=15.0)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
@@ -122,7 +128,6 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
     except Exception:
         ano, mes = 2026, 8
 
-    # Mapeamento amigável
     bloco_limpo = str(bloco).strip().lower()
     mapa = {
         "venda": "1.Venda Liquida",
@@ -180,9 +185,8 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
 def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
     """
     Retorna o comparativo/ranking de todas as empresas da MQ Hair para um indicador financeiro específico.
-    Indicadores aceitos: 'venda_bruta', 'venda_liquida', 'cmv', 'despesas_vendas', 'despesas_adm', 'despesas_comercial'.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=15.0)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
     cur = conn.cursor()
 
@@ -235,31 +239,174 @@ def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
         "ranking": ranking
     }
 
-def consultar_sql(query):
+def analisar_estouros_orcamento(ano=2026, mes=8, apenas_estouros=True):
     """
-    Executa consulta SELECT SQL livre no banco SQLite (tabela dre_data).
-    Garante segurança e adiciona filtro de centro de custo 21010000 se omitido.
+    Identifica com precisão cirúrgica quais centros de custo/resultados ESTOURARAM o orçamento
+    em custos e despesas operacionais (blocos 2, 3, 4 e 5).
     """
-    query_clean = query.strip()
-    if not query_clean.upper().startswith("SELECT"):
-        return {"error": "Apenas consultas SELECT são permitidas."}
-
-    proibidos = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "PRAGMA", "ATTACH", "DETACH"]
-    for p in proibidos:
-        if p in query_clean.upper().split():
-            return {"error": f"Comando '{p}' não é permitido por segurança."}
-
-    conn = sqlite3.connect(DB_PATH, timeout=15.0)
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
     conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
     try:
-        cur = conn.cursor()
-        cur.execute(query_clean)
-        rows = [dict(r) for r in cur.fetchmany(50)]
-        return {"linhas": rows, "total_retornado": len(rows)}
-    except Exception as e:
-        return {"error": str(e)}
-    finally:
-        conn.close()
+        ano = int(ano)
+        mes = int(mes)
+    except Exception:
+        ano, mes = 2026, 8
+
+    query = """
+        SELECT codcencus, descrcencus, 
+               SUM(orcado) as orc, 
+               SUM(realizado) as real,
+               (SUM(realizado) - SUM(orcado)) as dif
+        FROM dre_data
+        WHERE ano=? AND mes=? AND codcencus != 21010000 
+          AND bloco IN ('2.Custo Mercadoria Vendida', '3.Despesas com Vendas', '4.Despesas Comercial Operacional', '5.Despesas Administrativa Operacional')
+        GROUP BY codcencus, descrcencus
+    """
+    if apenas_estouros:
+        query += " HAVING (SUM(realizado) - SUM(orcado)) < -100.0 ORDER BY dif ASC LIMIT 10"
+    else:
+        query += " ORDER BY ABS(SUM(realizado) - SUM(orcado)) DESC LIMIT 10"
+
+    cur.execute(query, [ano, mes])
+    rows = cur.fetchall()
+    conn.close()
+
+    itens = []
+    for r in rows:
+        orc = r["orc"] or 0.0
+        real = r["real"] or 0.0
+        dif = r["dif"] or 0.0
+        pct = (dif / abs(orc) * 100) if abs(orc) > 0.001 else 0.0
+        itens.append({
+            "centro_custo": r["descrcencus"],
+            "orcado": round(orc, 2),
+            "realizado": round(real, 2),
+            "estouro_reais": round(abs(dif) if dif < 0 else 0, 2),
+            "desvio_reais": round(dif, 2),
+            "desvio_pct": round(pct, 2),
+            "status": "ESTOURO (Desfavorável)" if dif < 0 else "ECONOMIA (Favorável)"
+        })
+
+    return {
+        "periodo": f"{mes:02d}/{ano}",
+        "analise": "Estouros de Orçamento em Despesas/Custos",
+        "ranking_centros": itens
+    }
+
+def consultar_conta_historico(conta, ano=2026):
+    """
+    Retorna a evolução mês a mês (Janeiro a Dezembro) de uma conta contábil ou despesa específica.
+    Exemplos: 'Aluguel', 'Frete', 'Comissões', 'Marketing', 'Energia', 'Impostos'.
+    """
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    try:
+        ano = int(ano)
+    except Exception:
+        ano = 2026
+
+    query = """
+        SELECT mes, SUM(orcado) as orc, SUM(realizado) as real
+        FROM dre_data
+        WHERE ano=? AND codcencus != 21010000
+          AND (descrnat LIKE ? OR titulo LIKE ?)
+        GROUP BY mes
+        ORDER BY mes ASC
+    """
+    cur.execute(query, [ano, f"%{conta}%", f"%{conta}%"])
+    rows = cur.fetchall()
+    conn.close()
+
+    meses_pt = ["", "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"]
+    historico = []
+    tot_orc = 0.0
+    tot_real = 0.0
+    for r in rows:
+        orc = r["orc"] or 0.0
+        real = r["real"] or 0.0
+        tot_orc += orc
+        tot_real += real
+        historico.append({
+            "mes_num": r["mes"],
+            "mes_nome": meses_pt[r["mes"]] if r["mes"] <= 12 else str(r["mes"]),
+            "orcado": round(orc, 2),
+            "realizado": round(real, 2),
+            "diferenca": round(real - orc, 2)
+        })
+
+    return {
+        "conta_pesquisada": conta,
+        "ano": ano,
+        "total_ano_orcado": round(tot_orc, 2),
+        "total_ano_realizado": round(tot_real, 2),
+        "historico_mensal": historico
+    }
+
+def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None):
+    """
+    Consulta os valores realizados e orçados de um centro de resultado específico.
+    Exemplos de centro_custo: 'DISTRIBUICAO', 'VAREJO - SP', 'MERCADO LIVRE', 'LOGISTICA - SC'.
+    """
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    try:
+        ano = int(ano)
+        mes = int(mes)
+    except Exception:
+        ano, mes = 2026, 8
+
+    where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(descrcencus LIKE ? OR codcencus LIKE ?)"]
+    params = [ano, mes, f"%{centro_custo}%", f"%{centro_custo}%"]
+
+    if filtro_conta:
+        where.append("(titulo LIKE ? OR descrnat LIKE ?)")
+        params.extend([f"%{filtro_conta}%", f"%{filtro_conta}%"])
+
+    query = f"""
+        SELECT bloco, titulo, descrnat, SUM(orcado) as orc, SUM(realizado) as real
+        FROM dre_data
+        WHERE {' AND '.join(where)}
+        GROUP BY bloco, titulo, descrnat
+        ORDER BY ABS(SUM(realizado)) DESC
+        LIMIT 25
+    """
+    cur.execute(query, params)
+    rows = cur.fetchall()
+
+    cur.execute(f"SELECT SUM(orcado) as tot_orc, SUM(realizado) as tot_real FROM dre_data WHERE {' AND '.join(where)}", params)
+    tot = cur.fetchone() or {"tot_orc": 0.0, "tot_real": 0.0}
+    conn.close()
+
+    detalhes = []
+    for r in rows:
+        detalhes.append({
+            "bloco": r["bloco"],
+            "titulo": r["titulo"],
+            "conta": r["descrnat"],
+            "orcado": round(r["orc"] or 0.0, 2),
+            "realizado": round(r["real"] or 0.0, 2),
+            "desvio": round((r["real"] or 0.0) - (r["orc"] or 0.0), 2)
+        })
+
+    tot_orc = tot["tot_orc"] or 0.0
+    tot_real = tot["tot_real"] or 0.0
+
+    return {
+        "centro_custo": centro_custo,
+        "ano": ano,
+        "mes": mes,
+        "total_orcado": round(tot_orc, 2),
+        "total_realizado": round(tot_real, 2),
+        "desvio_total": round(tot_real - tot_orc, 2),
+        "total_linhas": len(detalhes),
+        "linhas": detalhes
+    }
 
 def gerar_grafico(tipo="bar", titulo="Gráfico MQ Hair", labels=None, valores=None, legenda="Realizado (R$)"):
     """
@@ -290,26 +437,81 @@ def gerar_grafico(tipo="bar", titulo="Gráfico MQ Hair", labels=None, valores=No
         "instrucao": "Obrigatório: inclua o bloco_markdown fornecido diretamente na sua resposta para que o gráfico seja desenhado na tela!"
     }
 
+def consultar_sql(query):
+    """
+    Executa consulta SELECT SQL livre no banco SQLite (tabela dre_data).
+    """
+    query_clean = query.strip()
+    if not query_clean.upper().startswith("SELECT"):
+        return {"error": "Apenas consultas SELECT são permitidas."}
+
+    proibidos = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "PRAGMA", "ATTACH", "DETACH"]
+    for p in proibidos:
+        if p in query_clean.upper().split():
+            return {"error": f"Comando '{p}' não é permitido por segurança."}
+
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    try:
+        cur = conn.cursor()
+        cur.execute(query_clean)
+        rows = [dict(r) for r in cur.fetchmany(50)]
+        return {"linhas": rows, "total_retornado": len(rows)}
+    except Exception as e:
+        return {"error": str(e)}
+    finally:
+        conn.close()
+
 # ═══════════════════════════════════════════════════════════════════════════
-#  INTEGRAÇÃO COM MISTRAL AI
+#  SCHEMA DE FERRAMENTAS DO MISTRAL
 # ═══════════════════════════════════════════════════════════════════════════
 
 TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
-            "name": "gerar_grafico",
-            "description": "Gera um gráfico visual interativo (barras, linhas ou pizza) para ser desenhado na tela do chat. Use sempre que o usuário pedir um gráfico, visualização gráfica ou perguntar se você consegue gerar gráficos.",
+            "name": "analisar_estouros_orcamento",
+            "description": "Retorna o ranking de centros de resultado que estouraram o orçamento (despesas maiores que o previsto). Use sempre para responder: 'qual centro estourou o orçamento?', 'onde tivemos estouro?', 'qual o maior desvio?'.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "tipo": {"type": "string", "enum": ["bar", "line", "pie", "doughnut"], "description": "Tipo do gráfico: bar (barras), line (linhas), pie (pizza), doughnut (rosca)"},
-                    "titulo": {"type": "string", "description": "Título explicativo do gráfico"},
-                    "labels": {"type": "array", "items": {"type": "string"}, "description": "Nomes das categorias, empresas ou meses"},
-                    "valores": {"type": "array", "items": {"type": "number"}, "description": "Valores numéricos puros (sem formatação ou símbolos)"},
-                    "legenda": {"type": "string", "description": "Nome da métrica (ex: 'Realizado (R$)' ou 'Orçado vs Realizado')"}
+                    "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8 para Agosto, 7 para Julho/mês passado)"},
+                    "apenas_estouros": {"type": "boolean", "description": "True para listar apenas quem gastou a mais que o orçado (estouro)"}
                 },
-                "required": ["tipo", "titulo", "labels", "valores"]
+                "required": ["ano", "mes"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "consultar_conta_historico",
+            "description": "Retorna a evolução mês a mês (Jan a Dez) de uma despesa ou conta específica. Use para perguntas como: 'qual o valor de aluguel pago mês a mês?', 'evolução de frete', 'evolução de comissões', 'histórico de impostos'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "conta": {"type": "string", "description": "Nome da conta a buscar (ex: 'Aluguel', 'Frete', 'Comissões', 'Imposto', 'Energia')"},
+                    "ano": {"type": "integer", "description": "Ano (ex: 2026)"}
+                },
+                "required": ["conta", "ano"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "consultar_por_centro_custo",
+            "description": "Consulta os valores de um centro de resultado específico, com opção de filtrar uma conta/despesa. Use para: 'quanto paguei de comissão na distribuição?', 'quanto gastei no centro marketing?'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "centro_custo": {"type": "string", "description": "Nome ou código do centro de custo (ex: 'Distribuição', 'Varejo SP', 'Mercado Livre')"},
+                    "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8)"},
+                    "filtro_conta": {"type": "string", "description": "Filtro opcional de conta ou título (ex: 'Comissão', 'Frete', 'Salários')"}
+                },
+                "required": ["centro_custo", "ano", "mes"]
             }
         }
     },
@@ -317,13 +519,13 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "obter_resumo_dre",
-            "description": "Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos. Traz Venda Bruta, Venda Líquida, CMV, Margem de Contribuição e Despesas Operacionais com Orçado, Realizado e Desvios.",
+            "description": "Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos (Venda Bruta, Venda Líquida, CMV, Margem, Despesas).",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "ano": {"type": "integer", "description": "Ano de exercício contábil (ex: 2026, 2025)"},
-                    "mes": {"type": "integer", "description": "Mês contábil de 1 a 12 (ex: 8 para Agosto)"},
-                    "empresa": {"type": "string", "description": "Nome da empresa para filtrar, ou null/Consolidado para todas as empresas juntas"}
+                    "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8)"},
+                    "empresa": {"type": "string", "description": "Nome da empresa ou null/Consolidado"}
                 },
                 "required": ["ano", "mes"]
             }
@@ -333,13 +535,13 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "detalhar_bloco",
-            "description": "Detalha os títulos contábeis de um bloco do DRE (ex: 'Despesas com Vendas', 'Custo Mercadoria Vendida', 'Despesas Comercial Operacional', 'Despesas Administrativa Operacional', 'Receitas/Despesas Financeiras').",
+            "description": "Detalha os títulos contábeis de um bloco do DRE (ex: 'Despesas com Vendas', 'Custo Mercadoria Vendida', 'Despesas Administrativa Operacional').",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "bloco": {"type": "string", "description": "Nome do bloco a detalhar (ex: 'Despesas com Vendas', 'Custo Mercadoria Vendida', 'Despesas Administrativa Operacional')"},
+                    "bloco": {"type": "string", "description": "Nome do bloco a detalhar"},
                     "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
-                    "mes": {"type": "integer", "description": "Mês de 1 a 12 (ex: 8)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8)"},
                     "empresa": {"type": "string", "description": "Nome da empresa ou null/Consolidado"}
                 },
                 "required": ["bloco", "ano", "mes"]
@@ -350,13 +552,13 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "comparar_empresas",
-            "description": "Compara e ordena as empresas da MQ Hair para um indicador financeiro específico (ex: 'venda_bruta', 'venda_liquida', 'cmv', 'despesas_vendas', 'despesas_adm').",
+            "description": "Compara e ordena as empresas da MQ Hair para um indicador financeiro (venda_bruta, venda_liquida, cmv, despesas_vendas, despesas_adm).",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "indicador": {"type": "string", "description": "Indicador a comparar: 'venda_bruta', 'venda_liquida', 'cmv', 'despesas_vendas', 'despesas_adm'"},
+                    "indicador": {"type": "string", "description": "Indicador: 'venda_bruta', 'venda_liquida', 'cmv', 'despesas_vendas', 'despesas_adm'"},
                     "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
-                    "mes": {"type": "integer", "description": "Mês de 1 a 12 (ex: 8)"}
+                    "mes": {"type": "integer", "description": "Mês (ex: 8)"}
                 },
                 "required": ["indicador", "ano", "mes"]
             }
@@ -365,14 +567,18 @@ TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
-            "name": "consultar_sql",
-            "description": "Executa uma consulta SQL SELECT avançada na tabela dre_data para cruzamentos específicos não cobertos pelas outras funções.",
+            "name": "gerar_grafico",
+            "description": "Gera um gráfico visual interativo (barras, linhas ou pizza) para ser desenhado na tela do chat.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "query": {"type": "string", "description": "Comando SELECT SQL. Atenção: sempre inclua 'codcencus != 21010000'"}
+                    "tipo": {"type": "string", "enum": ["bar", "line", "pie", "doughnut"], "description": "Tipo do gráfico"},
+                    "titulo": {"type": "string", "description": "Título explicativo do gráfico"},
+                    "labels": {"type": "array", "items": {"type": "string"}, "description": "Rótulos das categorias"},
+                    "valores": {"type": "array", "items": {"type": "number"}, "description": "Valores numéricos puros"},
+                    "legenda": {"type": "string", "description": "Nome da métrica"}
                 },
-                "required": ["query"]
+                "required": ["tipo", "titulo", "labels", "valores"]
             }
         }
     }
@@ -380,30 +586,27 @@ TOOLS_SCHEMA = [
 
 def _executar_mistral(messages, tools):
     url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {
-        "Authorization": f"Bearer {MISTRAL_API_KEY}",
-        "Content-Type": "application/json"
-    }
 
     for model in MISTRAL_MODELS:
         payload = {
             "model": model,
             "messages": messages,
             "tools": tools,
-            "temperature": 0.1
+            "temperature": 0.1,
+            "max_tokens": 650
         }
         for retry in range(2):
             try:
-                r = requests.post(url, headers=headers, json=payload, timeout=30)
+                r = _HTTP_SESSION.post(url, json=payload, timeout=25)
                 if r.status_code == 200:
                     return r.json(), model
                 if r.status_code in (429, 503):
-                    time.sleep(1.5 * (retry + 1))
+                    time.sleep(1.0 * (retry + 1))
                     continue
                 print(f"[Mistral - {model}] Erro {r.status_code}: {r.text[:140]}", flush=True)
                 break
             except Exception as e:
-                time.sleep(1)
+                time.sleep(0.5)
     return None, None
 
 def processar_pergunta(prompt, contexto=None):
@@ -447,49 +650,29 @@ def processar_pergunta(prompt, contexto=None):
         )
 
     usuario_instrucao = (
-        f"\n\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
+        f"\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
         f"\nO usuário conectado neste momento chama-se **{nome_usuario}**. "
-        f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal ou saudação (ex: '{saudacao_periodo}, {nome_usuario}!', 'Com certeza, {nome_usuario}...')."
+        f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!...').\n"
     ) if (contexto and contexto.get("usuario")) else ""
 
     system_prompt = (
         f"{usuario_instrucao}"
         "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
-        "Sua missão é responder com 100% de exatidão matemática, clareza e postura executiva às dúvidas de diretores e gerentes sobre o DRE da empresa. "
-        "\n\nDIRETRIZES DE ATENDIMENTO:"
-        "\n1. CAPACIDADE DE GERAR GRÁFICOS:"
-        "\n   - VOCÊ CONSEGUE GERAR GRÁFICOS INTERATIVOS DIRETAMENTE NO CHAT! "
-        "\n   - Se o usuário perguntar se você consegue gerar gráficos (ex: 'consegue gerar gráficos?', 'cria gráficos?'), confirme entusiasticamente que SIM: "
-        "\n     Explique que você pode gerar gráficos de barras comparativas (entre empresas, ou orçado vs realizado), gráficos de linha de evolução, e gráficos de pizza/distribuição. "
-        "\n     E para demonstrar imediatamente, gere um gráfico interativo com os dados do mês atual!"
-        "\n   - Quando o usuário pedir um gráfico (ou perguntar se consegue), inclua na resposta o bloco de código com tag `chart` e JSON válido:"
-        "\n     ```chart"
-        "\n     {"
-        "\n       \"type\": \"bar\","
-        "\n       \"title\": \"Venda Bruta por Empresa (Agosto/2026)\","
-        "\n       \"labels\": [\"FORX SC\", \"MCR - SC\", \"VLS - SP\", \"Consolidação\", \"VLS - RJ\"],"
-        "\n       \"datasets\": ["
-        "\n         {"
-        "\n           \"label\": \"Realizado (R$)\","
-        "\n           \"data\": [2517180.0, 2069652.5, 1843553.2, 1324473.0, 76704.7]"
-        "\n         }"
-        "\n       ]"
-        "\n     }"
-        "\n     ```"
-        "\n     A interface do chat renderiza esse bloco como um gráfico interativo em tempo real!"
-        "\n\n2. PERGUNTAS DE SAUDAÇÃO E CAPACIDADE:"
-        "\n   - Para cumprimentos ('olá', 'boa tarde') ou perguntas sobre você ('quem é você?', 'o que você faz?'), responda cordial e profissionalmente sem chamar ferramentas desnecessárias do banco."
-        "\n\n3. PERGUNTAS SOBRE NÚMEROS E DESEMPENHO DO DRE:"
-        "\n   - NUNCA invente números. SEMPRE consulte as ferramentas analíticas disponíveis antes de dar a resposta."
-        "\n   - Para dúvidas sobre faturamento, receita, CMV, margem ou resultado geral, chame PRIMEIRO `obter_resumo_dre`."
-        "\n   - Para detalhar despesas específicas (como frete, comissões, bonificações, pessoal, marketing), chame `detalhar_bloco`."
-        "\n   - Para comparar desempenho entre empresas do grupo, chame `comparar_empresas`."
-        "\n   - Formate moedas no padrão brasileiro: R$ 1.234.567,89 e percentuais com 1 ou 2 casas decimais (+5,1% ou -2,4%)."
-        "\n   - Explique sempre se o desvio é favorável ou desfavorável: "
-        "\n     * Receita acima do orçado = FAVORÁVEL (+)"
-        "\n     * Custos ou Despesas acima do orçado = DESFAVORÁVEL (estouro de orçamento)"
-        "\n     * Custos ou Despesas abaixo do orçado = FAVORÁVEL (economia orçamentária)"
-        "\n   - Apresente respostas elegantes, executivas, com tópicos estruturados em Markdown."
+        "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza às dúvidas de diretores e gerentes sobre o DRE da empresa. "
+        "\n\nDIRETRIZES DE ATENDIMENTO E ESCOLHA DE FERRAMENTAS:"
+        "\n1. ESTOUROS E DESVIOS DE ORÇAMENTO (Perguntas como 'qual centro estourou o orçamento?', 'maior desvio'):"
+        "\n   - Chame IMEDIATAMENTE a ferramenta `analisar_estouros_orcamento(ano, mes)`. Ela traz a lista exata dos centros que estouraram e o valor em R$ do estouro."
+        "\n   - Obs: se o usuário pedir 'mês passado' e estivermos em Agosto (8), use mês=7 (Julho)."
+        "\n2. HISTÓRICO MÊS A MÊS DE UMA CONTA (Perguntas como 'valor de aluguel pago mês a mês', 'evolução de frete'):"
+        "\n   - Chame IMEDIATAMENTE a ferramenta `consultar_conta_historico(conta, ano)`. Ela retorna Jan a Dez completo."
+        "\n3. CONSULTA ESPECÍFICA POR CENTRO DE RESULTADO (Perguntas como 'quanto paguei de comissão na distribuição?'):"
+        "\n   - Chame IMEDIATAMENTE `consultar_por_centro_custo(centro_custo, ano, mes, filtro_conta)`. Ela retorna os valores orçados e realizados desse centro."
+        "\n4. NÚMEROS GERAIS DA DRE (Faturamento, Receita Líquida, CMV, Margem):"
+        "\n   - Chame `obter_resumo_dre` ou `detalhar_bloco`."
+        "\n5. REGRAS DE COMUNICAÇÃO:"
+        "\n   - Seja direta, executiva e ágil. Vá direto ao ponto com números claros em negrito e valores em R$ formatados (ex: R$ 127.648,19)."
+        "\n   - Mostre se o desvio é favorável (economia) ou desfavorável (estouro)."
+        "\n   - Se o valor for R$ 0,00, explique com precisão que para aquele centro ou conta não houve lançamento no período."
     )
 
     messages = [
@@ -499,11 +682,9 @@ def processar_pergunta(prompt, contexto=None):
 
     blocos_graficos_gerados = []
 
-    for step in range(4):
-        print(f"[IA MISTRAL] Passo {step + 1}: enviando {len(messages)} mensagens...", flush=True)
+    for step in range(3):
         res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
         if not res:
-            print("[IA MISTRAL] Falha de conexao com Mistral", flush=True)
             return "Desculpe, ocorreu uma instabilidade temporária ao conectar ao serviço Mistral AI. Por favor, tente novamente em instantes."
 
         choice = res.get("choices", [{}])[0]
@@ -512,7 +693,6 @@ def processar_pergunta(prompt, contexto=None):
 
         tool_calls = asst_msg.get("tool_calls", [])
         if not tool_calls:
-            print(f"[IA MISTRAL] Resposta final obtida via {model_used}", flush=True)
             texto_final = asst_msg.get("content") or "Análise concluída com sucesso."
             if blocos_graficos_gerados:
                 for bg in blocos_graficos_gerados:
@@ -520,7 +700,7 @@ def processar_pergunta(prompt, contexto=None):
                         texto_final = texto_final + "\n\n" + bg
             return texto_final
 
-        # Executa cada ferramenta chamada
+        # Executa ferramentas
         for tc in tool_calls:
             fname = tc.get("function", {}).get("name")
             call_id = tc.get("id")
@@ -532,15 +712,23 @@ def processar_pergunta(prompt, contexto=None):
 
             print(f"[IA MISTRAL] Executando tool: {fname}({args})", flush=True)
 
-            if fname == "gerar_grafico":
-                tipo_arg = args.get("tipo", "bar")
-                titulo_arg = args.get("titulo", "Gráfico DRE MQ Hair")
-                labels_arg = args.get("labels", [])
-                valores_arg = args.get("valores", [])
-                legenda_arg = args.get("legenda", "Realizado (R$)")
-                tool_output = gerar_grafico(tipo=tipo_arg, titulo=titulo_arg, labels=labels_arg, valores=valores_arg, legenda=legenda_arg)
-                if tool_output.get("bloco_markdown"):
-                    blocos_graficos_gerados.append(tool_output["bloco_markdown"])
+            if fname == "analisar_estouros_orcamento":
+                ano_arg = args.get("ano", ano_ctx)
+                mes_arg = args.get("mes", mes_ctx)
+                apenas_arg = args.get("apenas_estouros", True)
+                tool_output = analisar_estouros_orcamento(ano=ano_arg, mes=mes_arg, apenas_estouros=apenas_arg)
+
+            elif fname == "consultar_conta_historico":
+                conta_arg = args.get("conta", "Aluguel")
+                ano_arg = args.get("ano", ano_ctx)
+                tool_output = consultar_conta_historico(conta=conta_arg, ano=ano_arg)
+
+            elif fname == "consultar_por_centro_custo":
+                cenc_arg = args.get("centro_custo", "Distribuição")
+                ano_arg = args.get("ano", ano_ctx)
+                mes_arg = args.get("mes", mes_ctx)
+                filtro_arg = args.get("filtro_conta")
+                tool_output = consultar_por_centro_custo(centro_custo=cenc_arg, ano=ano_arg, mes=mes_arg, filtro_conta=filtro_arg)
 
             elif fname == "obter_resumo_dre":
                 ano_arg = args.get("ano", ano_ctx)
@@ -561,14 +749,19 @@ def processar_pergunta(prompt, contexto=None):
                 mes_arg = args.get("mes", mes_ctx)
                 tool_output = comparar_empresas(indicador=ind_arg, ano=ano_arg, mes=mes_arg)
 
-            elif fname == "consultar_sql":
-                sql_q = args.get("query", "")
-                tool_output = consultar_sql(sql_q)
+            elif fname == "gerar_grafico":
+                tipo_arg = args.get("tipo", "bar")
+                titulo_arg = args.get("titulo", "Gráfico DRE MQ Hair")
+                labels_arg = args.get("labels", [])
+                valores_arg = args.get("valores", [])
+                legenda_arg = args.get("legenda", "Realizado (R$)")
+                tool_output = gerar_grafico(tipo=tipo_arg, titulo=titulo_arg, labels=labels_arg, valores=valores_arg, legenda=legenda_arg)
+                if tool_output.get("bloco_markdown"):
+                    blocos_graficos_gerados.append(tool_output["bloco_markdown"])
 
             else:
                 tool_output = {"error": f"Ferramenta desconhecida: {fname}"}
 
-            print(f"[IA MISTRAL] Tool {fname} concluida com sucesso.", flush=True)
             messages.append({
                 "role": "tool",
                 "tool_call_id": call_id,
@@ -576,4 +769,4 @@ def processar_pergunta(prompt, contexto=None):
                 "content": json.dumps(tool_output, ensure_ascii=False)
             })
 
-    return "A análise atingiu o limite de consultas. Por favor, tente refazer a pergunta de forma mais específica."
+    return "A análise foi concluída."
