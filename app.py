@@ -46,6 +46,7 @@ def cache_set(key, data):
 app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
+app.config['TEMPLATES_AUTO_RELOAD'] = True
 
 @app.after_request
 def add_header(r):
@@ -560,7 +561,12 @@ def dre_tabela_acumulado():
             blocos_dict[b]["orcado"] += orc
             blocos_dict[b]["realizado"] += real
             dif = real - orc
-            pct = (real / orc * 100) if abs(orc) > 0.001 else 0.0
+            # Proteção contra bases irrisórias ou cruzamento de sinais que geram aberrações (% desproporcionais)
+            if abs(orc) < 500 or (orc < 0 and real > 0) or (orc > 0 and real < 0):
+                pct = None
+            else:
+                pct = (real / orc * 100) if abs(orc) > 0.001 else None
+
             blocos_dict[b]["titulos"].append({
                 "titulo": r.get("titulo") or "Sem Título",
                 "orcado": orc,
@@ -576,13 +582,13 @@ def dre_tabela_acumulado():
         mc_orc = vl["orcado"] + cmv["orcado"]
         mc_real = vl["realizado"] + cmv["realizado"]
         mc_dif = mc_real - mc_orc
-        mc_pct = (mc_real / mc_orc * 100) if abs(mc_orc) > 0.001 else 0.0
+        mc_pct = (mc_real / mc_orc * 100) if abs(mc_orc) > 500 else None
 
         # 2. MARGEM = Soma de todos os blocos
         margem_orc = sum(b["orcado"] for b in blocos_dict.values())
         margem_real = sum(b["realizado"] for b in blocos_dict.values())
         margem_dif = margem_real - margem_orc
-        margem_pct = (margem_real / margem_orc * 100) if abs(margem_orc) > 0.001 else 0.0
+        margem_pct = (margem_real / margem_orc * 100) if abs(margem_orc) > 500 else None
 
         # Lista formatada de blocos
         blocos_list = []
@@ -592,7 +598,11 @@ def dre_tabela_acumulado():
                 b_orc = b_info["orcado"]
                 b_real = b_info["realizado"]
                 b_dif = b_real - b_orc
-                b_pct = (b_real / b_orc * 100) if abs(b_orc) > 0.001 else 0.0
+                if abs(b_orc) < 500 or (b_orc < 0 and b_real > 0) or (b_orc > 0 and b_real < 0):
+                    b_pct = None
+                else:
+                    b_pct = (b_real / b_orc * 100) if abs(b_orc) > 0.001 else None
+
                 blocos_list.append({
                     "bloco": b_nome,
                     "orcado": b_orc,
@@ -620,6 +630,180 @@ def dre_tabela_acumulado():
                 "pct": margem_pct,
                 "blocos": blocos_list
             }
+        }
+        cache_set(key, result)
+        return jsonify(result)
+    except Exception as e:
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  DRE TABELA MENSAL (Orçado vs Realizado do Mês — Apenas com Movimento)
+# ═══════════════════════════════════════════════════════════════════════════
+@app.route("/api/dre/tabela-mensal")
+def dre_tabela_mensal():
+    try:
+        ano_raw = request.args.get("ano", "2026")
+        mes_raw = request.args.get("mes", "8")
+        emp_raw = request.args.get("emp", "ALL")
+        cenc_raw = request.args.get("cenc", "ALL")
+        so_ambos = request.args.get("so_ambos", "true").lower() in ("true", "1", "yes")
+
+        key = f"tabela_mensal_{ano_raw}_{mes_raw}_{emp_raw}_{cenc_raw}_{so_ambos}"
+        cached = cache_get(key)
+        if cached:
+            return jsonify(cached)
+
+        anos = parse_int_list(ano_raw, [2026])
+        meses = parse_int_list(mes_raw, [8])
+        ano_val = anos[0] if anos else 2026
+        mes_val = max(meses) if meses else 8
+
+        emps = parse_str_list(emp_raw)
+        cenc_list = parse_cenc_param(cenc_raw)
+
+        where = ["ano = ?", "codcencus != ?"]
+        params = [ano_val, EXCLUDED_CODCENCUS]
+
+        if len(meses) > 1:
+            ph_mes = ",".join(["?"] * len(meses))
+            where.append(f"mes IN ({ph_mes})")
+            params.extend(meses)
+        else:
+            where.append("mes = ?")
+            params.append(mes_val)
+
+        if emps:
+            ph_emp = ",".join(["?"] * len(emps))
+            where.append(f"empresa IN ({ph_emp})")
+            params.extend(emps)
+        else:
+            placeholders = ",".join(["?"] * len(ALLOWED_COMPANIES))
+            where.append(f"empresa IN ({placeholders})")
+            params.extend(ALLOWED_COMPANIES)
+
+        if cenc_list:
+            if len(cenc_list) == 1:
+                where.append("codcencus = ?")
+                params.append(cenc_list[0])
+            else:
+                ph_cenc = ",".join(["?"] * len(cenc_list))
+                where.append(f"codcencus IN ({ph_cenc})")
+                params.extend(cenc_list)
+
+        where_sql = " AND ".join(where)
+
+        sql = f"""
+            SELECT
+                descrcencus,
+                bloco,
+                SUM(orcado) AS orcado,
+                SUM(realizado) AS realizado
+            FROM dre_data
+            WHERE {where_sql} 
+              AND descrcencus IS NOT NULL 
+              AND TRIM(descrcencus) != '' 
+              AND descrcencus != 'Consolidado PBI'
+              AND descrnat != 'AJUSTE PBI'
+              AND codcencus != 0
+            GROUP BY descrcencus, bloco
+            ORDER BY descrcencus, bloco
+        """
+
+        with get_db() as conn:
+            cur = conn.cursor()
+            cur.execute(sql, params)
+            rows = [dict(r) for r in cur.fetchall()]
+
+        bloco_ordem_map = {
+            "1.Venda Liquida": 1,
+            "2.Custo Mercadoria Vendida": 2,
+            "3.Despesas com Vendas": 3,
+            "4.Despesas Comercial Operacional": 4,
+            "5.Despesas Administrativa Operacional": 5,
+            "6.Receitas/Despesas Financeiras": 6,
+            "7.Vendas IC": 7
+        }
+
+        centros_dict = OrderedDict()
+        for r in rows:
+            c_nome = (r.get("descrcencus") or "").strip()
+            if not c_nome:
+                continue
+            bloco = r.get("bloco") or "Outros"
+            orc = float(r.get("orcado") or 0.0)
+            real = float(r.get("realizado") or 0.0)
+
+            if c_nome not in centros_dict:
+                centros_dict[c_nome] = {
+                    "nome": c_nome,
+                    "orcado": 0.0,
+                    "realizado": 0.0,
+                    "blocos": []
+                }
+
+            centros_dict[c_nome]["orcado"] += orc
+            centros_dict[c_nome]["realizado"] += real
+
+            if abs(orc) > 0.01 or abs(real) > 0.01:
+                dif = real - orc
+                pct = ((real - orc) / abs(orc) * 100) if abs(orc) > 0.001 else 0.0
+                centros_dict[c_nome]["blocos"].append({
+                    "bloco": bloco,
+                    "orcado": orc,
+                    "realizado": real,
+                    "dif": dif,
+                    "pct": pct
+                })
+
+        centros_list = []
+        tot_orc = 0.0
+        tot_real = 0.0
+
+        for c_nome, c_info in centros_dict.items():
+            c_orc = c_info["orcado"]
+            c_real = c_info["realizado"]
+
+            # Filtro: somente se tiver orçado E realizado
+            if so_ambos:
+                if abs(c_orc) < 0.01 or abs(c_real) < 0.01:
+                    continue
+            else:
+                if abs(c_orc) < 0.01 and abs(c_real) < 0.01:
+                    continue
+
+            c_dif = c_real - c_orc
+            c_pct = ((c_real - c_orc) / abs(c_orc) * 100) if abs(c_orc) > 0.001 else 0.0
+            tot_orc += c_orc
+            tot_real += c_real
+
+            sorted_blocos = sorted(c_info["blocos"], key=lambda b: bloco_ordem_map.get(b["bloco"], 99))
+
+            centros_list.append({
+                "nome": c_nome,
+                "orcado": c_orc,
+                "realizado": c_real,
+                "dif": c_dif,
+                "pct": c_pct,
+                "blocos": sorted_blocos
+            })
+
+        # Ordenar por maior valor realizado
+        centros_list.sort(key=lambda x: x["realizado"], reverse=True)
+
+        tot_dif = tot_real - tot_orc
+        tot_pct = ((tot_real - tot_orc) / abs(tot_orc) * 100) if abs(tot_orc) > 0.001 else 0.0
+
+        result = {
+            "ano": ano_val,
+            "mes": mes_val,
+            "total": {
+                "nome": "TOTAL CENTROS DE RESULTADO",
+                "orcado": tot_orc,
+                "realizado": tot_real,
+                "dif": tot_dif,
+                "pct": tot_pct
+            },
+            "centros": centros_list
         }
         cache_set(key, result)
         return jsonify(result)
@@ -1167,6 +1351,27 @@ def rota_sincronizar_status():
         with _cache_lock:
             _cache.clear()
     return jsonify(status)
+
+# ═══════════════════════════════════════════════════════════════════════════
+#  AGENTE DE IA NATIVO (GEMINI)
+# ═══════════════════════════════════════════════════════════════════════════
+import importlib
+import agent_ia
+
+@app.route("/api/ia/perguntar", methods=["POST"])
+def rota_ia_perguntar():
+    try:
+        data = request.get_json(silent=True) or {}
+        prompt = (data.get("prompt") or "").strip()
+        contexto = data.get("contexto") or {}
+        if not prompt:
+            return jsonify({"error": "Prompt não informado"}), 400
+        
+        importlib.reload(agent_ia)
+        resposta = agent_ia.processar_pergunta(prompt, contexto)
+        return jsonify({"resposta": resposta})
+    except Exception as e:
+        return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
 
 if __name__ == "__main__":
     iniciar_agendador_noturno()

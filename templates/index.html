@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260924_v20" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260924_v20" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260926_v32" />
 </head>
 <body class="dre-empresa-app">
 
@@ -262,7 +262,7 @@
 <main class="main-content" style="padding: 0 24px 30px 24px;">
 
   <!-- ════ GRÁFICOS: EVOLUÇÃO MENSAL E ACUMULADO COM DIAGNÓSTICO ═══════════ -->
-  <div class="charts-grid">
+  <div class="charts-grid" style="margin-bottom: 24px;">
 
     <!-- Card 1: Tabela Acumulada YTD (Mesmo Layout do Quadro de Desvios Executivos) -->
     <section class="card desvios-card matrix-acumulado-card" id="cardAcumulado">
@@ -278,7 +278,7 @@
           <button class="btn-reset-linha" id="btnToggleFullscreenAcumulado" onclick="toggleFullscreenAcumulado()" title="Alternar tela cheia" style="display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px;">
             <span class="material-symbols-outlined" id="iconFullscreenAcumulado" style="font-size: 14px; vertical-align: middle;">open_in_full</span>
           </button>
-          <button class="btn-reset-linha" id="btnToggleExpandAcumulado" title="Expandir ou recolher todos os blocos">EXPANDIR TUDO</button>
+          <button class="btn-reset-linha" id="btnToggleExpandAcumulado" onclick="toggleExpandAllAcumulado()" title="Expandir ou recolher todos os blocos">EXPANDIR TUDO</button>
         </div>
       </div>
       <div class="table-wrapper desvios-table-wrap">
@@ -467,6 +467,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260924_v20"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20260926_v32"></script>
 </body>
 </html>

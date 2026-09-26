@@ -33,6 +33,11 @@ const state = {
   acumuladoExpandAll: false,
   margemAcumuladaAberta: true,
   blocosAcumuladoAbertos: new Set(),
+  tabelaMensalData: null,
+  mensalExpandAll: false,
+  centrosMensalAbertos: new Set(),
+  mensalSortCol: 'realizado',
+  mensalSortAsc: false,
   polling: {},  // { key: intervalId }
 };
 
@@ -488,6 +493,21 @@ const ReportProgressBar = {
     if (msg && this.msg) this.msg.textContent = msg;
   },
 
+  notifyPartDone(partName) {
+    if (!this.isActive) return;
+    if (typeof this.pendingLoads !== 'number' || isNaN(this.pendingLoads) || this.pendingLoads <= 0) {
+      this.pendingLoads = 3;
+    }
+    this.pendingLoads--;
+    if (this.pendingLoads === 2) {
+      this.step(55, 'Demonstrativo DRE processado com sucesso...');
+    } else if (this.pendingLoads === 1) {
+      this.step(85, 'Processando evolução mensal e acumulado...');
+    } else if (this.pendingLoads <= 0) {
+      this.complete();
+    }
+  },
+
   complete(title = 'Banco Oracle sincronizado com sucesso!', msg = 'Demonstrativo, gráficos e indicadores 100% atualizados.') {
     if (!this.isActive) return;
     if (this.pollTimer) clearInterval(this.pollTimer);
@@ -717,7 +737,7 @@ function onDRELoaded(data, somenteDoisMeses = false) {
   renderizarQuadroDesvios();
   atualizarKPIs();
   atualizarTimestamp();
-  ReportProgressBar.notifyPartDone('dre');
+  try { ReportProgressBar?.notifyPartDone?.('dre'); } catch (_) {}
   if (somenteDoisMeses) {
     showToast('Mês atual e anterior atualizados. Sincronizado no GitHub!', 'success');
   } else if (!ReportProgressBar.isActive) {
@@ -738,7 +758,7 @@ function onMensalLoaded(data, somenteDoisMeses = false, mesAnt = null, mesAtual 
 
   renderizarGraficoMensal(state.mensalData);
   renderizarGraficoAcumulado(state.mensalData, state.mes);
-  ReportProgressBar.notifyPartDone('mensal');
+  try { ReportProgressBar?.notifyPartDone?.('mensal'); } catch (_) {}
 }
 
 // ── Tabela Acumulada YTD (Margem de Contribuição e MARGEM) ─────────────────
@@ -763,7 +783,7 @@ async function carregarTabelaAcumulado() {
       tbody.innerHTML = `<tr><td colspan="5" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar acumulado: ${e.message}</td></tr>`;
     }
   } finally {
-    ReportProgressBar.notifyPartDone('acumulado');
+    try { ReportProgressBar?.notifyPartDone?.('acumulado'); } catch (_) {}
   }
 }
 
@@ -780,8 +800,9 @@ function fmtAcumDec(v) {
 }
 
 function fmtAcumPct(v) {
-  if (v == null || isNaN(v)) return '0,00%';
+  if (v == null || isNaN(v)) return '—';
   const n = Number(v);
+  if (Math.abs(n) > 999) return '—'; // Proteção contra bases irrisórias como -152044%
   return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
 }
 
@@ -810,7 +831,7 @@ function renderizarTabelaAcumulado(data) {
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.orcado)}</strong></td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.realizado)}</strong></td>
       <td class="col-num ${mcDifClass}"><strong>${fmtAcumDec(mc.dif)}</strong></td>
-      <td class="col-ro"><strong style="color:#ffffff;">${fmtAcumPct(mc.pct)}</strong></td>
+      <td class="col-ro ${mcDifClass}"><strong>${fmtAcumPct(mc.pct)}</strong></td>
     </tr>
   `;
 
@@ -827,7 +848,7 @@ function renderizarTabelaAcumulado(data) {
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.orcado)}</strong></td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.realizado)}</strong></td>
       <td class="col-num ${margemDifClass}"><strong>${fmtAcumDec(margem.dif)}</strong></td>
-      <td class="col-ro"><strong style="color:#ffffff;">${fmtAcumPct(margem.pct)}</strong></td>
+      <td class="col-ro ${margemDifClass}"><strong>${fmtAcumPct(margem.pct)}</strong></td>
     </tr>
   `;
 
@@ -850,7 +871,7 @@ function renderizarTabelaAcumulado(data) {
           <td class="col-num">${fmtAcumInt(b.orcado)}</td>
           <td class="col-num">${fmtAcumInt(b.realizado)}</td>
           <td class="col-num ${bDifClass}">${fmtAcumDec(b.dif)}</td>
-          <td class="col-ro">${fmtAcumPct(b.pct)}</td>
+          <td class="col-ro ${bDifClass}">${fmtAcumPct(b.pct)}</td>
         </tr>
       `;
 
@@ -867,7 +888,7 @@ function renderizarTabelaAcumulado(data) {
               <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.orcado)}</td>
               <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.realizado)}</td>
               <td class="col-num ${tDifClass}">${fmtAcumDec(t.dif)}</td>
-              <td class="col-ro" style="opacity:0.9;">${fmtAcumPct(t.pct)}</td>
+              <td class="col-ro ${tDifClass}" style="opacity:0.9;">${fmtAcumPct(t.pct)}</td>
             </tr>
           `;
         });
@@ -943,6 +964,231 @@ function toggleFullscreenAcumulado() {
   if (iconFs) iconFs.textContent = isFs ? 'close_fullscreen' : 'open_in_full';
 }
 window.toggleFullscreenAcumulado = toggleFullscreenAcumulado;
+
+// ── Tabela Mensal (Orçado & Realizado — Sem Centros de Custo, Apenas Itens com Movimento) ──
+async function carregarTabelaMensal() {
+  const tbody = document.getElementById('tabelaMensalOrcRealBody');
+  if (tbody) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-row"><div class="spinner"></div> Carregando visão do mês…</td></tr>';
+  }
+  try {
+    const p = new URLSearchParams({
+      ano: getAnoParam(),
+      mes: getMesParam(),
+      emp: getEmpParam(),
+      cenc: getCencParam(),
+      so_ambos: 'true',
+    });
+    const res = await fetch('/api/dre/tabela-mensal?' + p);
+    const data = await res.json();
+    state.tabelaMensalData = data;
+    renderizarTabelaMensalOrcReal(data);
+  } catch (e) {
+    if (tbody) {
+      tbody.innerHTML = `<tr><td colspan="5" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar visão do mês: ${e.message}</td></tr>`;
+    }
+  }
+}
+
+function fmtDesvioPct(v) {
+  if (v == null || isNaN(v)) return '0,00%';
+  const n = Number(v);
+  const sign = n > 0 ? '+' : '';
+  return sign + n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
+}
+
+function renderizarTabelaMensalOrcReal(data) {
+  const tbody = document.getElementById('tabelaMensalOrcRealBody');
+  if (!tbody) return;
+  if (!data || !data.centros || data.centros.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Nenhum centro de resultado com orçado e realizado encontrado.</td></tr>';
+    return;
+  }
+
+  const tot = data.total || {};
+  const centros = data.centros ? [...data.centros] : [];
+
+  // Ordenação configurável por coluna (padrão: maior para o menor)
+  const col = state.mensalSortCol || 'realizado';
+  const asc = state.mensalSortAsc === true; // false = maior para o menor (DESC)
+
+  centros.sort((a, b) => {
+    let vA = a[col];
+    let vB = b[col];
+    if (col === 'nome') {
+      const sA = String(vA || '').toLowerCase();
+      const sB = String(vB || '').toLowerCase();
+      return asc ? sA.localeCompare(sB, 'pt-BR') : sB.localeCompare(sA, 'pt-BR');
+    }
+    const nA = vA != null ? Number(vA) : (asc ? Infinity : -Infinity);
+    const nB = vB != null ? Number(vB) : (asc ? Infinity : -Infinity);
+    return asc ? nA - nB : nB - nA;
+  });
+
+  // Atualiza indicadores visuais no cabeçalho
+  ['nome', 'orcado', 'realizado', 'dif', 'pct'].forEach(c => {
+    const el = document.getElementById('sort-mensal-' + c);
+    if (el) {
+      if (c === col) {
+        el.textContent = asc ? ' ▲' : ' ▼';
+        el.style.color = 'var(--gold)';
+        el.style.fontWeight = 'bold';
+      } else {
+        el.textContent = ' ⇅';
+        el.style.color = '';
+        el.style.fontWeight = '';
+      }
+    }
+  });
+
+  let html = '';
+
+  // 1. Linha Total Consolidado dos Centros de Resultados
+  // LÓGICA DE CONTROLADORIA:
+  // Se dif >= 0: o resultado superou o orçado -> VERDE (val-pos)
+  // Se dif < 0: o resultado ficou abaixo do orçado -> VERMELHO (val-neg)
+  const totClass = (tot.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+
+  html += `
+    <tr class="row-total-mc row-desvio">
+      <td class="col-desvio-bloco">
+        <span class="exp-icon" style="visibility:hidden;">−</span>
+        <strong style="color:#ffffff;">${tot.nome || 'TOTAL CENTROS DE RESULTADO'}</strong>
+      </td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(tot.orcado)}</strong></td>
+      <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(tot.realizado)}</strong></td>
+      <td class="col-num ${totClass}"><strong>${fmtAcumDec(tot.dif)}</strong></td>
+      <td class="col-ro ${totClass}"><strong>${fmtDesvioPct(tot.pct)}</strong></td>
+    </tr>
+  `;
+
+  // 2. Linhas de cada Centro de Resultado
+  centros.forEach((c) => {
+    const cNome = c.nome || 'Sem Nome';
+    const hasBlocos = c.blocos && c.blocos.length > 0;
+    const isAberto = state.mensalExpandAll || state.centrosMensalAbertos.has(cNome);
+    const expIcon = hasBlocos ? (isAberto ? '−' : '+') : '';
+
+    // REGRA DE CONTROLADORIA:
+    // Para canais comerciais: dif >= 0 superou a meta de margem (VERDE); dif < 0 abaixo da meta (VERMELHO)
+    // Para centros de custo: dif >= 0 economizou despesa (VERDE); dif < 0 estourou o orçamento de gastos (VERMELHO)
+    const cClass = (c.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+
+    html += `
+      <tr class="row-bloco row-desvio" onclick="toggleCentroMensal('${cNome.replace(/'/g, "\\'")}')" style="cursor: pointer;" title="Clique para expandir/recolher os blocos deste centro de resultado">
+        <td class="col-desvio-bloco" style="padding-left: 18px;">
+          <span class="exp-icon">${expIcon}</span>
+          <strong style="color:var(--gold);">${cNome}</strong>
+        </td>
+        <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(c.orcado)}</strong></td>
+        <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(c.realizado)}</strong></td>
+        <td class="col-num ${cClass}"><strong>${fmtAcumDec(c.dif)}</strong></td>
+        <td class="col-ro ${cClass}"><strong>${fmtDesvioPct(c.pct)}</strong></td>
+      </tr>
+    `;
+
+    // 3. Filhos do Centro de Resultado: Blocos da DRE
+    if (isAberto && hasBlocos) {
+      c.blocos.forEach(b => {
+        // LÓGICA DE DRE:
+        // Se for Custo/Despesa (valores contábeis negativos no DRE):
+        //   gasto acima do orçado gera dif < 0 -> ESTOURO DE ORÇAMENTO -> VERMELHO (val-neg)
+        //   gasto abaixo do orçado gera dif >= 0 -> ECONOMIA DE ORÇAMENTO -> VERDE (val-pos)
+        // Se for Receita/Venda (valores positivos):
+        //   venda acima do orçado gera dif >= 0 -> META SUPERADA -> VERDE (val-pos)
+        //   venda abaixo do orçado gera dif < 0 -> META NÃO ATINGIDA -> VERMELHO (val-neg)
+        const bClass = (b.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
+
+        html += `
+          <tr class="row-titulo row-desvio">
+            <td class="col-desvio-tit" style="padding-left: 48px;">
+              <span style="display:inline-block; width:8px; height:1px; background:rgba(203, 151, 39, 0.6); margin-right:8px; vertical-align:middle;"></span>
+              <span style="color:#e2e8f0;">${b.bloco}</span>
+            </td>
+            <td class="col-num" style="opacity:0.9;">${fmtAcumInt(b.orcado)}</td>
+            <td class="col-num" style="opacity:0.9;">${fmtAcumInt(b.realizado)}</td>
+            <td class="col-num ${bClass}">${fmtAcumDec(b.dif)}</td>
+            <td class="col-ro ${bClass}">${fmtDesvioPct(b.pct)}</td>
+          </tr>
+        `;
+      });
+    }
+  });
+
+  tbody.innerHTML = html;
+
+  // Atualiza título dinâmico com período mensal
+  const tit = document.getElementById('tituloTabelaMensalOrcReal');
+  const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const mNum = Number(data.mes || state.mes || 8);
+  const mNome = NOMES_MES[mNum - 1] || 'Agosto';
+  if (tit) {
+    tit.textContent = `Centros de Resultados — Mês de ${mNome}`;
+  }
+
+  const sub = document.getElementById('subtituloTabelaMensalOrcReal');
+  if (sub) {
+    sub.textContent = `Centros com Orçado e Realizado em ${mNome} de ${data.ano || 2026}`;
+  }
+}
+
+window.ordenarTabelaMensal = function(col) {
+  if (state.mensalSortCol === col) {
+    state.mensalSortAsc = !state.mensalSortAsc;
+  } else {
+    state.mensalSortCol = col;
+    state.mensalSortAsc = false; // Primeiro clique na coluna: SEMPRE do maior para o menor!
+  }
+  if (state.tabelaMensalData) {
+    renderizarTabelaMensalOrcReal(state.tabelaMensalData);
+  }
+};
+
+function toggleCentroMensal(cNome) {
+  if (state.centrosMensalAbertos.has(cNome)) {
+    state.centrosMensalAbertos.delete(cNome);
+  } else {
+    state.centrosMensalAbertos.add(cNome);
+  }
+  if (state.tabelaMensalData) renderizarTabelaMensalOrcReal(state.tabelaMensalData);
+}
+
+function toggleExpandAllMensal() {
+  state.mensalExpandAll = !state.mensalExpandAll;
+  const btn = document.getElementById('btnToggleExpandMensal');
+  const card = document.getElementById('cardMensalOrcReal');
+  const iconFs = document.getElementById('iconFullscreenMensal');
+
+  if (btn) {
+    btn.textContent = state.mensalExpandAll ? 'RECOLHER TUDO' : 'EXPANDIR TUDO';
+  }
+
+  if (state.mensalExpandAll) {
+    if (card) card.classList.add('fullscreen-mode');
+    if (iconFs) iconFs.textContent = 'close_fullscreen';
+    if (state.tabelaMensalData && state.tabelaMensalData.centros) {
+      state.tabelaMensalData.centros.forEach(c => state.centrosMensalAbertos.add(c.nome));
+    }
+  } else {
+    if (card) card.classList.remove('fullscreen-mode');
+    if (iconFs) iconFs.textContent = 'open_in_full';
+    state.centrosMensalAbertos.clear();
+  }
+
+  if (state.tabelaMensalData) renderizarTabelaMensalOrcReal(state.tabelaMensalData);
+}
+
+function toggleFullscreenMensal() {
+  const card = document.getElementById('cardMensalOrcReal');
+  const iconFs = document.getElementById('iconFullscreenMensal');
+  if (!card) return;
+  const isFs = card.classList.toggle('fullscreen-mode');
+  if (iconFs) iconFs.textContent = isFs ? 'close_fullscreen' : 'open_in_full';
+}
+
+window.toggleExpandAllMensal = toggleExpandAllMensal;
+window.toggleFullscreenMensal = toggleFullscreenMensal;
+window.toggleCentroMensal = toggleCentroMensal;
 
 
 // ── UI Loading/Error ─────────────────────────────────────────────────────
@@ -1968,8 +2214,8 @@ window.toggleExpandAllAcumulado = toggleExpandAllAcumulado;
 window.toggleFullscreenAcumulado = toggleFullscreenAcumulado;
 
 
-// ════ AGENTE DE IA (N8N WEBHOOK) ═════════════════════════════════════════════
-const DEFAULT_WEBHOOK = 'https://n8n.seu-dominio.com.br/webhook/dre-agent';
+// ════ AGENTE DE IA (NATIVO GEMINI / WEBHOOK OPCIONAL) ═════════════════════════
+const DEFAULT_WEBHOOK = '/api/ia/perguntar';
 function getWebhookUrl() {
   return localStorage.getItem('n8n_webhook_url') || DEFAULT_WEBHOOK;
 }
@@ -2062,20 +2308,51 @@ document.addEventListener('DOMContentLoaded', () => {
   const btnConfig = document.getElementById('ai-chat-config');
   if(btnConfig) {
     btnConfig.addEventListener('click', (e) => {
-      e.stopPropagation(); // Prevent toggling the chat when clicking the gear
+      e.stopPropagation();
       let currentUrl = getWebhookUrl();
-      let newUrl = prompt('Configuração do Agente IA\n\nInsira a URL do Webhook do n8n:', currentUrl);
-      if(newUrl !== null && newUrl.trim() !== '') {
-        localStorage.setItem('n8n_webhook_url', newUrl.trim());
-        alert('Webhook configurado com sucesso!');
+      let isDefault = currentUrl === DEFAULT_WEBHOOK;
+      let newUrl = prompt(
+        'Configuração do Agente de IA\n\n' +
+        'Endpoint atual: ' + (isDefault ? 'Agente Nativo Interno (Mistral AI /api/ia/perguntar)' : currentUrl) +
+        '\n\nPara usar um Webhook personalizado (ex: n8n), insira a URL.\nPara usar o Agente Nativo Mistral interno, deixe em branco:',
+        isDefault ? '' : currentUrl
+      );
+      if(newUrl !== null) {
+        if(newUrl.trim() === '') {
+          localStorage.removeItem('n8n_webhook_url');
+          alert('Configurado para o Agente Nativo Mistral interno!');
+        } else {
+          localStorage.setItem('n8n_webhook_url', newUrl.trim());
+          alert('Endpoint personalizado configurado com sucesso!');
+        }
       }
     });
   }
   
+  function formatMarkdown(text) {
+    if(!text) return '';
+    let html = text
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/### (.*?)(?:\n|$)/g, '<h4 style="margin: 8px 0 4px; color: var(--gold); font-size: 13px;">$1</h4>')
+      .replace(/## (.*?)(?:\n|$)/g, '<h3 style="margin: 10px 0 6px; color: var(--gold); font-size: 14px;">$1</h3>')
+      .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+      .replace(/\*(.*?)\*/g, '<em>$1</em>')
+      .replace(/^\s*[\*•-]\s+(.*?)(?:\n|$)/gm, '<div style="padding-left: 10px; margin: 2px 0;">• $1</div>')
+      .replace(/\n\n/g, '<div style="height: 6px;"></div>')
+      .replace(/\n/g, '<br>');
+    return html;
+  }
+
   function addMessage(text, sender) {
     const msg = document.createElement('div');
     msg.className = `ai-message ${sender}`;
-    msg.textContent = text;
+    if (sender === 'ai') {
+      msg.innerHTML = formatMarkdown(text);
+    } else {
+      msg.textContent = text;
+    }
     body.appendChild(msg);
     body.scrollTop = body.scrollHeight;
   }
@@ -2091,13 +2368,18 @@ document.addEventListener('DOMContentLoaded', () => {
     const loading = document.createElement('div');
     loading.className = 'ai-message ai';
     loading.id = loadingId;
-    loading.textContent = 'Analisando...';
+    loading.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></span> Analisando dados do DRE com Mistral AI...</span>';
     body.appendChild(loading);
     body.scrollTop = body.scrollHeight;
 
     try {
       const contextoDRE = {
-        filtros: { ano: state.ano, mes: state.mes, empresa: state.empresa, centroCusto: state.centroCusto },
+        filtros: { 
+          ano: typeof state !== 'undefined' ? state.ano : '2026', 
+          mes: typeof state !== 'undefined' ? state.mes : '8', 
+          empresa: typeof state !== 'undefined' ? state.empresa : 'ALL', 
+          centroCusto: typeof state !== 'undefined' ? state.centroCusto : 'ALL' 
+        },
         margem: document.getElementById('kpiMargemVal')?.textContent || '',
         vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''
       };
@@ -2110,17 +2392,21 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       const result = await response.json();
-      document.getElementById(loadingId).remove();
+      const elLoad = document.getElementById(loadingId);
+      if(elLoad) elLoad.remove();
       
       if(result && result.resposta) {
         addMessage(result.resposta, 'ai');
+      } else if (result && result.error) {
+        addMessage('Erro na análise: ' + result.error, 'ai');
       } else {
-        addMessage('Resposta recebida, mas em formato desconhecido.', 'ai');
+        addMessage('Resposta recebida em formato inesperado.', 'ai');
       }
     } catch(err) {
-      document.getElementById(loadingId).remove();
-      addMessage('Desculpe, não consegui conectar ao Agente de IA. Verifique a URL do Webhook.', 'ai');
-      console.error('Erro N8N:', err);
+      const elLoad = document.getElementById(loadingId);
+      if(elLoad) elLoad.remove();
+      addMessage('Desculpe, não consegui conectar ao Agente de IA. Verifique sua conexão e servidor.', 'ai');
+      console.error('Erro Agente IA:', err);
     }
   }
 
