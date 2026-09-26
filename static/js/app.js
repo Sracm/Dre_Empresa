@@ -2349,11 +2349,117 @@ document.addEventListener('DOMContentLoaded', () => {
     const msg = document.createElement('div');
     msg.className = `ai-message ${sender}`;
     if (sender === 'ai') {
-      msg.innerHTML = formatMarkdown(text);
+      const chartConfigs = [];
+      // Extrai blocos ```chart ... ``` ou ```grafico ... ```
+      let processedText = text.replace(/```(?:chart|grafico)\s*([\s\S]*?)\s*```/gi, (match, jsonStr) => {
+        const chartId = 'ai-chart-' + Math.random().toString(36).substring(2, 9);
+        try {
+          let cleanJson = jsonStr.trim();
+          // Remove pontos de milhar em números para evitar erro de JSON (ex: 2.800.000 -> 2800000)
+          cleanJson = cleanJson.replace(/(\d+)\.(\d{3})\.(\d{3})(?:\.(\d{3}))?/g, '$1$2$3$4');
+          cleanJson = cleanJson.replace(/(\d+)\.(\d{3})(?=[,\s\]\}])/g, '$1$2');
+          
+          const config = JSON.parse(cleanJson);
+          chartConfigs.push({ id: chartId, config });
+          return `<div class="ai-chart-wrapper" style="margin: 12px 0; background: #141416; border: 1px solid rgba(224,170,62,0.3); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+                    <div style="font-size: 11px; font-weight: 700; color: #e0aa3e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                      <span>📊 Gráfico Interativo MQIA</span>
+                    </div>
+                    <div style="position: relative; height: 210px; width: 100%;">
+                      <canvas id="${chartId}"></canvas>
+                    </div>
+                  </div>`;
+        } catch(e) {
+          console.error("Erro ao analisar JSON do gráfico:", e);
+          return `<pre style="background: #111; padding: 8px; border-radius: 4px; font-size: 10px;">${jsonStr}</pre>`;
+        }
+      });
+
+      msg.innerHTML = formatMarkdown(processedText);
+      body.appendChild(msg);
+
+      // Renderiza os gráficos com Chart.js
+      if (chartConfigs.length > 0 && window.Chart) {
+        setTimeout(() => {
+          chartConfigs.forEach(({ id, config }) => {
+            const cvs = document.getElementById(id);
+            if (!cvs) return;
+            const ctx = cvs.getContext('2d');
+            const defaultColors = ['#e0aa3e', '#00d26a', '#3b82f6', '#a855f7', '#ec4899', '#f97316', '#06b6d4'];
+            
+            const isPie = config.type === 'pie' || config.type === 'doughnut';
+            const labels = config.labels || (config.data && config.data.labels) || [];
+            let rawDatasets = config.datasets || (config.data && config.data.datasets);
+            if (!rawDatasets || !Array.isArray(rawDatasets) || rawDatasets.length === 0) {
+              const d = config.data || [];
+              rawDatasets = [{
+                label: config.title || 'Valores (R$)',
+                data: Array.isArray(d) ? d : []
+              }];
+            }
+
+            const datasets = rawDatasets.map((ds, idx) => ({
+              ...ds,
+              backgroundColor: ds.backgroundColor || (isPie ? defaultColors : (defaultColors[idx % defaultColors.length] || '#e0aa3e')),
+              borderColor: '#18181b',
+              borderWidth: 1,
+              borderRadius: isPie ? 0 : 4
+            }));
+
+            new window.Chart(ctx, {
+              type: config.type || 'bar',
+              data: {
+                labels: labels,
+                datasets: datasets
+              },
+              options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: {
+                    display: isPie || (datasets.length > 1),
+                    position: 'top',
+                    labels: { color: '#d1d5db', font: { family: 'Montserrat', size: 10 } }
+                  },
+                  title: {
+                    display: !!(config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text)),
+                    text: config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text) || '',
+                    color: '#ffffff',
+                    font: { family: 'Montserrat', size: 11, weight: '600' },
+                    padding: { bottom: 8 }
+                  },
+                  tooltip: {
+                    callbacks: {
+                      label: function(c) {
+                        const val = c.raw || 0;
+                        return `${c.dataset.label || ''}: R$ ${Number(val).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                      }
+                    }
+                  }
+                },
+                scales: isPie ? {} : {
+                  x: {
+                    ticks: { color: '#9ca3af', font: { family: 'Montserrat', size: 9 } },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                  },
+                  y: {
+                    ticks: {
+                      color: '#9ca3af',
+                      font: { family: 'Montserrat', size: 9 },
+                      callback: v => (Math.abs(v) >= 1e6 ? (v/1e6).toFixed(1)+'M' : (Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0)+'k' : v))
+                    },
+                    grid: { color: 'rgba(255,255,255,0.05)' }
+                  }
+                }
+              }
+            });
+          });
+        }, 50);
+      }
     } else {
       msg.textContent = text;
+      body.appendChild(msg);
     }
-    body.appendChild(msg);
     body.scrollTop = body.scrollHeight;
   }
 

@@ -261,11 +261,58 @@ def consultar_sql(query):
     finally:
         conn.close()
 
+def gerar_grafico(tipo="bar", titulo="Gráfico MQ Hair", labels=None, valores=None, legenda="Realizado (R$)"):
+    """
+    Gera a estrutura JSON para exibição de gráfico interativo Chart.js no chat.
+    """
+    labels = labels or []
+    valores = valores or []
+    clean_vals = []
+    for v in valores:
+        try:
+            clean_vals.append(float(v))
+        except Exception:
+            clean_vals.append(0.0)
+
+    chart_json = {
+        "type": tipo or "bar",
+        "title": titulo or "Gráfico Interativo",
+        "labels": labels,
+        "datasets": [{
+            "label": legenda or "Realizado (R$)",
+            "data": clean_vals
+        }]
+    }
+    bloco = f"\n```chart\n{json.dumps(chart_json, ensure_ascii=False, indent=2)}\n```\n"
+    return {
+        "status": "sucesso",
+        "bloco_markdown": bloco,
+        "instrucao": "Obrigatório: inclua o bloco_markdown fornecido diretamente na sua resposta para que o gráfico seja desenhado na tela!"
+    }
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  INTEGRAÇÃO COM MISTRAL AI
 # ═══════════════════════════════════════════════════════════════════════════
 
 TOOLS_SCHEMA = [
+    {
+        "type": "function",
+        "function": {
+            "name": "gerar_grafico",
+            "description": "Gera um gráfico visual interativo (barras, linhas ou pizza) para ser desenhado na tela do chat. Use sempre que o usuário pedir um gráfico, visualização gráfica ou perguntar se você consegue gerar gráficos.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "tipo": {"type": "string", "enum": ["bar", "line", "pie", "doughnut"], "description": "Tipo do gráfico: bar (barras), line (linhas), pie (pizza), doughnut (rosca)"},
+                    "titulo": {"type": "string", "description": "Título explicativo do gráfico"},
+                    "labels": {"type": "array", "items": {"type": "string"}, "description": "Nomes das categorias, empresas ou meses"},
+                    "valores": {"type": "array", "items": {"type": "number"}, "description": "Valores numéricos puros (sem formatação ou símbolos)"},
+                    "legenda": {"type": "string", "description": "Nome da métrica (ex: 'Realizado (R$)' ou 'Orçado vs Realizado')"}
+                },
+                "required": ["tipo", "titulo", "labels", "valores"]
+            }
+        }
+    },
     {
         "type": "function",
         "function": {
@@ -396,24 +443,49 @@ def processar_pergunta(prompt, contexto=None):
 
     system_prompt = (
         "Você é o Agente MQIA, consultor executivo sênior de Finanças & BI da MQ Hair Company. "
-        "Sua missão é responder com 100% de exatidão matemática e profundidade analítica às dúvidas de diretores e gerentes sobre o DRE da empresa. "
-        "\n\nREGRAS OBRIGATÓRIAS:"
-        "\n1. NUNCA invente números. SEMPRE consulte as ferramentas analíticas disponíveis antes de dar a resposta."
-        "\n2. Para dúvidas sobre faturamento, receita, CMV, margem ou resultado geral, chame PRIMEIRO a ferramenta `obter_resumo_dre`."
-        "\n3. Para detalhar despesas específicas (como frete, comissões, marketing, pessoal), chame `detalhar_bloco`."
-        "\n4. Para comparar desempenho entre empresas do grupo, chame `comparar_empresas`."
-        "\n5. Formate moedas no padrão brasileiro: R$ 1.234.567,89 e percentuais com 1 ou 2 casas decimais (+5,1% ou -2,4%)."
-        "\n6. Explique sempre se o desvio é favorável ou desfavorável: "
-        "   - Receita acima do orçado = FAVORÁVEL (+)"
-        "   - Custos ou Despesas acima do orçado = DESFAVORÁVEL (estouro de orçamento)"
-        "   - Custos ou Despesas abaixo do orçado = FAVORÁVEL (economia orçamentária)"
-        "\n7. Apresente respostas elegantes, executivas, com tópicos estruturados em Markdown."
+        "Sua missão é responder com 100% de exatidão matemática, clareza e postura executiva às dúvidas de diretores e gerentes sobre o DRE da empresa. "
+        "\n\nDIRETRIZES DE ATENDIMENTO:"
+        "\n1. CAPACIDADE DE GERAR GRÁFICOS:"
+        "\n   - VOCÊ CONSEGUE GERAR GRÁFICOS INTERATIVOS DIRETAMENTE NO CHAT! "
+        "\n   - Se o usuário perguntar se você consegue gerar gráficos (ex: 'consegue gerar gráficos?', 'cria gráficos?'), confirme entusiasticamente que SIM: "
+        "\n     Explique que você pode gerar gráficos de barras comparativas (entre empresas, ou orçado vs realizado), gráficos de linha de evolução, e gráficos de pizza/distribuição. "
+        "\n     E para demonstrar imediatamente, gere um gráfico interativo com os dados do mês atual!"
+        "\n   - Quando o usuário pedir um gráfico (ou perguntar se consegue), inclua na resposta o bloco de código com tag `chart` e JSON válido:"
+        "\n     ```chart"
+        "\n     {"
+        "\n       \"type\": \"bar\","
+        "\n       \"title\": \"Venda Bruta por Empresa (Agosto/2026)\","
+        "\n       \"labels\": [\"FORX SC\", \"MCR - SC\", \"VLS - SP\", \"Consolidação\", \"VLS - RJ\"],"
+        "\n       \"datasets\": ["
+        "\n         {"
+        "\n           \"label\": \"Realizado (R$)\","
+        "\n           \"data\": [2517180.0, 2069652.5, 1843553.2, 1324473.0, 76704.7]"
+        "\n         }"
+        "\n       ]"
+        "\n     }"
+        "\n     ```"
+        "\n     A interface do chat renderiza esse bloco como um gráfico interativo em tempo real!"
+        "\n\n2. PERGUNTAS DE SAUDAÇÃO E CAPACIDADE:"
+        "\n   - Para cumprimentos ('olá', 'boa tarde') ou perguntas sobre você ('quem é você?', 'o que você faz?'), responda cordial e profissionalmente sem chamar ferramentas desnecessárias do banco."
+        "\n\n3. PERGUNTAS SOBRE NÚMEROS E DESEMPENHO DO DRE:"
+        "\n   - NUNCA invente números. SEMPRE consulte as ferramentas analíticas disponíveis antes de dar a resposta."
+        "\n   - Para dúvidas sobre faturamento, receita, CMV, margem ou resultado geral, chame PRIMEIRO `obter_resumo_dre`."
+        "\n   - Para detalhar despesas específicas (como frete, comissões, bonificações, pessoal, marketing), chame `detalhar_bloco`."
+        "\n   - Para comparar desempenho entre empresas do grupo, chame `comparar_empresas`."
+        "\n   - Formate moedas no padrão brasileiro: R$ 1.234.567,89 e percentuais com 1 ou 2 casas decimais (+5,1% ou -2,4%)."
+        "\n   - Explique sempre se o desvio é favorável ou desfavorável: "
+        "\n     * Receita acima do orçado = FAVORÁVEL (+)"
+        "\n     * Custos ou Despesas acima do orçado = DESFAVORÁVEL (estouro de orçamento)"
+        "\n     * Custos ou Despesas abaixo do orçado = FAVORÁVEL (economia orçamentária)"
+        "\n   - Apresente respostas elegantes, executivas, com tópicos estruturados em Markdown."
     )
 
     messages = [
         {"role": "system", "content": system_prompt},
         {"role": "user", "content": prompt + contexto_str}
     ]
+
+    blocos_graficos_gerados = []
 
     for step in range(4):
         print(f"[IA MISTRAL] Passo {step + 1}: enviando {len(messages)} mensagens...", flush=True)
@@ -429,7 +501,12 @@ def processar_pergunta(prompt, contexto=None):
         tool_calls = asst_msg.get("tool_calls", [])
         if not tool_calls:
             print(f"[IA MISTRAL] Resposta final obtida via {model_used}", flush=True)
-            return asst_msg.get("content") or "Análise concluída com sucesso."
+            texto_final = asst_msg.get("content") or "Análise concluída com sucesso."
+            if blocos_graficos_gerados:
+                for bg in blocos_graficos_gerados:
+                    if bg and "```chart" not in texto_final and "```grafico" not in texto_final:
+                        texto_final = texto_final + "\n\n" + bg
+            return texto_final
 
         # Executa cada ferramenta chamada
         for tc in tool_calls:
@@ -443,7 +520,17 @@ def processar_pergunta(prompt, contexto=None):
 
             print(f"[IA MISTRAL] Executando tool: {fname}({args})", flush=True)
 
-            if fname == "obter_resumo_dre":
+            if fname == "gerar_grafico":
+                tipo_arg = args.get("tipo", "bar")
+                titulo_arg = args.get("titulo", "Gráfico DRE MQ Hair")
+                labels_arg = args.get("labels", [])
+                valores_arg = args.get("valores", [])
+                legenda_arg = args.get("legenda", "Realizado (R$)")
+                tool_output = gerar_grafico(tipo=tipo_arg, titulo=titulo_arg, labels=labels_arg, valores=valores_arg, legenda=legenda_arg)
+                if tool_output.get("bloco_markdown"):
+                    blocos_graficos_gerados.append(tool_output["bloco_markdown"])
+
+            elif fname == "obter_resumo_dre":
                 ano_arg = args.get("ano", ano_ctx)
                 mes_arg = args.get("mes", mes_ctx)
                 emp_arg = args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None)
