@@ -454,7 +454,7 @@ def processar_pergunta(prompt, contexto=None):
 
     system_prompt = (
         f"{usuario_instrucao}"
-        "Você é o Agente MQIA, consultor executivo sênior de Finanças & BI da MQ Hair Company. "
+        "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
         "Sua missão é responder com 100% de exatidão matemática, clareza e postura executiva às dúvidas de diretores e gerentes sobre o DRE da empresa. "
         "\n\nDIRETRIZES DE ATENDIMENTO:"
         "\n1. CAPACIDADE DE GERAR GRÁFICOS:"
