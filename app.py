@@ -7,7 +7,7 @@ import time
 import subprocess
 from datetime import datetime, timedelta
 from collections import OrderedDict
-from flask import Flask, render_template, jsonify, request, send_file
+from flask import Flask, render_template, jsonify, request, send_file, Response, stream_with_context
 import io
 import json
 import openpyxl
@@ -1372,6 +1372,31 @@ def rota_ia_perguntar():
         return jsonify({"resposta": resposta})
     except Exception as e:
         return jsonify({"error": str(e), "detail": traceback.format_exc()}), 500
+
+@app.route("/api/ia/perguntar/stream", methods=["POST"])
+def rota_ia_perguntar_stream():
+    try:
+        data = request.get_json(silent=True) or {}
+        prompt = (data.get("prompt") or "").strip()
+        contexto = data.get("contexto") or {}
+        if not prompt:
+            def err_gen():
+                yield "data: " + json.dumps({"tipo": "erro", "erro": "Prompt não informado"}, ensure_ascii=False) + "\n\n"
+            return Response(err_gen(), mimetype="text/event-stream")
+        
+        importlib.reload(agent_ia)
+        def sse_events():
+            for ev in agent_ia.stream_processar_pergunta(prompt, contexto):
+                yield f"data: {json.dumps(ev, ensure_ascii=False)}\n\n"
+        
+        return Response(stream_with_context(sse_events()), mimetype="text/event-stream", headers={
+            "Cache-Control": "no-cache, no-transform",
+            "X-Accel-Buffering": "no"
+        })
+    except Exception as e:
+        def err_gen():
+            yield f"data: {json.dumps({'tipo': 'erro', 'erro': str(e)}, ensure_ascii=False)}\n\n"
+        return Response(err_gen(), mimetype="text/event-stream")
 
 if __name__ == "__main__":
     iniciar_agendador_noturno()

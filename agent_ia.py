@@ -770,3 +770,211 @@ def processar_pergunta(prompt, contexto=None):
             })
 
     return "A análise foi concluída."
+
+def stream_processar_pergunta(prompt, contexto=None):
+    """
+    Processa a pergunta do usuário transmitindo a resposta em tempo real via Server-Sent Events (SSE).
+    Efeito 'máquina de escrever' com Time-To-First-Token ultrarrápido (< 500ms).
+    """
+    ano_ctx = 2026
+    mes_ctx = 8
+    emp_ctx = "Consolidado"
+
+    if contexto:
+        f = contexto.get("filtros", {})
+        try:
+            if f.get("ano"):
+                ano_ctx = int(f.get("ano"))
+            if f.get("mes"):
+                mes_ctx = int(f.get("mes"))
+        except Exception:
+            pass
+        emp_ctx = f.get("empresa") or "Consolidado"
+        nome_usuario = contexto.get("usuario")
+        saudacao_periodo = contexto.get("saudacao") or "Boa tarde"
+    else:
+        nome_usuario = None
+        saudacao_periodo = "Boa tarde"
+
+    p_lower = prompt.lower()
+    dados_pre = None
+    status_msg = "MQIA analisando dados do DRE..."
+
+    # 1. Roteamento de Pré-busca Indexada SQLite (< 10ms)
+    if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento"]):
+        mes_alvo = 7 if ("passado" in p_lower or "anterior" in p_lower) else mes_ctx
+        status_msg = f"Consultando desvios e estouros orçamentários ({mes_alvo:02d}/{ano_ctx})..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = analisar_estouros_orcamento(ano=ano_ctx, mes=mes_alvo, apenas_estouros=("estour" in p_lower))
+
+    elif "aluguel" in p_lower or ("mês a mês" in p_lower or "mes a mes" in p_lower or "histórico" in p_lower or "historico" in p_lower):
+        conta = "Aluguel" if "aluguel" in p_lower else ("Frete" if "frete" in p_lower else "Energia")
+        status_msg = f"Consultando histórico financeiro mês a mês de {conta}..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = consultar_conta_historico(conta=conta, ano=ano_ctx)
+
+    elif any(k in p_lower for k in ["distribui", "comiss", "varejo", "mercado livre", "logistica"]):
+        centro = "Distribuição" if "distribui" in p_lower else ("Varejo" if "varejo" in p_lower else "Mercado Livre")
+        filtro = "Comiss" if "comiss" in p_lower else None
+        status_msg = f"Consultando Centro de Resultados {centro}..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = consultar_por_centro_custo(centro_custo=centro, ano=ano_ctx, mes=mes_ctx, filtro_conta=filtro)
+
+    elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms"]):
+        status_msg = f"Consultando dados de impostos e tributos do mês {mes_ctx:02d}/{ano_ctx}..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = consultar_conta_historico(conta="IMPOST", ano=ano_ctx)
+
+    elif any(k in p_lower for k in ["faturamento", "venda bruta", "venda liquida", "venda líquida", "cmv", "margem"]):
+        status_msg = f"Consultando indicadores consolidados do DRE {mes_ctx:02d}/{ano_ctx}..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+
+    # 2. Instruções do Sistema para a MQIA
+    usuario_instrucao = (
+        f"O usuário conectado chama-se **{nome_usuario}**. "
+        f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!'). "
+    ) if nome_usuario else ""
+
+    system_content = (
+        f"{usuario_instrucao}"
+        "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
+        "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza. "
+        "Responda diretamente com valores formatados em R$ (ex: R$ 127.648,19) e destaques em negrito. "
+        "Se o valor for R$ 0,00, explique objetivamente que não constam lançamentos para o filtro solicitado. "
+        "Se o usuário pedir gráfico ou se for útil para comparar itens, adicione ao final o bloco ```chart { ... } ``` no formato Chart.js."
+    )
+
+    messages = [{"role": "system", "content": system_content}]
+
+    # Se dados já foram pré-buscados no banco, injeta e faz streaming imediato
+    if dados_pre:
+        messages.append({
+            "role": "system",
+            "content": f"[DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)]:\n{json.dumps(dados_pre, ensure_ascii=False)}"
+        })
+        messages.append({"role": "user", "content": prompt})
+
+        url = "https://api.mistral.ai/v1/chat/completions"
+        payload = {
+            "model": "open-mistral-nemo",
+            "messages": messages,
+            "temperature": 0.1,
+            "max_tokens": 550,
+            "stream": True
+        }
+
+        try:
+            r = _HTTP_SESSION.post(url, json=payload, stream=True, timeout=25)
+            texto_total = ""
+            for line in r.iter_lines():
+                if line:
+                    decoded = line.decode('utf-8')
+                    if decoded.startswith('data: '):
+                        d_str = decoded[6:].strip()
+                        if d_str == '[DONE]':
+                            break
+                        try:
+                            chunk = json.loads(d_str)
+                            token = chunk['choices'][0]['delta'].get('content', '')
+                            if token:
+                                texto_total += token
+                                yield {"tipo": "token", "texto": token}
+                        except Exception:
+                            pass
+            yield {"tipo": "fim", "resposta_completa": texto_total}
+            return
+        except Exception as e:
+            yield {"tipo": "erro", "erro": str(e)}
+            return
+
+    # Fallback: Se pergunta não foi coberta pelo pre-fetch rápido, usa Function Calling dinâmico
+    yield {"tipo": "status", "texto": "Consultando ferramentas analíticas do DRE..."}
+    messages.append({"role": "user", "content": prompt})
+    res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
+    if not res:
+        yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI."}
+        return
+
+    choice = res.get("choices", [{}])[0]
+    asst_msg = choice.get("message", {})
+    tool_calls = asst_msg.get("tool_calls", [])
+
+    if not tool_calls:
+        texto = asst_msg.get("content") or "Análise concluída."
+        yield {"tipo": "token", "texto": texto}
+        yield {"tipo": "fim", "resposta_completa": texto}
+        return
+
+    messages.append(asst_msg)
+    blocos_graficos_gerados = []
+    for tc in tool_calls:
+        fname = tc.get("function", {}).get("name")
+        call_id = tc.get("id")
+        args_raw = tc.get("function", {}).get("arguments", "{}")
+        try:
+            args = json.loads(args_raw) if isinstance(args_raw, str) else (args_raw or {})
+        except Exception:
+            args = {}
+
+        if fname == "analisar_estouros_orcamento":
+            out = analisar_estouros_orcamento(args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("apenas_estouros", True))
+        elif fname == "consultar_conta_historico":
+            out = consultar_conta_historico(args.get("conta", "Aluguel"), args.get("ano", ano_ctx))
+        elif fname == "consultar_por_centro_custo":
+            out = consultar_por_centro_custo(args.get("centro_custo", "Distribuição"), args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("filtro_conta"))
+        elif fname == "obter_resumo_dre":
+            out = obter_resumo_dre(args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("empresa"))
+        elif fname == "detalhar_bloco":
+            out = detalhar_bloco(args.get("bloco", "Despesas com Vendas"), args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("empresa"))
+        elif fname == "comparar_empresas":
+            out = comparar_empresas(args.get("indicador", "venda_bruta"), args.get("ano", ano_ctx), args.get("mes", mes_ctx))
+        elif fname == "gerar_grafico":
+            out = gerar_grafico(args.get("tipo", "bar"), args.get("titulo", ""), args.get("labels", []), args.get("valores", []), args.get("legenda", ""))
+            if out.get("bloco_markdown"):
+                blocos_graficos_gerados.append(out["bloco_markdown"])
+        else:
+            out = {"error": f"Ferramenta desconhecida: {fname}"}
+
+        messages.append({
+            "role": "tool",
+            "tool_call_id": call_id,
+            "name": fname,
+            "content": json.dumps(out, ensure_ascii=False)
+        })
+
+    # Agora transmite a resposta final gerada em streaming
+    payload = {
+        "model": "open-mistral-nemo",
+        "messages": messages,
+        "temperature": 0.1,
+        "max_tokens": 550,
+        "stream": True
+    }
+    r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", json=payload, stream=True, timeout=25)
+    texto_total = ""
+    for line in r.iter_lines():
+        if line:
+            decoded = line.decode('utf-8')
+            if decoded.startswith('data: '):
+                d_str = decoded[6:].strip()
+                if d_str == '[DONE]':
+                    break
+                try:
+                    chunk = json.loads(d_str)
+                    token = chunk['choices'][0]['delta'].get('content', '')
+                    if token:
+                        texto_total += token
+                        yield {"tipo": "token", "texto": token}
+                except Exception:
+                    pass
+
+    if blocos_graficos_gerados:
+        for bg in blocos_graficos_gerados:
+            if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
+                extra = "\n\n" + bg
+                texto_total += extra
+                yield {"tipo": "token", "texto": extra}
+
+    yield {"tipo": "fim", "resposta_completa": texto_total}
+

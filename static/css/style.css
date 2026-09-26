@@ -1640,6 +1640,31 @@ td.col-desvio-bloco {
   align-self: flex-end;
 }
 
+.ai-typing-cursor {
+  display: inline-block;
+  color: var(--gold);
+  font-weight: 800;
+  margin-left: 2px;
+  animation: blinkCursor 0.7s infinite;
+  vertical-align: baseline;
+}
+
+@keyframes blinkCursor {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.ai-status-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--gold);
+  font-size: 11.5px;
+  font-weight: 500;
+  margin-bottom: 6px;
+  opacity: 0.95;
+}
+
 .ai-chat-footer {
   padding: 12px;
   background: var(--surface2);

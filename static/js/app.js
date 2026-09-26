@@ -2397,11 +2397,8 @@ document.addEventListener('DOMContentLoaded', () => {
     return html;
   }
 
-  function addMessage(text, sender) {
-    const msg = document.createElement('div');
-    msg.className = `ai-message ${sender}`;
-    if (sender === 'ai') {
-      const chartConfigs = [];
+  function renderContentWithCharts(containerEl, text) {
+    const chartConfigs = [];
       // Extrai blocos ```chart ... ``` ou ```grafico ... ```
       let processedText = text.replace(/```(?:chart|grafico)\s*([\s\S]*?)\s*```/gi, (match, jsonStr) => {
         const chartId = 'ai-chart-' + Math.random().toString(36).substring(2, 9);
@@ -2427,8 +2424,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      msg.innerHTML = formatMarkdown(processedText);
-      body.appendChild(msg);
+    containerEl.innerHTML = formatMarkdown(processedText);
 
       // Renderiza os gráficos com Chart.js
       if (chartConfigs.length > 0 && window.Chart) {
@@ -2507,11 +2503,18 @@ document.addEventListener('DOMContentLoaded', () => {
             });
           });
         }, 50);
-      }
+    }
+  }
+
+  function addMessage(text, sender) {
+    const msg = document.createElement('div');
+    msg.className = `ai-message ${sender}`;
+    if (sender === 'ai') {
+      renderContentWithCharts(msg, text);
     } else {
       msg.textContent = text;
-      body.appendChild(msg);
     }
+    body.appendChild(msg);
     body.scrollTop = body.scrollHeight;
   }
 
@@ -2521,52 +2524,151 @@ document.addEventListener('DOMContentLoaded', () => {
     
     addMessage(text, 'user');
     input.value = '';
-    
-    const loadingId = 'loading-' + Date.now();
-    const loading = document.createElement('div');
-    loading.className = 'ai-message ai';
-    loading.id = loadingId;
-    loading.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></span> Analisando dados do DRE com Mistral AI...</span>';
-    body.appendChild(loading);
+
+    const contextoDRE = {
+      usuario: obterNomeUsuario(),
+      saudacao: obterSaudacaoPeriodo(),
+      filtros: { 
+        ano: typeof state !== 'undefined' ? state.ano : '2026', 
+        mes: typeof state !== 'undefined' ? state.mes : '8', 
+        empresa: typeof state !== 'undefined' ? state.empresa : 'ALL', 
+        centroCusto: typeof state !== 'undefined' ? state.centroCusto : 'ALL' 
+      },
+      margem: document.getElementById('kpiMargemVal')?.textContent || '',
+      vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''
+    };
+
+    const currentUrl = getWebhookUrl();
+    const isStreamSupported = currentUrl === DEFAULT_WEBHOOK || currentUrl.includes('/api/ia/perguntar');
+
+    if (!isStreamSupported) {
+      // Modo legado/Webhook customizado sem suporte a SSE
+      const loadingId = 'loading-' + Date.now();
+      const loading = document.createElement('div');
+      loading.className = 'ai-message ai';
+      loading.id = loadingId;
+      loading.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></span> Processando com Agente externo...</span>';
+      body.appendChild(loading);
+      body.scrollTop = body.scrollHeight;
+
+      try {
+        const response = await fetch(currentUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ prompt: text, contexto: contextoDRE })
+        });
+        const result = await response.json();
+        loading.remove();
+        if(result && result.resposta) {
+          addMessage(result.resposta, 'ai');
+        } else if (result && result.error) {
+          addMessage('Erro na análise: ' + result.error, 'ai');
+        } else {
+          addMessage('Resposta recebida em formato inesperado.', 'ai');
+        }
+      } catch(err) {
+        loading.remove();
+        addMessage('Desculpe, não foi possível conectar ao endpoint externo configurado.', 'ai');
+      }
+      return;
+    }
+
+    // ── Modo Streaming em Tempo Real (Efeito Máquina de Escrever) ─────────
+    const msgAi = document.createElement('div');
+    msgAi.className = 'ai-message ai';
+
+    const statusHint = document.createElement('div');
+    statusHint.className = 'ai-status-hint';
+    statusHint.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span><span class="status-txt">MQIA analisando dados do DRE...</span>';
+
+    const textSpan = document.createElement('span');
+    textSpan.className = 'ai-text-content';
+
+    const cursorSpan = document.createElement('span');
+    cursorSpan.className = 'ai-typing-cursor';
+    cursorSpan.textContent = '▌';
+
+    msgAi.appendChild(statusHint);
+    msgAi.appendChild(textSpan);
+    msgAi.appendChild(cursorSpan);
+    body.appendChild(msgAi);
     body.scrollTop = body.scrollHeight;
 
     try {
-      const contextoDRE = {
-        usuario: obterNomeUsuario(),
-        saudacao: obterSaudacaoPeriodo(),
-        filtros: { 
-          ano: typeof state !== 'undefined' ? state.ano : '2026', 
-          mes: typeof state !== 'undefined' ? state.mes : '8', 
-          empresa: typeof state !== 'undefined' ? state.empresa : 'ALL', 
-          centroCusto: typeof state !== 'undefined' ? state.centroCusto : 'ALL' 
-        },
-        margem: document.getElementById('kpiMargemVal')?.textContent || '',
-        vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''
-      };
-
-      const url = getWebhookUrl();
-      const response = await fetch(url, {
+      const response = await fetch('/api/ia/perguntar/stream', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ prompt: text, contexto: contextoDRE })
       });
 
-      const result = await response.json();
-      const elLoad = document.getElementById(loadingId);
-      if(elLoad) elLoad.remove();
-      
-      if(result && result.resposta) {
-        addMessage(result.resposta, 'ai');
-      } else if (result && result.error) {
-        addMessage('Erro na análise: ' + result.error, 'ai');
-      } else {
-        addMessage('Resposta recebida em formato inesperado.', 'ai');
+      if (!response.ok || !response.body) {
+        throw new Error('Falha na conexão de streaming.');
       }
+
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder('utf-8');
+      let accumulatedText = '';
+      let buffer = '';
+      let receivedFirstToken = false;
+
+      while (true) {
+        const { value, done } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n\n');
+        buffer = lines.pop(); // Mantém eventual chunk incompleto
+
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed.startsWith('data: ')) continue;
+          const jsonStr = trimmed.slice(6).trim();
+          try {
+            const data = JSON.parse(jsonStr);
+
+            if (data.tipo === 'status') {
+              const txtEl = statusHint.querySelector('.status-txt');
+              if (txtEl) txtEl.textContent = data.texto;
+            } else if (data.tipo === 'token') {
+              if (!receivedFirstToken) {
+                receivedFirstToken = true;
+                statusHint.remove(); // Remove o status ao iniciar os primeiros tokens
+              }
+              accumulatedText += data.texto;
+              textSpan.innerHTML = formatMarkdown(accumulatedText);
+              body.scrollTop = body.scrollHeight;
+            } else if (data.tipo === 'fim') {
+              if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
+              if (statusHint && statusHint.parentNode) statusHint.remove();
+              const finalText = data.resposta_completa || accumulatedText;
+              renderContentWithCharts(msgAi, finalText);
+              body.scrollTop = body.scrollHeight;
+              return;
+            } else if (data.tipo === 'erro') {
+              if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
+              if (statusHint && statusHint.parentNode) statusHint.remove();
+              textSpan.innerHTML = `<span style="color:#ef4444;">Erro na análise: ${data.erro || 'Desconhecido'}</span>`;
+              return;
+            }
+          } catch(e) {
+            console.error('Erro ao interpretar SSE:', e, jsonStr);
+          }
+        }
+      }
+
+      // Finalização preventiva se conexão fechar sem evento 'fim'
+      if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
+      if (statusHint && statusHint.parentNode) statusHint.remove();
+      if (accumulatedText) {
+        renderContentWithCharts(msgAi, accumulatedText);
+      }
+      body.scrollTop = body.scrollHeight;
+
     } catch(err) {
-      const elLoad = document.getElementById(loadingId);
-      if(elLoad) elLoad.remove();
-      addMessage('Desculpe, não consegui conectar ao Agente de IA. Verifique sua conexão e servidor.', 'ai');
-      console.error('Erro Agente IA:', err);
+      console.error('Erro no streaming da IA:', err);
+      if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
+      if (statusHint && statusHint.parentNode) statusHint.remove();
+      textSpan.innerHTML = '<span style="color:#ef4444;">Desculpe, ocorreu uma instabilidade ao conectar com a MQIA. Verifique sua conexão e tente novamente.</span>';
     }
   }
 
