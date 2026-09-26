@@ -2230,6 +2230,58 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if(!widget) return;
 
+  // ── Saudação Dinâmica com base no Horário e Usuário da Intranet ──
+  function obterSaudacaoPeriodo() {
+    const hora = new Date().getHours();
+    if (hora >= 5 && hora < 12) return 'Bom dia';
+    if (hora >= 12 && hora < 18) return 'Boa tarde';
+    return 'Boa noite';
+  }
+
+  function obterNomeUsuario() {
+    // 1. URL Param (ex: ?user=Antonio ou ?usuario=Antonio ou ?nome=Antonio)
+    const params = new URLSearchParams(window.location.search);
+    const uUrl = params.get('user') || params.get('usuario') || params.get('nome');
+    if (uUrl) {
+      const nomeLimpo = uUrl.trim().split(' ')[0];
+      localStorage.setItem('usuario_intranet_nome', nomeLimpo);
+      return nomeLimpo;
+    }
+    // 2. LocalStorage compartilhado
+    const uStorage = localStorage.getItem('usuario_intranet_nome') || localStorage.getItem('usuario_nome') || localStorage.getItem('user_name');
+    if (uStorage) {
+      return uStorage.trim().split(' ')[0];
+    }
+    return null;
+  }
+
+  function atualizarMensagemBoasVindas() {
+    const nome = obterNomeUsuario();
+    const periodo = obterSaudacaoPeriodo();
+    const texto = nome 
+      ? `${periodo}, ${nome}! Sou o Agente MQIA. Como posso ajudar a analisar os resultados hoje?`
+      : `${periodo}! Sou o Agente MQIA. Como posso ajudar a analisar os resultados hoje?`;
+    
+    const msgInicial = body.querySelector('.ai-message.ai');
+    if (msgInicial) {
+      msgInicial.textContent = texto;
+    }
+  }
+
+  // Executa saudação inicial
+  atualizarMensagemBoasVindas();
+
+  // Ouve mensagens da Intranet via postMessage (caso o DRE esteja em um <iframe>)
+  window.addEventListener('message', (event) => {
+    if (event.data && (event.data.tipo === 'SET_USUARIO' || event.data.type === 'SET_USER')) {
+      const nome = (event.data.nome || event.data.usuario || event.data.user || '').trim().split(' ')[0];
+      if (nome) {
+        localStorage.setItem('usuario_intranet_nome', nome);
+        atualizarMensagemBoasVindas();
+      }
+    }
+  });
+
   function toggleChat(forceOpen = null) {
     if (forceOpen === true) {
       widget.classList.remove('ai-chat-collapsed');
@@ -2480,6 +2532,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     try {
       const contextoDRE = {
+        usuario: obterNomeUsuario(),
+        saudacao: obterSaudacaoPeriodo(),
         filtros: { 
           ano: typeof state !== 'undefined' ? state.ano : '2026', 
           mes: typeof state !== 'undefined' ? state.mes : '8', 

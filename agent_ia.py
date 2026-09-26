@@ -430,8 +430,13 @@ def processar_pergunta(prompt, contexto=None):
         vb_ctx = contexto.get("vendaBruta") or "N/D"
         mg_ctx = contexto.get("margem") or "N/D"
 
+        nome_usuario = contexto.get("usuario")
+        saudacao_periodo = contexto.get("saudacao") or "Olá"
+        usuario_info = f"\n- Usuário Logado: {nome_usuario}" if nome_usuario else ""
+
         contexto_str = (
             f"\n\n[CONTEXTO ATUAL DA TELA DO USUÁRIO]:"
+            f"{usuario_info}"
             f"\n- Ano Selecionado: {ano_ctx}"
             f"\n- Mês Selecionado: {mes_ctx}"
             f"\n- Empresa Filtrada: {emp_ctx}"
@@ -441,7 +446,14 @@ def processar_pergunta(prompt, contexto=None):
             f"\n(Utilize este ano={ano_ctx}, mês={mes_ctx}, empresa='{emp_ctx}' caso a pergunta não especifique outros)."
         )
 
+    usuario_instrucao = (
+        f"\n\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
+        f"\nO usuário conectado neste momento chama-se **{nome_usuario}**. "
+        f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal ou saudação (ex: '{saudacao_periodo}, {nome_usuario}!', 'Com certeza, {nome_usuario}...')."
+    ) if (contexto and contexto.get("usuario")) else ""
+
     system_prompt = (
+        f"{usuario_instrucao}"
         "Você é o Agente MQIA, consultor executivo sênior de Finanças & BI da MQ Hair Company. "
         "Sua missão é responder com 100% de exatidão matemática, clareza e postura executiva às dúvidas de diretores e gerentes sobre o DRE da empresa. "
         "\n\nDIRETRIZES DE ATENDIMENTO:"
