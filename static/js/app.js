@@ -2259,8 +2259,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const nome = obterNomeUsuario();
     const periodo = obterSaudacaoPeriodo();
     const texto = nome 
-      ? `${periodo}, ${nome}! Sou a MQIA. Como posso ajudar a analisar os resultados hoje?`
-      : `${periodo}! Sou a MQIA. Como posso ajudar a analisar os resultados hoje?`;
+      ? `${periodo}, ${nome}! Sou a MQIA, estou pronta e à disposição para o diagnóstico de hoje. Qual indicador vamos analisar primeiro?`
+      : `${periodo}! Sou a MQIA, estou pronta e à disposição para o diagnóstico de hoje. Qual indicador vamos analisar primeiro?`;
     
     const msgInicial = body.querySelector('.ai-message.ai');
     if (msgInicial) {
