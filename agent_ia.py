@@ -858,7 +858,26 @@ def stream_processar_pergunta(prompt, contexto=None):
         "cmv", "margem", "ebitda", "dre", "resultado"
     ]
 
-    # 1. Roteamento de Pré-busca Indexada SQLite (< 10ms)
+    # 1. Roteamento Imediato para Saudações e Boas-Vindas (zero latência e 100% resiliente)
+    saudacoes_simples = {"ola", "olá", "oi", "oie", "bom dia", "boa tarde", "boa noite", "ajuda", "help", "hello", "hi"}
+    p_limpo = re.sub(r'[^\w\s]', '', p_lower).strip()
+    if p_limpo in saudacoes_simples:
+        yield {"tipo": "status", "texto": "Digitando..."}
+        saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
+        resposta_saudacao = (
+            f"{saudacao_str} Sou a **MQIA**, sua assistente executiva de Inteligência Artificial para o **DRE da MQ Hair Company**.\n\n"
+            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** (mês de referência: **{mes_ctx:02d}**).\n\n"
+            f"**Como posso ajudar você agora?**\n"
+            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {mes_ctx:02d}/{ano_ctx}?\"*\n"
+            f"- ⚠️ *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
+            f"- 📈 *\"Qual o histórico mês a mês de frete e aluguel?\"*\n"
+            f"- 🏢 *\"Como foi o desempenho por empresa ou centro de distribuição?\"*"
+        )
+        yield {"tipo": "token", "texto": resposta_saudacao}
+        yield {"tipo": "fim", "resposta_completa": resposta_saudacao}
+        return
+
+    # 2. Roteamento de Pré-busca Indexada SQLite (< 10ms)
     if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento", "estouro"]):
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
@@ -888,7 +907,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
 
-    # 2. Instruções do Sistema para a MQIA
+    # 3. Instruções do Sistema para a MQIA
     usuario_instrucao = (
         f"O usuário conectado chama-se **{nome_usuario}**. "
         f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!'). "
@@ -928,8 +947,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         try:
             r = _HTTP_SESSION.post(url, json=payload, stream=True, timeout=25)
             if r.status_code != 200:
-                yield {"tipo": "erro", "erro": f"Mistral API retornou status {r.status_code}."}
-                return
+                raise Exception(f"Mistral API retornou status {r.status_code}")
             texto_total = ""
             for line in r.iter_lines():
                 if line:
@@ -948,17 +966,56 @@ def stream_processar_pergunta(prompt, contexto=None):
                             pass
             yield {"tipo": "fim", "resposta_completa": texto_total}
             return
-        except Exception as e:
-            yield {"tipo": "erro", "erro": str(e)}
-            return
+        except Exception:
+            # Fallback resiliente usando dados pré-buscados locais
+            try:
+                resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+                vb = resumo.get("venda_bruta", {})
+                vl = resumo.get("venda_liquida", {})
+                mc = resumo.get("margem_contribuicao", {})
+                def fmt_val(v):
+                    return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                fallback_local = (
+                    f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
+                    f"**Resultado Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
+                    f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
+                    f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
+                    f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)"
+                )
+                yield {"tipo": "token", "texto": fallback_local}
+                yield {"tipo": "fim", "resposta_completa": fallback_local}
+                return
+            except Exception as ex_fb:
+                yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI. Por favor, tente novamente em instantes."}
+                return
 
     # Fallback: Se pergunta não foi coberta pelo pre-fetch rápido, usa Function Calling dinâmico
     yield {"tipo": "status", "texto": "Digitando..."}
     messages.append({"role": "user", "content": prompt})
     res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
     if not res:
-        yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI."}
-        return
+        # Fallback inteligente local caso o Mistral falhe na análise
+        try:
+            resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+            vb = resumo.get("venda_bruta", {})
+            vl = resumo.get("venda_liquida", {})
+            mc = resumo.get("margem_contribuicao", {})
+            def fmt_val(v):
+                return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            fallback_text = (
+                f"Houve uma oscilação momentânea na API externa Mistral AI, mas consultei diretamente a base oficial do DRE para você:\n\n"
+                f"**Resumo Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
+                f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
+                f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
+                f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)\n\n"
+                f"*Você pode enviar uma nova pergunta sobre qualquer indicador, conta ou centro de custo.*"
+            )
+            yield {"tipo": "token", "texto": fallback_text}
+            yield {"tipo": "fim", "resposta_completa": fallback_text}
+            return
+        except Exception:
+            yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI. Por favor, tente novamente em instantes."}
+            return
 
     choice = res.get("choices", [{}])[0]
     asst_msg = choice.get("message", {})
