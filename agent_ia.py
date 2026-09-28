@@ -860,31 +860,31 @@ def stream_processar_pergunta(prompt, contexto=None):
 
     # 1. Roteamento de Pré-busca Indexada SQLite (< 10ms)
     if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento", "estouro"]):
-        status_msg = f"Consultando desvios e estouros orçamentários ({mes_ctx:02d}/{ano_ctx})..."
+        status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = analisar_estouros_orcamento(ano=ano_ctx, mes=mes_ctx, apenas_estouros=("estour" in p_lower))
 
     elif any(k in p_lower for k in ["aluguel", "frete", "energia", "luz", "água", "agua"]) or \
          (("mês a mês" in p_lower or "mes a mes" in p_lower or "histórico" in p_lower or "historico" in p_lower or "evolução" in p_lower or "evolucao" in p_lower) and not any(v in p_lower for v in ["venda", "fatur", "receit"])):
         conta = "Aluguel" if "aluguel" in p_lower else ("Frete" if "frete" in p_lower else ("Energia" if "energia" in p_lower else "Comiss"))
-        status_msg = f"Consultando histórico financeiro mês a mês de {conta} ({ano_ctx})..."
+        status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta=conta, ano=ano_ctx)
 
     elif any(k in p_lower for k in ["distribui", "varejo", "mercado livre", "logistica", "marketing", "rh"]):
         centro = "Distribuição" if "distribui" in p_lower else ("Varejo" if "varejo" in p_lower else ("Mercado Livre" if "mercado" in p_lower else "Logística"))
         filtro = "Comiss" if "comiss" in p_lower else None
-        status_msg = f"Consultando Centro de Resultados {centro} ({mes_ctx:02d}/{ano_ctx})..."
+        status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_por_centro_custo(centro_custo=centro, ano=ano_ctx, mes=mes_ctx, filtro_conta=filtro)
 
     elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms", "pis", "cofins"]):
-        status_msg = f"Consultando dados de impostos e tributos do mês {mes_ctx:02d}/{ano_ctx}..."
+        status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta="IMPOST", ano=ano_ctx)
 
     elif any(k in p_lower for k in termos_venda_geral):
-        status_msg = f"Consultando dados oficiais da DRE ({mes_ctx:02d}/{ano_ctx})..."
+        status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
 
@@ -953,7 +953,7 @@ def stream_processar_pergunta(prompt, contexto=None):
             return
 
     # Fallback: Se pergunta não foi coberta pelo pre-fetch rápido, usa Function Calling dinâmico
-    yield {"tipo": "status", "texto": "Consultando ferramentas analíticas do DRE..."}
+    yield {"tipo": "status", "texto": "Digitando..."}
     messages.append({"role": "user", "content": prompt})
     res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
     if not res:

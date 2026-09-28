@@ -2542,7 +2542,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <span class="ai-typing-dot"></span>
         <span class="ai-typing-dot"></span>
       </span>
-      <span class="ai-typing-label">Assistente MQIA digitando...</span>
+      <span class="ai-typing-label">Digitando...</span>
     `;
     body.appendChild(typingBubble);
     body.scrollTop = body.scrollHeight;
@@ -2642,12 +2642,11 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(jsonStr);
 
             if (data.tipo === 'status') {
-              // Atualiza o texto do indicador enquanto prepara os dados
+              // Mantém exibição de "Digitando..." conforme preferência visual
               if (!receivedFirstChunk && typingBubble && typingBubble.parentNode) {
                 const labelEl = typingBubble.querySelector('.ai-typing-label');
-                if (labelEl && data.texto) {
-                  labelEl.textContent = data.texto;
-                  body.scrollTop = body.scrollHeight;
+                if (labelEl) {
+                  labelEl.textContent = 'Digitando...';
                 }
               }
             } else if (data.tipo === 'token') {
