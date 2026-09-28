@@ -133,8 +133,6 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} GROUP BY bloco", params)
     blocos = {r["bloco"]: {"orc": r["orc"] or 0.0, "real": r["real"] or 0.0} for r in cur.fetchall()}
 
-    conn.close()
-
     vl = blocos.get("1.Venda Liquida", {"orc": 0.0, "real": 0.0})
     cmv = blocos.get("2.Custo Mercadoria Vendida", {"orc": 0.0, "real": 0.0})
     mc_orc = (vl["orc"] or 0.0) + (cmv["orc"] or 0.0)
@@ -146,15 +144,44 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     dfin = blocos.get("6.Receitas/Despesas Financeiras", {"orc": 0.0, "real": 0.0})
     vic = blocos.get("7.Vendas IC", {"orc": 0.0, "real": 0.0})
 
+    # 3. Cards Específicos do Cabeçalho (Idênticos ao app.js)
+    # 3.1 Bonificação (Bonificação Clientes)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%bonifica%' AND lower(titulo) LIKE '%client%'", params)
+    r_bonif = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+    if not r_bonif["real"] and not r_bonif["orc"]:
+        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%bonifica%'", params)
+        r_bonif = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    # 3.2 Comissão (Comissões)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(bloco) LIKE '%despesas com vendas%' AND lower(titulo) LIKE '%comiss%'", params)
+    r_comiss = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+    if not r_comiss["real"] and not r_comiss["orc"]:
+        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%comiss%'", params)
+        r_comiss = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    # 3.3 Guelta
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%guelta%'", params)
+    r_guelta = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    # 3.4 Folha de Pagamento e Benefícios
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%folha%' AND lower(titulo) NOT LIKE '%comercial%'", params)
+    r_folha = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    conn.close()
+
     return {
         "periodo": f"{mes:02d}/{ano}",
         "empresa": empresa or "Consolidado (Todas as Empresas)",
-        "venda_bruta": _calc_dif(vb_orc, vb_real),
         "venda_liquida": _calc_dif(vl["orc"], vl["real"]),
-        "cmv": _calc_dif(cmv["orc"], cmv["real"]),
+        "venda_bruta": _calc_dif(vb_orc, vb_real),
         "margem_contribuicao": _calc_dif(mc_orc, mc_real),
-        "despesas_vendas": _calc_dif(dv["orc"], dv["real"]),
+        "bonificacao": _calc_dif(r_bonif["orc"] or 0.0, r_bonif["real"] or 0.0),
+        "comissao": _calc_dif(r_comiss["orc"] or 0.0, r_comiss["real"] or 0.0),
+        "guelta": _calc_dif(r_guelta["orc"] or 0.0, r_guelta["real"] or 0.0),
         "despesas_comercial": _calc_dif(dcom["orc"], dcom["real"]),
+        "folha_beneficios": _calc_dif(r_folha["orc"] or 0.0, r_folha["real"] or 0.0),
+        "cmv": _calc_dif(cmv["orc"], cmv["real"]),
+        "despesas_vendas": _calc_dif(dv["orc"], dv["real"]),
         "despesas_administrativa": _calc_dif(dadm["orc"], dadm["real"]),
         "financeiro": _calc_dif(dfin["orc"], dfin["real"]),
         "vendas_ic": _calc_dif(vic["orc"], vic["real"])
@@ -355,15 +382,34 @@ def consultar_conta_historico(conta, ano=2026):
     except Exception:
         ano = 2026
 
+    conta_lower = str(conta).strip().lower()
+    termo = conta_lower
+    if "comiss" in conta_lower:
+        termo = "comiss"
+    elif "bonif" in conta_lower:
+        termo = "bonif"
+    elif "guelta" in conta_lower:
+        termo = "guelta"
+    elif "folha" in conta_lower or "salario" in conta_lower or "salário" in conta_lower:
+        termo = "folha"
+    elif "aluguel" in conta_lower or "alugue" in conta_lower:
+        termo = "alugue"
+    elif "frete" in conta_lower:
+        termo = "frete"
+    elif "energia" in conta_lower or "luz" in conta_lower:
+        termo = "energia"
+    elif "impost" in conta_lower or "tribut" in conta_lower:
+        termo = "impost"
+
     query = """
         SELECT mes, SUM(orcado) as orc, SUM(realizado) as real
         FROM dre_data
         WHERE ano=? AND codcencus != 21010000
-          AND (descrnat LIKE ? OR titulo LIKE ?)
+          AND (lower(descrnat) LIKE ? OR lower(titulo) LIKE ?)
         GROUP BY mes
         ORDER BY mes ASC
     """
-    cur.execute(query, [ano, f"%{conta}%", f"%{conta}%"])
+    cur.execute(query, [ano, f"%{termo}%", f"%{termo}%"])
     rows = cur.fetchall()
     conn.close()
 
@@ -407,12 +453,23 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
     except Exception:
         ano, mes = 2026, 8
 
-    where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(descrcencus LIKE ? OR codcencus LIKE ?)"]
-    params = [ano, mes, f"%{centro_custo}%", f"%{centro_custo}%"]
+    c_lower = str(centro_custo).strip().lower()
+    is_conta = any(k in c_lower for k in ["comiss", "bonif", "guelta", "frete", "aluguel", "folha", "salario"])
 
-    if filtro_conta:
-        where.append("(titulo LIKE ? OR descrnat LIKE ?)")
-        params.extend([f"%{filtro_conta}%", f"%{filtro_conta}%"])
+    if is_conta:
+        filtro_conta = "comiss" if "comiss" in c_lower else ("bonif" if "bonif" in c_lower else ("guelta" if "guelta" in c_lower else ("folha" if "folha" in c_lower or "salario" in c_lower else c_lower)))
+        where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)"]
+        params = [ano, mes, f"%{filtro_conta}%", f"%{filtro_conta}%"]
+    else:
+        where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(lower(descrcencus) LIKE ? OR codcencus LIKE ?)"]
+        params = [ano, mes, f"%{c_lower}%", f"%{centro_custo}%"]
+
+        if filtro_conta:
+            f_lower = str(filtro_conta).strip().lower()
+            if "comiss" in f_lower: f_lower = "comiss"
+            elif "bonif" in f_lower: f_lower = "bonif"
+            where.append("(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)")
+            params.extend([f"%{f_lower}%", f"%{f_lower}%"])
 
     query = f"""
         SELECT bloco, titulo, descrnat, SUM(orcado) as orc, SUM(realizado) as real
@@ -533,11 +590,11 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "consultar_conta_historico",
-            "description": "Retorna a evolução mês a mês (Jan a Dez) de uma despesa ou conta específica. Use para perguntas como: 'qual o valor de aluguel pago mês a mês?', 'evolução de frete', 'evolução de comissões', 'histórico de impostos'.",
+            "description": "Retorna a evolução mês a mês e o histórico de uma conta ou indicador específico (ex: 'Comissões', 'Bonificação', 'Guelta', 'Folha', 'Aluguel', 'Frete', 'Imposto', 'Energia'). Use para: 'histórico de comissão', 'evolução de frete', 'evolução de comissões', 'histórico de impostos'.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "conta": {"type": "string", "description": "Nome da conta a buscar (ex: 'Aluguel', 'Frete', 'Comissões', 'Imposto', 'Energia')"},
+                    "conta": {"type": "string", "description": "Nome da conta ou indicador a buscar (ex: 'Comissões', 'Bonificação', 'Guelta', 'Folha', 'Aluguel', 'Frete', 'Imposto', 'Energia')"},
                     "ano": {"type": "integer", "description": "Ano (ex: 2026)"}
                 },
                 "required": ["conta", "ano"]
@@ -548,14 +605,14 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "consultar_por_centro_custo",
-            "description": "Consulta os valores de um centro de resultado específico, com opção de filtrar uma conta/despesa. Use para: 'quanto paguei de comissão na distribuição?', 'quanto gastei no centro marketing?'.",
+            "description": "Consulta os valores de um departamento ou centro de resultado da empresa (ex: 'Distribuição', 'Varejo', 'Marketing', 'Logística'). ATENÇÃO CRÍTICA: NUNCA passe nomes de contas/indicadores da DRE (como 'Comissão', 'Bonificação', 'Guelta', 'Folha', 'Aluguel') como centro de custo. Para contas e indicadores, use obter_resumo_dre ou consultar_conta_historico.",
             "parameters": {
                 "type": "object",
                 "properties": {
-                    "centro_custo": {"type": "string", "description": "Nome ou código do centro de custo (ex: 'Distribuição', 'Varejo SP', 'Mercado Livre')"},
+                    "centro_custo": {"type": "string", "description": "Nome do departamento/centro de resultado (ex: 'Distribuição', 'Varejo SP', 'Mercado Livre', 'Marketing')"},
                     "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
                     "mes": {"type": "integer", "description": "Mês (ex: 8)"},
-                    "filtro_conta": {"type": "string", "description": "Filtro opcional de conta ou título (ex: 'Comissão', 'Frete', 'Salários')"}
+                    "filtro_conta": {"type": "string", "description": "Filtro opcional de conta ou título dentro do centro (ex: 'Comissão', 'Frete', 'Salários')"}
                 },
                 "required": ["centro_custo", "ano", "mes"]
             }
@@ -565,7 +622,7 @@ TOOLS_SCHEMA = [
         "type": "function",
         "function": {
             "name": "obter_resumo_dre",
-            "description": "Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos (Venda Bruta, Venda Líquida, CMV, Margem, Despesas).",
+            "description": "Retorna o resumo executivo oficial e consolidado do DRE e os 8 Cards Principais do Cabeçalho: Venda Bruta, Venda Líquida, Margem de Contribuição, Bonificação, Comissão, Guelta, Despesas Comercial Operacional e Folha e Benefícios, além de CMV. Use SEMPRE que a pergunta for sobre o valor de um indicador geral ou card do painel (ex: 'valor da comissão', 'qual a bonificação?', 'guelta', 'venda bruta', 'margem de contribuição').",
             "parameters": {
                 "type": "object",
                 "properties": {
@@ -735,13 +792,25 @@ def processar_pergunta(prompt, contexto=None):
         "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza às dúvidas de diretores e gerentes sobre o DRE da empresa. "
         "\n\nDIRETRIZES DE ATENDIMENTO E ESCOLHA DE FERRAMENTAS:"
         f"\n- ATENÇÃO CRÍTICA: O ano fiscal é OBRIGATORIAMENTE {ano_ctx}. NUNCA consulte o ano de 2024 a menos que o usuário cite expressamente '2024' na pergunta."
+        "\n- CARDS OFICIAIS DO CABEÇALHO DO DRE (MUITO IMPORTANTE):"
+        "\n  Os 8 cards de topo da tela são:"
+        "\n  1. Venda Bruta"
+        "\n  2. Margem de Contribuição"
+        "\n  3. Bonificação"
+        "\n  4. Comissão (despesas com comissões sobre vendas)"
+        "\n  5. Guelta (incentivo comercial a vendedores)"
+        "\n  6. Despesa Comercial Operacional"
+        "\n  7. Folha e Benefícios"
+        "\n  8. Venda Líquida"
+        "\n  Quando o usuário perguntar o valor de qualquer um desses cards (ex: 'valor da comissão', 'qual a comissão?', 'bonificação', 'guelta', 'folha'),"
+        "\n  NUNCA considere Comissão/Bonificação/Guelta como centro de custo! Chame `obter_resumo_dre(ano, mes)` ou `consultar_conta_historico(conta='Comissões', ano)`."
         "\n1. ESTOUROS E DESVIOS DE ORÇAMENTO (Perguntas como 'qual centro estourou o orçamento?', 'maior desvio'):"
         "\n   - Chame IMEDIATAMENTE a ferramenta `analisar_estouros_orcamento(ano, mes)`."
-        "\n2. HISTÓRICO MÊS A MÊS DE UMA CONTA (Perguntas como 'valor de aluguel pago mês a mês', 'evolução de frete'):"
+        "\n2. HISTÓRICO MÊS A MÊS DE UMA CONTA (Perguntas como 'valor de aluguel pago mês a mês', 'evolução de frete', 'evolução de comissão'):"
         "\n   - Chame IMEDIATAMENTE a ferramenta `consultar_conta_historico(conta, ano)`."
-        "\n3. CONSULTA ESPECÍFICA POR CENTRO DE RESULTADO (Perguntas como 'quanto paguei de comissão na distribuição?'):"
-        "\n   - Chame IMEDIATAMENTE `consultar_por_centro_custo(centro_custo, ano, mes, filtro_conta)`."
-        "\n4. NÚMEROS GERAIS DA DRE (Venda Bruta, Receita Líquida, CMV, Margem, Despesas):"
+        "\n3. CONSULTA ESPECÍFICA POR CENTRO DE RESULTADO (Perguntas como 'quanto paguei de frete na distribuição?'):"
+        "\n   - Chame IMEDIATAMENTE `consultar_por_centro_custo(centro_custo, ano, mes, filtro_conta)` onde centro_custo é um departamento real (ex: 'Distribuição')."
+        "\n4. NÚMEROS GERAIS DA DRE E CARDS DO PAINEL (Venda Bruta, Receita Líquida, CMV, Margem, Bonificação, Comissão, Guelta, Folha):"
         "\n   - Chame `obter_resumo_dre` ou `detalhar_bloco`."
         "\n5. REGRAS DE COMUNICAÇÃO:"
         "\n   - Seja direta, executiva e ágil. Vá direto ao ponto com números claros em negrito e valores em R$ formatados (ex: R$ 7.834.166,26)."
@@ -925,6 +994,58 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = analisar_estouros_orcamento(ano=ano_ctx, mes=mes_ctx, apenas_estouros=("estour" in p_lower))
 
+    elif any(k in p_lower for k in ["comiss", "comissão", "comissao", "comissões"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+        hist = consultar_conta_historico(conta="comiss", ano=ano_ctx)
+        dados_pre = {
+            "indicador": "Comissão (Despesas com Vendas)",
+            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "empresa": emp_ctx,
+            "card_kpi_mes_atual": resumo.get("comissao", {}),
+            "historico_ano": hist
+        }
+
+    elif any(k in p_lower for k in ["bonific", "bonificação", "bonificacao", "bonificações", "bonificacoes"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+        hist = consultar_conta_historico(conta="bonif", ano=ano_ctx)
+        dados_pre = {
+            "indicador": "Bonificação (Dedução / Despesas)",
+            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "empresa": emp_ctx,
+            "card_kpi_mes_atual": resumo.get("bonificacao", {}),
+            "historico_ano": hist
+        }
+
+    elif any(k in p_lower for k in ["guelta", "gueltas"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+        hist = consultar_conta_historico(conta="guelta", ano=ano_ctx)
+        dados_pre = {
+            "indicador": "Guelta (Incentivo Comercial)",
+            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "empresa": emp_ctx,
+            "card_kpi_mes_atual": resumo.get("guelta", {}),
+            "historico_ano": hist
+        }
+
+    elif any(k in p_lower for k in ["folha", "salario", "salário", "beneficio", "benefício"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+        hist = consultar_conta_historico(conta="folha", ano=ano_ctx)
+        dados_pre = {
+            "indicador": "Folha e Benefícios",
+            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "empresa": emp_ctx,
+            "card_kpi_mes_atual": resumo.get("folha_beneficios", {}),
+            "historico_ano": hist
+        }
+
     elif any(k in p_lower for k in ["aluguel", "frete", "energia", "luz", "água", "agua"]) or \
          (("mês a mês" in p_lower or "mes a mes" in p_lower or "histórico" in p_lower or "historico" in p_lower or "evolução" in p_lower or "evolucao" in p_lower) and not any(v in p_lower for v in ["venda", "fatur", "receit"])):
         conta = "Aluguel" if "aluguel" in p_lower else ("Frete" if "frete" in p_lower else ("Energia" if "energia" in p_lower else "Comiss"))
@@ -960,6 +1081,8 @@ def stream_processar_pergunta(prompt, contexto=None):
         "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
         f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
         "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza. "
+        "ATENÇÃO AOS CARDS DO PAINEL: Venda Bruta, Venda Líquida, Margem de Contribuição, Bonificação, Comissão, Guelta, Despesas Comercial Operacional e Folha e Benefícios são os 8 cards de topo. "
+        "Comissão, Bonificação, Guelta e Folha são CONTAS/INDICADORES do DRE, NUNCA centros de custo. "
         "Responda diretamente com valores formatados em R$ (ex: R$ 7.834.166,26) e destaques em negrito. "
         "Seja objetiva e concisa. Apresente os valores realizado, orçado e a variação percentual. "
         "Se o valor for R$ 0,00, explique objetivamente que não constam lançamentos para o filtro solicitado. "
@@ -1015,12 +1138,27 @@ def stream_processar_pergunta(prompt, contexto=None):
         except Exception:
             # Fallback resiliente usando dados pré-buscados locais
             try:
+                def fmt_val(v):
+                    return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                
+                if dados_pre and "card_kpi_mes_atual" in dados_pre:
+                    kpi = dados_pre["card_kpi_mes_atual"]
+                    nome_ind = dados_pre.get("indicador", "Indicador")
+                    fb_card = (
+                        f"Consultei os dados oficiais do DRE na base local:\n\n"
+                        f"**{nome_ind} ({mes_ctx:02d}/{ano_ctx} - {emp_ctx}):**\n"
+                        f"- **Realizado:** **{fmt_val(kpi.get('realizado', 0))}**\n"
+                        f"- **Orçado:** **{fmt_val(kpi.get('orcado', 0))}**\n"
+                        f"- **Desvio:** **{fmt_val(kpi.get('desvio_reais', 0))}** ({kpi.get('desvio_pct', 0):+.1f}%)"
+                    )
+                    yield {"tipo": "token", "texto": fb_card}
+                    yield {"tipo": "fim", "resposta_completa": fb_card}
+                    return
+
                 resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
                 vb = resumo.get("venda_bruta", {})
                 vl = resumo.get("venda_liquida", {})
                 mc = resumo.get("margem_contribuicao", {})
-                def fmt_val(v):
-                    return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                 fallback_local = (
                     f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
                     f"**Resultado Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
