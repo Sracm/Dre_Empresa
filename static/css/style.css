@@ -1665,6 +1665,76 @@ td.col-desvio-bloco {
   opacity: 0.95;
 }
 
+/* ── Balão de Digitando com 3 Pontinhos Pulsando (CSS) ── */
+.ai-typing-bubble {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--surface2);
+  color: var(--text-secondary);
+  border-left: 3px solid var(--gold);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 12.5px;
+  font-weight: 500;
+  align-self: flex-start;
+  animation: fadeInBubble 0.25s ease-out;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+
+.ai-typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.ai-typing-dot {
+  width: 6px;
+  height: 6px;
+  background-color: var(--gold);
+  border-radius: 50%;
+  opacity: 0.35;
+  animation: typingDotPulse 1.4s infinite ease-in-out both;
+}
+
+.ai-typing-dot:nth-child(1) { animation-delay: 0s; }
+.ai-typing-dot:nth-child(2) { animation-delay: 0.2s; }
+.ai-typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+@keyframes typingDotPulse {
+  0%, 80%, 100% {
+    transform: scale(0.7);
+    opacity: 0.3;
+  }
+  40% {
+    transform: scale(1.2);
+    opacity: 1;
+    box-shadow: 0 0 6px rgba(203, 151, 39, 0.8);
+  }
+}
+
+@keyframes fadeInBubble {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ── Alerta Visual Amigável de Erro ── */
+.ai-error-bubble {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  border-left: 3px solid #ef4444;
+  color: #fca5a5;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  align-self: flex-start;
+  animation: fadeInBubble 0.25s ease-out;
+}
+
 .ai-chat-footer {
   padding: 12px;
   background: var(--surface2);

@@ -12,6 +12,7 @@ import sqlite3
 import requests
 import json
 import traceback
+import re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
@@ -53,6 +54,48 @@ def _calc_dif(orc, real):
         "desvio_reais": round(dif, 2),
         "desvio_pct": round(pct, 2)
     }
+
+def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=8):
+    """
+    Identifica com precisão o mês e ano mencionados pelo usuário no prompt,
+    suportando nomes completos, abreviações e termos relativos ('mês passado').
+    """
+    p = (prompt or "").lower()
+    meses_map = {
+        "janeiro": 1, "jan": 1,
+        "fevereiro": 2, "fev": 2,
+        "março": 3, "marco": 3, "mar": 3,
+        "abril": 4, "abr": 4,
+        "maio": 5, "mai": 5,
+        "junho": 6, "jun": 6,
+        "julho": 7, "jul": 7,
+        "agosto": 8, "ago": 8,
+        "setembro": 9, "set": 9,
+        "outubro": 10, "out": 10,
+        "novembro": 11, "nov": 11,
+        "dezembro": 12, "dez": 12
+    }
+    mes_encontrado = None
+    if "passado" in p or "anterior" in p:
+        mes_encontrado = mes_padrao - 1 if mes_padrao > 1 else 12
+    else:
+        for m_nome, m_num in meses_map.items():
+            if re.search(r'\b' + m_nome + r'\b', p):
+                mes_encontrado = m_num
+                break
+        if not mes_encontrado:
+            m_num_match = re.search(r'\bm[êe]s\s+(\d{1,2})\b', p)
+            if m_num_match:
+                val = int(m_num_match.group(1))
+                if 1 <= val <= 12:
+                    mes_encontrado = val
+
+    ano_encontrado = None
+    ano_match = re.search(r'\b(202[3-9])\b', p)
+    if ano_match:
+        ano_encontrado = int(ano_match.group(1))
+
+    return (ano_encontrado or ano_padrao), (mes_encontrado or mes_padrao)
 
 def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     """
@@ -649,6 +692,9 @@ def processar_pergunta(prompt, contexto=None):
             f"\n(Utilize este ano={ano_ctx}, mês={mes_ctx}, empresa='{emp_ctx}' caso a pergunta não especifique outros)."
         )
 
+    # Identifica mês e ano solicitados na pergunta com alta precisão
+    ano_ctx, mes_ctx = extrair_periodo_do_prompt(prompt, ano_padrao=ano_ctx, mes_padrao=mes_ctx)
+
     usuario_instrucao = (
         f"\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
         f"\nO usuário conectado neste momento chama-se **{nome_usuario}**. "
@@ -658,21 +704,24 @@ def processar_pergunta(prompt, contexto=None):
     system_prompt = (
         f"{usuario_instrucao}"
         "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
+        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
         "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza às dúvidas de diretores e gerentes sobre o DRE da empresa. "
         "\n\nDIRETRIZES DE ATENDIMENTO E ESCOLHA DE FERRAMENTAS:"
+        f"\n- ATENÇÃO CRÍTICA: O ano fiscal é OBRIGATORIAMENTE {ano_ctx}. NUNCA consulte o ano de 2024 a menos que o usuário cite expressamente '2024' na pergunta."
         "\n1. ESTOUROS E DESVIOS DE ORÇAMENTO (Perguntas como 'qual centro estourou o orçamento?', 'maior desvio'):"
-        "\n   - Chame IMEDIATAMENTE a ferramenta `analisar_estouros_orcamento(ano, mes)`. Ela traz a lista exata dos centros que estouraram e o valor em R$ do estouro."
-        "\n   - Obs: se o usuário pedir 'mês passado' e estivermos em Agosto (8), use mês=7 (Julho)."
+        "\n   - Chame IMEDIATAMENTE a ferramenta `analisar_estouros_orcamento(ano, mes)`."
         "\n2. HISTÓRICO MÊS A MÊS DE UMA CONTA (Perguntas como 'valor de aluguel pago mês a mês', 'evolução de frete'):"
-        "\n   - Chame IMEDIATAMENTE a ferramenta `consultar_conta_historico(conta, ano)`. Ela retorna Jan a Dez completo."
+        "\n   - Chame IMEDIATAMENTE a ferramenta `consultar_conta_historico(conta, ano)`."
         "\n3. CONSULTA ESPECÍFICA POR CENTRO DE RESULTADO (Perguntas como 'quanto paguei de comissão na distribuição?'):"
-        "\n   - Chame IMEDIATAMENTE `consultar_por_centro_custo(centro_custo, ano, mes, filtro_conta)`. Ela retorna os valores orçados e realizados desse centro."
-        "\n4. NÚMEROS GERAIS DA DRE (Faturamento, Receita Líquida, CMV, Margem):"
+        "\n   - Chame IMEDIATAMENTE `consultar_por_centro_custo(centro_custo, ano, mes, filtro_conta)`."
+        "\n4. NÚMEROS GERAIS DA DRE (Venda Bruta, Receita Líquida, CMV, Margem, Despesas):"
         "\n   - Chame `obter_resumo_dre` ou `detalhar_bloco`."
         "\n5. REGRAS DE COMUNICAÇÃO:"
-        "\n   - Seja direta, executiva e ágil. Vá direto ao ponto com números claros em negrito e valores em R$ formatados (ex: R$ 127.648,19)."
+        "\n   - Seja direta, executiva e ágil. Vá direto ao ponto com números claros em negrito e valores em R$ formatados (ex: R$ 7.834.166,26)."
         "\n   - Mostre se o desvio é favorável (economia) ou desfavorável (estouro)."
         "\n   - Se o valor for R$ 0,00, explique com precisão que para aquele centro ou conta não houve lançamento no período."
+        "\n   - REGRA OBRIGATÓRIA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python ou scripts)."
+        "\n   - NUNCA exiba código técnico no final da resposta. Forneça estritamente texto executivo puro formatado em Markdown com tópicos e negrito."
     )
 
     messages = [
@@ -694,7 +743,8 @@ def processar_pergunta(prompt, contexto=None):
         tool_calls = asst_msg.get("tool_calls", [])
         if not tool_calls:
             texto_final = asst_msg.get("content") or "Análise concluída com sucesso."
-            if blocos_graficos_gerados:
+            quer_grafico = "gráfico" in prompt.lower() or "grafico" in prompt.lower()
+            if quer_grafico and blocos_graficos_gerados:
                 for bg in blocos_graficos_gerados:
                     if bg and "```chart" not in texto_final and "```grafico" not in texto_final:
                         texto_final = texto_final + "\n\n" + bg
@@ -712,27 +762,25 @@ def processar_pergunta(prompt, contexto=None):
 
             print(f"[IA MISTRAL] Executando tool: {fname}({args})", flush=True)
 
+            ano_arg = args.get("ano")
+            if not ano_arg or (ano_arg == 2024 and "2024" not in prompt):
+                ano_arg = ano_ctx
+            mes_arg = args.get("mes") or mes_ctx
+
             if fname == "analisar_estouros_orcamento":
-                ano_arg = args.get("ano", ano_ctx)
-                mes_arg = args.get("mes", mes_ctx)
                 apenas_arg = args.get("apenas_estouros", True)
                 tool_output = analisar_estouros_orcamento(ano=ano_arg, mes=mes_arg, apenas_estouros=apenas_arg)
 
             elif fname == "consultar_conta_historico":
                 conta_arg = args.get("conta", "Aluguel")
-                ano_arg = args.get("ano", ano_ctx)
                 tool_output = consultar_conta_historico(conta=conta_arg, ano=ano_arg)
 
             elif fname == "consultar_por_centro_custo":
                 cenc_arg = args.get("centro_custo", "Distribuição")
-                ano_arg = args.get("ano", ano_ctx)
-                mes_arg = args.get("mes", mes_ctx)
                 filtro_arg = args.get("filtro_conta")
                 tool_output = consultar_por_centro_custo(centro_custo=cenc_arg, ano=ano_arg, mes=mes_arg, filtro_conta=filtro_arg)
 
             elif fname == "obter_resumo_dre":
-                ano_arg = args.get("ano", ano_ctx)
-                mes_arg = args.get("mes", mes_ctx)
                 emp_arg = args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None)
                 tool_output = obter_resumo_dre(ano=ano_arg, mes=mes_arg, empresa=emp_arg)
 
@@ -797,36 +845,46 @@ def stream_processar_pergunta(prompt, contexto=None):
         saudacao_periodo = "Boa tarde"
 
     p_lower = prompt.lower()
+
+    # Identifica com precisão o mês e ano solicitados na pergunta
+    ano_ctx, mes_ctx = extrair_periodo_do_prompt(prompt, ano_padrao=ano_ctx, mes_padrao=mes_ctx)
+
     dados_pre = None
     status_msg = "MQIA analisando dados do DRE..."
 
-    # 1. Roteamento de Pré-busca Indexada SQLite (< 10ms)
-    if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento"]):
-        mes_alvo = 7 if ("passado" in p_lower or "anterior" in p_lower) else mes_ctx
-        status_msg = f"Consultando desvios e estouros orçamentários ({mes_alvo:02d}/{ano_ctx})..."
-        yield {"tipo": "status", "texto": status_msg}
-        dados_pre = analisar_estouros_orcamento(ano=ano_ctx, mes=mes_alvo, apenas_estouros=("estour" in p_lower))
+    # Termos com tolerância a typos para venda / faturamento / DRE geral
+    termos_venda_geral = [
+        "venda", "vendas", "fatur", "receita", "bruta", "burt", "liquida", "líquida", 
+        "cmv", "margem", "ebitda", "dre", "resultado"
+    ]
 
-    elif "aluguel" in p_lower or ("mês a mês" in p_lower or "mes a mes" in p_lower or "histórico" in p_lower or "historico" in p_lower):
-        conta = "Aluguel" if "aluguel" in p_lower else ("Frete" if "frete" in p_lower else "Energia")
-        status_msg = f"Consultando histórico financeiro mês a mês de {conta}..."
+    # 1. Roteamento de Pré-busca Indexada SQLite (< 10ms)
+    if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento", "estouro"]):
+        status_msg = f"Consultando desvios e estouros orçamentários ({mes_ctx:02d}/{ano_ctx})..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = analisar_estouros_orcamento(ano=ano_ctx, mes=mes_ctx, apenas_estouros=("estour" in p_lower))
+
+    elif any(k in p_lower for k in ["aluguel", "frete", "energia", "luz", "água", "agua"]) or \
+         (("mês a mês" in p_lower or "mes a mes" in p_lower or "histórico" in p_lower or "historico" in p_lower or "evolução" in p_lower or "evolucao" in p_lower) and not any(v in p_lower for v in ["venda", "fatur", "receit"])):
+        conta = "Aluguel" if "aluguel" in p_lower else ("Frete" if "frete" in p_lower else ("Energia" if "energia" in p_lower else "Comiss"))
+        status_msg = f"Consultando histórico financeiro mês a mês de {conta} ({ano_ctx})..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta=conta, ano=ano_ctx)
 
-    elif any(k in p_lower for k in ["distribui", "comiss", "varejo", "mercado livre", "logistica"]):
-        centro = "Distribuição" if "distribui" in p_lower else ("Varejo" if "varejo" in p_lower else "Mercado Livre")
+    elif any(k in p_lower for k in ["distribui", "varejo", "mercado livre", "logistica", "marketing", "rh"]):
+        centro = "Distribuição" if "distribui" in p_lower else ("Varejo" if "varejo" in p_lower else ("Mercado Livre" if "mercado" in p_lower else "Logística"))
         filtro = "Comiss" if "comiss" in p_lower else None
-        status_msg = f"Consultando Centro de Resultados {centro}..."
+        status_msg = f"Consultando Centro de Resultados {centro} ({mes_ctx:02d}/{ano_ctx})..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_por_centro_custo(centro_custo=centro, ano=ano_ctx, mes=mes_ctx, filtro_conta=filtro)
 
-    elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms"]):
+    elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms", "pis", "cofins"]):
         status_msg = f"Consultando dados de impostos e tributos do mês {mes_ctx:02d}/{ano_ctx}..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta="IMPOST", ano=ano_ctx)
 
-    elif any(k in p_lower for k in ["faturamento", "venda bruta", "venda liquida", "venda líquida", "cmv", "margem"]):
-        status_msg = f"Consultando indicadores consolidados do DRE {mes_ctx:02d}/{ano_ctx}..."
+    elif any(k in p_lower for k in termos_venda_geral):
+        status_msg = f"Consultando dados oficiais da DRE ({mes_ctx:02d}/{ano_ctx})..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
 
@@ -839,10 +897,13 @@ def stream_processar_pergunta(prompt, contexto=None):
     system_content = (
         f"{usuario_instrucao}"
         "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
+        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
         "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza. "
-        "Responda diretamente com valores formatados em R$ (ex: R$ 127.648,19) e destaques em negrito. "
+        "Responda diretamente com valores formatados em R$ (ex: R$ 7.834.166,26) e destaques em negrito. "
+        "Seja objetiva e concisa. Apresente os valores realizado, orçado e a variação percentual. "
         "Se o valor for R$ 0,00, explique objetivamente que não constam lançamentos para o filtro solicitado. "
-        "Se o usuário pedir gráfico ou se for útil para comparar itens, adicione ao final o bloco ```chart { ... } ``` no formato Chart.js."
+        "REGRA CRÍTICA E OBRIGATÓRIA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python ou scripts técnicos). "
+        "NÃO exiba nenhum código no final da resposta. Forneça estritamente texto executivo puro formatado em Markdown com negrito e listas."
     )
 
     messages = [{"role": "system", "content": system_content}]
@@ -866,6 +927,9 @@ def stream_processar_pergunta(prompt, contexto=None):
 
         try:
             r = _HTTP_SESSION.post(url, json=payload, stream=True, timeout=25)
+            if r.status_code != 200:
+                yield {"tipo": "erro", "erro": f"Mistral API retornou status {r.status_code}."}
+                return
             texto_total = ""
             for line in r.iter_lines():
                 if line:
@@ -917,18 +981,23 @@ def stream_processar_pergunta(prompt, contexto=None):
         except Exception:
             args = {}
 
+        ano_arg = args.get("ano")
+        if not ano_arg or (ano_arg == 2024 and "2024" not in prompt):
+            ano_arg = ano_ctx
+        mes_arg = args.get("mes") or mes_ctx
+
         if fname == "analisar_estouros_orcamento":
-            out = analisar_estouros_orcamento(args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("apenas_estouros", True))
+            out = analisar_estouros_orcamento(ano_arg, mes_arg, args.get("apenas_estouros", True))
         elif fname == "consultar_conta_historico":
-            out = consultar_conta_historico(args.get("conta", "Aluguel"), args.get("ano", ano_ctx))
+            out = consultar_conta_historico(args.get("conta", "Aluguel"), ano_arg)
         elif fname == "consultar_por_centro_custo":
-            out = consultar_por_centro_custo(args.get("centro_custo", "Distribuição"), args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("filtro_conta"))
+            out = consultar_por_centro_custo(args.get("centro_custo", "Distribuição"), ano_arg, mes_arg, args.get("filtro_conta"))
         elif fname == "obter_resumo_dre":
-            out = obter_resumo_dre(args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("empresa"))
+            out = obter_resumo_dre(ano_arg, mes_arg, args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None))
         elif fname == "detalhar_bloco":
-            out = detalhar_bloco(args.get("bloco", "Despesas com Vendas"), args.get("ano", ano_ctx), args.get("mes", mes_ctx), args.get("empresa"))
+            out = detalhar_bloco(args.get("bloco", "Despesas com Vendas"), ano_arg, mes_arg, args.get("empresa"))
         elif fname == "comparar_empresas":
-            out = comparar_empresas(args.get("indicador", "venda_bruta"), args.get("ano", ano_ctx), args.get("mes", mes_ctx))
+            out = comparar_empresas(args.get("indicador", "venda_bruta"), ano_arg, mes_arg)
         elif fname == "gerar_grafico":
             out = gerar_grafico(args.get("tipo", "bar"), args.get("titulo", ""), args.get("labels", []), args.get("valores", []), args.get("legenda", ""))
             if out.get("bloco_markdown"):
@@ -951,25 +1020,33 @@ def stream_processar_pergunta(prompt, contexto=None):
         "max_tokens": 550,
         "stream": True
     }
-    r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", json=payload, stream=True, timeout=25)
-    texto_total = ""
-    for line in r.iter_lines():
-        if line:
-            decoded = line.decode('utf-8')
-            if decoded.startswith('data: '):
-                d_str = decoded[6:].strip()
-                if d_str == '[DONE]':
-                    break
-                try:
-                    chunk = json.loads(d_str)
-                    token = chunk['choices'][0]['delta'].get('content', '')
-                    if token:
-                        texto_total += token
-                        yield {"tipo": "token", "texto": token}
-                except Exception:
-                    pass
+    try:
+        r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", json=payload, stream=True, timeout=25)
+        if r.status_code != 200:
+            yield {"tipo": "erro", "erro": f"Mistral API retornou status {r.status_code}."}
+            return
+        texto_total = ""
+        for line in r.iter_lines():
+            if line:
+                decoded = line.decode('utf-8')
+                if decoded.startswith('data: '):
+                    d_str = decoded[6:].strip()
+                    if d_str == '[DONE]':
+                        break
+                    try:
+                        chunk = json.loads(d_str)
+                        token = chunk['choices'][0]['delta'].get('content', '')
+                        if token:
+                            texto_total += token
+                            yield {"tipo": "token", "texto": token}
+                    except Exception:
+                        pass
+    except Exception as e:
+        yield {"tipo": "erro", "erro": str(e)}
+        return
 
-    if blocos_graficos_gerados:
+    quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
+    if quer_grafico and blocos_graficos_gerados:
         for bg in blocos_graficos_gerados:
             if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
                 extra = "\n\n" + bg

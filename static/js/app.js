@@ -2420,11 +2420,15 @@ document.addEventListener('DOMContentLoaded', () => {
                   </div>`;
         } catch(e) {
           console.error("Erro ao analisar JSON do gráfico:", e);
-          return `<pre style="background: #111; padding: 8px; border-radius: 4px; font-size: 10px;">${jsonStr}</pre>`;
+          return ''; // Não exibe bloco de código se falhar
         }
       });
 
-    containerEl.innerHTML = formatMarkdown(processedText);
+    // Remove qualquer bloco de código residual (```chart, ```json, etc.) para manter resposta 100% executiva
+    processedText = processedText.replace(/```[a-zA-Z0-9_-]*\s*[\s\S]*?```/gi, '');
+    processedText = processedText.replace(/```[a-zA-Z0-9_-]*/g, '');
+
+    containerEl.innerHTML = formatMarkdown(processedText.trim());
 
       // Renderiza os gráficos com Chart.js
       if (chartConfigs.length > 0 && window.Chart) {
@@ -2525,6 +2529,24 @@ document.addEventListener('DOMContentLoaded', () => {
     addMessage(text, 'user');
     input.value = '';
 
+    // Scroll imediato após a mensagem do usuário
+    body.scrollTop = body.scrollHeight;
+
+    // 1. Balão temporário de "Digitando..." com 3 pontinhos pulsando em CSS
+    const typingBubble = document.createElement('div');
+    typingBubble.className = 'ai-typing-bubble';
+    typingBubble.id = 'ai-typing-indicator';
+    typingBubble.innerHTML = `
+      <span class="ai-typing-dots">
+        <span class="ai-typing-dot"></span>
+        <span class="ai-typing-dot"></span>
+        <span class="ai-typing-dot"></span>
+      </span>
+      <span class="ai-typing-label">Assistente MQIA digitando...</span>
+    `;
+    body.appendChild(typingBubble);
+    body.scrollTop = body.scrollHeight;
+
     const contextoDRE = {
       usuario: obterNomeUsuario(),
       saudacao: obterSaudacaoPeriodo(),
@@ -2538,19 +2560,28 @@ document.addEventListener('DOMContentLoaded', () => {
       vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''
     };
 
+    function showFriendlyError(msg) {
+      if (typingBubble && typingBubble.parentNode) typingBubble.remove();
+      if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
+
+      const errBox = document.createElement('div');
+      errBox.className = 'ai-error-bubble';
+      errBox.innerHTML = `
+        <span style="font-size: 16px; line-height: 1;">⚠️</span>
+        <div>
+          <strong style="color: #fca5a5;">Assistente MQIA:</strong><br>
+          <span>${msg}</span>
+        </div>
+      `;
+      body.appendChild(errBox);
+      body.scrollTop = body.scrollHeight;
+    }
+
     const currentUrl = getWebhookUrl();
     const isStreamSupported = currentUrl === DEFAULT_WEBHOOK || currentUrl.includes('/api/ia/perguntar');
 
     if (!isStreamSupported) {
       // Modo legado/Webhook customizado sem suporte a SSE
-      const loadingId = 'loading-' + Date.now();
-      const loading = document.createElement('div');
-      loading.className = 'ai-message ai';
-      loading.id = loadingId;
-      loading.innerHTML = '<span style="display:inline-flex; align-items:center; gap:6px;"><span class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></span> Processando com Agente externo...</span>';
-      body.appendChild(loading);
-      body.scrollTop = body.scrollHeight;
-
       try {
         const response = await fetch(currentUrl, {
           method: 'POST',
@@ -2558,41 +2589,27 @@ document.addEventListener('DOMContentLoaded', () => {
           body: JSON.stringify({ prompt: text, contexto: contextoDRE })
         });
         const result = await response.json();
-        loading.remove();
+        if (typingBubble && typingBubble.parentNode) typingBubble.remove();
         if(result && result.resposta) {
           addMessage(result.resposta, 'ai');
         } else if (result && result.error) {
-          addMessage('Erro na análise: ' + result.error, 'ai');
+          showFriendlyError('Erro na análise: ' + result.error);
         } else {
-          addMessage('Resposta recebida em formato inesperado.', 'ai');
+          showFriendlyError('Resposta recebida em formato inesperado.');
         }
       } catch(err) {
-        loading.remove();
-        addMessage('Desculpe, não foi possível conectar ao endpoint externo configurado.', 'ai');
+        if (typingBubble && typingBubble.parentNode) typingBubble.remove();
+        showFriendlyError('Desculpe, não foi possível conectar ao endpoint externo configurado.');
       }
       return;
     }
 
-    // ── Modo Streaming em Tempo Real (Efeito Máquina de Escrever) ─────────
-    const msgAi = document.createElement('div');
-    msgAi.className = 'ai-message ai';
-
-    const statusHint = document.createElement('div');
-    statusHint.className = 'ai-status-hint';
-    statusHint.innerHTML = '<span class="spinner" style="width:12px;height:12px;border-width:2px;display:inline-block;"></span><span class="status-txt">MQIA analisando dados do DRE...</span>';
-
-    const textSpan = document.createElement('span');
-    textSpan.className = 'ai-text-content';
-
-    const cursorSpan = document.createElement('span');
-    cursorSpan.className = 'ai-typing-cursor';
-    cursorSpan.textContent = '▌';
-
-    msgAi.appendChild(statusHint);
-    msgAi.appendChild(textSpan);
-    msgAi.appendChild(cursorSpan);
-    body.appendChild(msgAi);
-    body.scrollTop = body.scrollHeight;
+    // ── Modo Streaming em Tempo Real com a API Mistral ───────────────────
+    let msgAi = null;
+    let textSpan = null;
+    let cursorSpan = null;
+    let accumulatedText = '';
+    let receivedFirstChunk = false;
 
     try {
       const response = await fetch('/api/ia/perguntar/stream', {
@@ -2602,14 +2619,12 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       if (!response.ok || !response.body) {
-        throw new Error('Falha na conexão de streaming.');
+        throw new Error(`Falha na conexão de streaming (${response.status}).`);
       }
 
       const reader = response.body.getReader();
       const decoder = new TextDecoder('utf-8');
-      let accumulatedText = '';
       let buffer = '';
-      let receivedFirstToken = false;
 
       while (true) {
         const { value, done } = await reader.read();
@@ -2627,48 +2642,75 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = JSON.parse(jsonStr);
 
             if (data.tipo === 'status') {
-              const txtEl = statusHint.querySelector('.status-txt');
-              if (txtEl) txtEl.textContent = data.texto;
-            } else if (data.tipo === 'token') {
-              if (!receivedFirstToken) {
-                receivedFirstToken = true;
-                statusHint.remove(); // Remove o status ao iniciar os primeiros tokens
+              // Atualiza o texto do indicador enquanto prepara os dados
+              if (!receivedFirstChunk && typingBubble && typingBubble.parentNode) {
+                const labelEl = typingBubble.querySelector('.ai-typing-label');
+                if (labelEl && data.texto) {
+                  labelEl.textContent = data.texto;
+                  body.scrollTop = body.scrollHeight;
+                }
               }
+            } else if (data.tipo === 'token') {
+              // ── Assim que o primeiro chunk de texto chega da Mistral ──
+              if (!receivedFirstChunk) {
+                receivedFirstChunk = true;
+                // Substitui o "Digitando..." pelo início da resposta
+                if (typingBubble && typingBubble.parentNode) {
+                  typingBubble.remove();
+                }
+
+                msgAi = document.createElement('div');
+                msgAi.className = 'ai-message ai';
+
+                textSpan = document.createElement('span');
+                textSpan.className = 'ai-text-content';
+
+                cursorSpan = document.createElement('span');
+                cursorSpan.className = 'ai-typing-cursor';
+                cursorSpan.textContent = '▌';
+
+                msgAi.appendChild(textSpan);
+                msgAi.appendChild(cursorSpan);
+                body.appendChild(msgAi);
+              }
+
+              // Concatena palavra por palavra / token em tempo real
               accumulatedText += data.texto;
               textSpan.innerHTML = formatMarkdown(accumulatedText);
+              // Garante o scroll automático para o final da conversa
               body.scrollTop = body.scrollHeight;
+
             } else if (data.tipo === 'fim') {
+              if (typingBubble && typingBubble.parentNode) typingBubble.remove();
               if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
-              if (statusHint && statusHint.parentNode) statusHint.remove();
               const finalText = data.resposta_completa || accumulatedText;
-              renderContentWithCharts(msgAi, finalText);
+              if (msgAi) {
+                renderContentWithCharts(msgAi, finalText);
+              }
               body.scrollTop = body.scrollHeight;
               return;
+
             } else if (data.tipo === 'erro') {
-              if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
-              if (statusHint && statusHint.parentNode) statusHint.remove();
-              textSpan.innerHTML = `<span style="color:#ef4444;">Erro na análise: ${data.erro || 'Desconhecido'}</span>`;
+              showFriendlyError(data.erro || 'Desculpe, ocorreu uma instabilidade na consulta analítica.');
               return;
             }
           } catch(e) {
-            console.error('Erro ao interpretar SSE:', e, jsonStr);
+            console.error('Erro ao interpretar SSE da Mistral:', e, jsonStr);
           }
         }
       }
 
-      // Finalização preventiva se conexão fechar sem evento 'fim'
+      // Finalização preventiva se a conexão fechar sem evento 'fim'
+      if (typingBubble && typingBubble.parentNode) typingBubble.remove();
       if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
-      if (statusHint && statusHint.parentNode) statusHint.remove();
-      if (accumulatedText) {
+      if (msgAi && accumulatedText) {
         renderContentWithCharts(msgAi, accumulatedText);
       }
       body.scrollTop = body.scrollHeight;
 
     } catch(err) {
-      console.error('Erro no streaming da IA:', err);
-      if (cursorSpan && cursorSpan.parentNode) cursorSpan.remove();
-      if (statusHint && statusHint.parentNode) statusHint.remove();
-      textSpan.innerHTML = '<span style="color:#ef4444;">Desculpe, ocorreu uma instabilidade ao conectar com a MQIA. Verifique sua conexão e tente novamente.</span>';
+      console.error('Erro no streaming da Mistral AI:', err);
+      showFriendlyError('Desculpe, ocorreu uma instabilidade ao conectar com a Mistral AI. Verifique sua conexão e tente novamente.');
     }
   }
 
