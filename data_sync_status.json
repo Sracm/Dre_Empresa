@@ -1,5 +1,5 @@
 {
-  "ultima_sincronizacao": "2026-09-25 09:42:49",
-  "motivo": "auto: sincronização DRE via botão Carregar",
+  "ultima_sincronizacao": "2026-09-28 17:53:15",
+  "motivo": "fix(ia): fallback nativo Mistral e rotas de sincronizacao",
   "status": "sucesso"
 }
