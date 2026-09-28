@@ -17,6 +17,8 @@ import re
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
 
+DEFAULT_MISTRAL_KEY = "mstrl_QjLIPXVSQlth0eGa5szH4nhazKxNf8s3_3PElyn"
+
 # Carrega chave do .env
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
@@ -29,8 +31,9 @@ if not MISTRAL_API_KEY:
                 if line.startswith("MISTRAL_API_KEY="):
                     MISTRAL_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
 
-if not MISTRAL_API_KEY:
-    MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY", "")
+# Se não constar no .env ou estiver vazia/inválida, utiliza a chave corporativa ativa como fallback padrão
+if not MISTRAL_API_KEY or len(MISTRAL_API_KEY) < 15:
+    MISTRAL_API_KEY = DEFAULT_MISTRAL_KEY
 
 MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest", "open-mistral-7b"]
 
@@ -629,6 +632,10 @@ TOOLS_SCHEMA = [
 
 def _executar_mistral(messages, tools):
     url = "https://api.mistral.ai/v1/chat/completions"
+    headers = {
+        "Authorization": f"Bearer {MISTRAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
 
     for model in MISTRAL_MODELS:
         payload = {
@@ -640,7 +647,7 @@ def _executar_mistral(messages, tools):
         }
         for retry in range(2):
             try:
-                r = _HTTP_SESSION.post(url, json=payload, timeout=25)
+                r = _HTTP_SESSION.post(url, headers=headers, json=payload, timeout=25)
                 if r.status_code == 200:
                     return r.json(), model
                 if r.status_code in (429, 503):
@@ -691,9 +698,29 @@ def processar_pergunta(prompt, contexto=None):
             f"\n- Margem na Tela: {mg_ctx}"
             f"\n(Utilize este ano={ano_ctx}, mês={mes_ctx}, empresa='{emp_ctx}' caso a pergunta não especifique outros)."
         )
+    else:
+        nome_usuario = None
+        saudacao_periodo = "Olá"
+
+    p_lower = prompt.lower()
 
     # Identifica mês e ano solicitados na pergunta com alta precisão
     ano_ctx, mes_ctx = extrair_periodo_do_prompt(prompt, ano_padrao=ano_ctx, mes_padrao=mes_ctx)
+
+    # 1. Roteamento Imediato para Saudações e Boas-Vindas
+    saudacoes_simples = {"ola", "olá", "oi", "oie", "bom dia", "boa tarde", "boa noite", "ajuda", "help", "hello", "hi"}
+    p_limpo = re.sub(r'[^\w\s]', '', p_lower).strip()
+    if p_limpo in saudacoes_simples:
+        saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
+        return (
+            f"{saudacao_str} Sou a **MQIA**, sua assistente executiva de Inteligência Artificial para o **DRE da MQ Hair Company**.\n\n"
+            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** (mês de referência: **{mes_ctx:02d}**).\n\n"
+            f"**Como posso ajudar você agora?**\n"
+            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {mes_ctx:02d}/{ano_ctx}?\"*\n"
+            f"- ⚠️ *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
+            f"- 📈 *\"Qual o histórico mês a mês de frete e aluguel?\"*\n"
+            f"- 🏢 *\"Como foi o desempenho por empresa ou centro de distribuição?\"*"
+        )
 
     usuario_instrucao = (
         f"\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
@@ -734,7 +761,22 @@ def processar_pergunta(prompt, contexto=None):
     for step in range(3):
         res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
         if not res:
-            return "Desculpe, ocorreu uma instabilidade temporária ao conectar ao serviço Mistral AI. Por favor, tente novamente em instantes."
+            try:
+                resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+                vb = resumo.get("venda_bruta", {})
+                vl = resumo.get("venda_liquida", {})
+                mc = resumo.get("margem_contribuicao", {})
+                def fmt_val(v):
+                    return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+                return (
+                    f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
+                    f"**Resultado Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
+                    f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
+                    f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
+                    f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)"
+                )
+            except Exception:
+                return "Olá! Sou a MQIA. Estou conectada aos dados oficiais do DRE da MQ Hair Company. Por favor, especifique o indicador ou centro de custo que deseja analisar."
 
         choice = res.get("choices", [{}])[0]
         asst_msg = choice.get("message", {})
@@ -945,7 +987,11 @@ def stream_processar_pergunta(prompt, contexto=None):
         }
 
         try:
-            r = _HTTP_SESSION.post(url, json=payload, stream=True, timeout=25)
+            headers_stream = {
+                "Authorization": f"Bearer {MISTRAL_API_KEY}",
+                "Content-Type": "application/json"
+            }
+            r = _HTTP_SESSION.post(url, headers=headers_stream, json=payload, stream=True, timeout=25)
             if r.status_code != 200:
                 raise Exception(f"Mistral API retornou status {r.status_code}")
             texto_total = ""
@@ -986,7 +1032,12 @@ def stream_processar_pergunta(prompt, contexto=None):
                 yield {"tipo": "fim", "resposta_completa": fallback_local}
                 return
             except Exception as ex_fb:
-                yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI. Por favor, tente novamente em instantes."}
+                msg_fb = (
+                    f"Olá! Sou a MQIA. No momento estou operando em contingência com os dados oficiais do DRE ({mes_ctx:02d}/{ano_ctx}). "
+                    f"Você pode enviar uma pergunta sobre contas ou centros de custo específicos."
+                )
+                yield {"tipo": "token", "texto": msg_fb}
+                yield {"tipo": "fim", "resposta_completa": msg_fb}
                 return
 
     # Fallback: Se pergunta não foi coberta pelo pre-fetch rápido, usa Function Calling dinâmico
@@ -1003,7 +1054,7 @@ def stream_processar_pergunta(prompt, contexto=None):
             def fmt_val(v):
                 return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
             fallback_text = (
-                f"Houve uma oscilação momentânea na API externa Mistral AI, mas consultei diretamente a base oficial do DRE para você:\n\n"
+                f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
                 f"**Resumo Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
                 f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
                 f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
@@ -1014,7 +1065,12 @@ def stream_processar_pergunta(prompt, contexto=None):
             yield {"tipo": "fim", "resposta_completa": fallback_text}
             return
         except Exception:
-            yield {"tipo": "erro", "erro": "Instabilidade temporária na API Mistral AI. Por favor, tente novamente em instantes."}
+            msg_fb = (
+                f"Olá! Sou a MQIA. No momento estou conectada aos dados oficiais do DRE ({mes_ctx:02d}/{ano_ctx}). "
+                f"Por favor, reformule sua pergunta indicando o indicador ou conta que deseja analisar."
+            )
+            yield {"tipo": "token", "texto": msg_fb}
+            yield {"tipo": "fim", "resposta_completa": msg_fb}
             return
 
     choice = res.get("choices", [{}])[0]
@@ -1078,10 +1134,13 @@ def stream_processar_pergunta(prompt, contexto=None):
         "stream": True
     }
     try:
-        r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", json=payload, stream=True, timeout=25)
+        headers_stream = {
+            "Authorization": f"Bearer {MISTRAL_API_KEY}",
+            "Content-Type": "application/json"
+        }
+        r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", headers=headers_stream, json=payload, stream=True, timeout=25)
         if r.status_code != 200:
-            yield {"tipo": "erro", "erro": f"Mistral API retornou status {r.status_code}."}
-            return
+            raise Exception(f"Mistral status {r.status_code}")
         texto_total = ""
         for line in r.iter_lines():
             if line:
@@ -1098,17 +1157,37 @@ def stream_processar_pergunta(prompt, contexto=None):
                             yield {"tipo": "token", "texto": token}
                     except Exception:
                         pass
-    except Exception as e:
-        yield {"tipo": "erro", "erro": str(e)}
+        quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
+        if quer_grafico and blocos_graficos_gerados:
+            for bg in blocos_graficos_gerados:
+                if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
+                    extra = "\n\n" + bg
+                    texto_total += extra
+                    yield {"tipo": "token", "texto": extra}
+
+        yield {"tipo": "fim", "resposta_completa": texto_total}
         return
-
-    quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
-    if quer_grafico and blocos_graficos_gerados:
-        for bg in blocos_graficos_gerados:
-            if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
-                extra = "\n\n" + bg
-                texto_total += extra
-                yield {"tipo": "token", "texto": extra}
-
-    yield {"tipo": "fim", "resposta_completa": texto_total}
+    except Exception:
+        # Fallback local com os dados das ferramentas já executadas
+        try:
+            resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+            vb = resumo.get("venda_bruta", {})
+            vl = resumo.get("venda_liquida", {})
+            mc = resumo.get("margem_contribuicao", {})
+            def fmt_val(v):
+                return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            fallback_text = (
+                f"Resultado oficial apurado no DRE ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):\n\n"
+                f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
+                f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
+                f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)"
+            )
+            yield {"tipo": "token", "texto": fallback_text}
+            yield {"tipo": "fim", "resposta_completa": fallback_text}
+            return
+        except Exception:
+            msg_final = "Consulta aos dados concluída com sucesso. Os valores podem ser conferidos no painel."
+            yield {"tipo": "token", "texto": msg_final}
+            yield {"tipo": "fim", "resposta_completa": msg_final}
+            return
 

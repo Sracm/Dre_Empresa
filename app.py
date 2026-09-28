@@ -1326,6 +1326,17 @@ def rota_git_salvar():
     t.start()
     return jsonify({"status": "iniciado", "msg": "Sincronização com GitHub disparada em background."})
 
+@app.route("/api/git/atualizar", methods=["POST", "GET"])
+@app.route("/api/git/pull", methods=["POST", "GET"])
+def rota_git_atualizar():
+    try:
+        res = subprocess.run(["git", "pull", "origin", "master"], cwd=BASE_DIR, capture_output=True, text=True, check=False)
+        out = (res.stdout or "") + (res.stderr or "")
+        importlib.reload(agent_ia)
+        return jsonify({"status": "sucesso", "output": out.strip()})
+    except Exception as e:
+        return jsonify({"status": "erro", "erro": str(e)}), 500
+
 # ═══════════════════════════════════════════════════════════════════════════
 #  ROTAS DE SINCRONIZAÇÃO SOB DEMANDA (ORACLE SANKHYA)
 # ═══════════════════════════════════════════════════════════════════════════
