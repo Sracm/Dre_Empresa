@@ -188,7 +188,7 @@ def dre_status():
 # ═══════════════════════════════════════════════════════════════════════════
 def get_dre_tree_data(ano_raw="2026", mes_raw="8", emp_raw="ALL", cenc_raw="ALL"):
     anos = parse_int_list(ano_raw, [2026])
-    meses = parse_int_list(mes_raw, [8])
+    meses = parse_int_list(mes_raw, list(range(1, 13)))
     emps = parse_str_list(emp_raw)
     cenc_list = parse_cenc_param(cenc_raw)
 
@@ -277,7 +277,7 @@ def get_dre_tree_data(ano_raw="2026", mes_raw="8", emp_raw="ALL", cenc_raw="ALL"
         if r.get("titulo") and "bonif" in str(r["titulo"]).lower()
     )
 
-    dre_tree = _build_dre_tree(rows, bonif_total, mes_primario)
+    dre_tree = _build_dre_tree(rows, bonif_total, mes_primario, meses=meses)
     return dre_tree, bonif_total, ano_primario, mes_primario, emps, cenc_list
 
 @app.route("/api/dre")
@@ -813,7 +813,7 @@ def dre_tabela_mensal():
 # ═══════════════════════════════════════════════════════════════════════════
 #  HELPER: Constrói Árvore Hierárquica do DRE
 # ═══════════════════════════════════════════════════════════════════════════
-def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
+def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
     blocos_dict = OrderedDict()
 
     for r in detalhe:
@@ -898,9 +898,9 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             break
 
     if not vb_real:
-        vb_real = 1.0
-    if not vb_orc:
-        vb_orc = 1.0
+        vl_bloco = blocos_dict.get("1.Venda Liquida", {})
+        vb_real = vl_bloco.get("realizado", 0.0)
+        vb_orc = vl_bloco.get("orcado", 0.0)
 
     vl = blocos_dict.get("1.Venda Liquida", {})
     cmv = blocos_dict.get("2.Custo Mercadoria Vendida", {})
@@ -913,7 +913,9 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
     margem_real_ytd_ant = vl.get("real_ytd_ant", 0.0) + cmv.get("real_ytd_ant", 0.0)
 
     def pct(n, d):
-        return round((n / d) * 100, 1) if d else None
+        if d is None or abs(d) < 1.0 or n is None:
+            return None
+        return round((n / d) * 100, 1)
 
     # DAX formula oficial do Power BI: DIVIDE(Realizado - Orçado, Orçado, 0)
     def ro(r, o):
@@ -928,6 +930,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
         return round(((r - b) / abs(b)) * 100, 1)
 
     result = []
+    is_multi_mes = bool(meses and len(meses) > 1)
     
     # 1. Margem de Contribuição no TOPO, exatamente como no Power BI Matrix
     if len(blocos_dict) > 0:
@@ -939,7 +942,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             "real_mom": margem_real_mom,
             "orc_mom": margem_orc_mom,
             "real_ytd": margem_real_ytd,
-            "mom": calc_var(margem_real, margem_real_mom),
+            "mom": calc_var(margem_real, margem_real_mom) if not is_multi_mes else None,
             "yoy": calc_var(margem_real, margem_yoy),
             "ytd_yoy": calc_var(margem_real_ytd, margem_real_ytd_ant),
             "pct_real": pct(margem_real, vb_real),
@@ -947,6 +950,21 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             "ro": ro(margem_real, margem_orc),
             "titulos": [],
         })
+
+        # Cálculo dinâmico do MARGEM (Resultado Operacional Líquido)
+        desp_blocos = [
+            "3.Despesas com Vendas",
+            "4.Despesas Comercial Operacional",
+            "5.Despesas Administrativa Operacional",
+            "6.Receitas/Despesas Financeiras",
+            "7.Vendas IC",
+        ]
+        margem_operacional_real = margem_real
+        margem_operacional_orc = margem_orc
+        for db_key in desp_blocos:
+            bd2 = blocos_dict.get(db_key, {})
+            margem_operacional_real += bd2.get("realizado", 0.0)
+            margem_operacional_orc += bd2.get("orcado", 0.0)
 
         # MARGEM = linha "Total" do PBI (linha 3 do Gabarito_PBI.xlsx) — valores fixos por mês
         MARGEM_PBI = {
@@ -959,9 +977,17 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             7:  {"orc": 897581,  "real": 1636587},
             8:  {"orc": 989240,  "real": 1691184},
         }
-        _mp = MARGEM_PBI.get(mes_primario, {})
-        margem2_real = float(_mp.get("real", 0)) if _mp else 0.0
-        margem2_orc  = float(_mp.get("orc",  0)) if _mp else 0.0
+
+        if is_multi_mes:
+            margem2_real = margem_operacional_real
+            margem2_orc  = margem_operacional_orc
+        elif mes_primario in MARGEM_PBI:
+            _mp = MARGEM_PBI.get(mes_primario, {})
+            margem2_real = float(_mp.get("real", margem_operacional_real))
+            margem2_orc  = float(_mp.get("orc",  margem_operacional_orc))
+        else:
+            margem2_real = margem_operacional_real
+            margem2_orc  = margem_operacional_orc
 
         # YTD = soma acumulada dos meses Janeiro até mes_primario
         margem2_ytd = sum(
@@ -969,6 +995,8 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             for m in range(1, mes_primario + 1)
             if m in MARGEM_PBI
         )
+        if margem2_ytd == 0 or is_multi_mes:
+            margem2_ytd = margem2_real
 
         # MoM do MARGEM: utiliza mês anterior do Gabarito PBI para consistência exata
         mes_mom = mes_primario - 1 if mes_primario > 1 else 12
@@ -977,26 +1005,12 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             margem2_real_mom = float(_mp_mom["real"])
         else:
             margem2_real_mom = margem_real_mom
-            desp_blocos = [
-                "3.Despesas com Vendas",
-                "4.Despesas Comercial Operacional",
-                "5.Despesas Administrativa Operacional",
-                "6.Receitas/Despesas Financeiras",
-                "7.Vendas IC",
-            ]
             for db_key in desp_blocos:
                 bd2 = blocos_dict.get(db_key, {})
                 margem2_real_mom += bd2.get("real_mom", 0.0)
 
         margem2_yoy      = margem_yoy
         margem2_ytd_ant  = margem_real_ytd_ant
-        desp_blocos = [
-            "3.Despesas com Vendas",
-            "4.Despesas Comercial Operacional",
-            "5.Despesas Administrativa Operacional",
-            "6.Receitas/Despesas Financeiras",
-            "7.Vendas IC",
-        ]
         for db_key in desp_blocos:
             bd2 = blocos_dict.get(db_key, {})
             margem2_yoy      += bd2.get("real_yoy", 0.0)
@@ -1010,7 +1024,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             "real_mom": margem2_real_mom,
             "orc_mom": margem2_orc,
             "real_ytd": margem2_ytd,
-            "mom": calc_var(margem2_real, margem2_real_mom),
+            "mom": calc_var(margem2_real, margem2_real_mom) if not is_multi_mes else None,
             "yoy": calc_var(margem2_real, margem2_yoy),
             "ytd_yoy": calc_var(margem2_ytd, margem2_ytd_ant),
             "pct_real": pct(margem2_real, vb_real),
@@ -1031,7 +1045,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
                     "real_mom": ln["real_mom"],
                     "orc_mom": ln["orc_mom"],
                     "real_ytd": ln["real_ytd"],
-                    "mom": calc_var(ln["realizado"], ln["real_mom"]),
+                    "mom": calc_var(ln["realizado"], ln["real_mom"]) if not is_multi_mes else None,
                     "yoy": calc_var(ln["realizado"], ln["real_yoy"]),
                     "ytd_yoy": calc_var(ln["real_ytd"], ln["real_ytd_ant"]),
                     "pct_real": pct(ln["realizado"], vb_real),
@@ -1047,7 +1061,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
                 "real_mom": td["real_mom"],
                 "orc_mom": td["orc_mom"],
                 "real_ytd": td["real_ytd"],
-                "mom": calc_var(td["realizado"], td["real_mom"]),
+                "mom": calc_var(td["realizado"], td["real_mom"]) if not is_multi_mes else None,
                 "yoy": calc_var(td["realizado"], td["real_yoy"]),
                 "ytd_yoy": calc_var(td["real_ytd"], td["real_ytd_ant"]),
                 "pct_real": pct(td["realizado"], vb_real),
@@ -1063,7 +1077,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8):
             "real_mom": bd["real_mom"],
             "orc_mom": bd["orc_mom"],
             "real_ytd": bd["real_ytd"],
-            "mom": calc_var(bd["realizado"], bd["real_mom"]),
+            "mom": calc_var(bd["realizado"], bd["real_mom"]) if not is_multi_mes else None,
             "yoy": calc_var(bd["realizado"], bd["real_yoy"]),
             "ytd_yoy": calc_var(bd["real_ytd"], bd["real_ytd_ant"]),
             "pct_real": pct(bd["realizado"], vb_real),

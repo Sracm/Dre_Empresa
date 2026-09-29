@@ -538,28 +538,24 @@ body {
 
 .btn-export:active { transform: translateY(0); }
 
-/* ── KPI CARDS (7 CARDS COM MÉTRICAS E MÊS ANTERIOR) ─────────────────── */
+/* ── KPI CARDS (8 CARDS COM MÉTRICAS E MÊS ANTERIOR) ─────────────────── */
 .kpi-section {
   display: grid;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(8, 1fr);
   gap: 10px;
   padding: 12px 28px 6px;
 }
 
-@media (max-width: 1560px) {
-  .kpi-section { grid-template-columns: repeat(4, 1fr); gap: 10px; }
+@media (max-width: 1680px) {
+  .kpi-section { grid-template-columns: repeat(4, 1fr); gap: 12px; }
 }
 
-@media (max-width: 1100px) {
-  .kpi-section { grid-template-columns: repeat(3, 1fr); gap: 10px; }
-}
-
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
   .kpi-section { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 }
 
-@media (max-width: 560px) {
-  .kpi-section { grid-template-columns: 1fr; }
+@media (max-width: 600px) {
+  .kpi-section { grid-template-columns: 1fr; gap: 10px; }
 }
 
 .kpi-card {

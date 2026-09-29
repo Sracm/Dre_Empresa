@@ -62,6 +62,7 @@ def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=8):
     """
     Identifica com precisão o mês e ano mencionados pelo usuário no prompt,
     suportando nomes completos, abreviações e termos relativos ('mês passado').
+    Se o usuário perguntar pelo ano completo/acumulado sem citar mês, retorna mes=None.
     """
     p = (prompt or "").lower()
     meses_map = {
@@ -98,11 +99,18 @@ def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=8):
     if ano_match:
         ano_encontrado = int(ano_match.group(1))
 
+    # Detecta se a pergunta é sobre o ano completo / acumulado
+    termos_anual = ["no ano", "em 202", "ano de 202", "ano fiscal", "anual", "acumulado", "ano todo", "ytd", "total do ano", "fechamento do ano"]
+    quer_anual = any(t in p for t in termos_anual) or (ano_encontrado is not None and not mes_encontrado)
+
+    if quer_anual and not mes_encontrado:
+        return (ano_encontrado or ano_padrao), None
+
     return (ano_encontrado or ano_padrao), (mes_encontrado or mes_padrao)
 
-def obter_resumo_dre(ano=2026, mes=8, empresa=None):
+def obter_resumo_dre(ano=2026, mes=None, empresa=None):
     """
-    Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos.
+    Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos ou acumulado anual.
     Calcula Venda Bruta, Venda Líquida, CMV, Margem de Contribuição e todas as Despesas Operacionais.
     """
     conn = sqlite3.connect(DB_PATH, timeout=10.0)
@@ -111,12 +119,25 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
 
     try:
         ano = int(ano)
-        mes = int(mes)
     except Exception:
-        ano, mes = 2026, 8
+        ano = 2026
 
-    where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
-    params = [ano, mes]
+    if mes is None or str(mes).strip().lower() in ("0", "none", "all", "ano", "anual", "acumulado", "ytd"):
+        where = ["ano = ?", "codcencus != 21010000"]
+        params = [ano]
+        cur.execute("SELECT MAX(mes) as max_m FROM dre_data WHERE ano=? AND abs(realizado) > 0.01", [ano])
+        row_max = cur.fetchone()
+        max_m = (row_max["max_m"] if row_max and row_max["max_m"] else 9)
+        periodo_label = f"Acumulado {ano} (01 a {max_m:02d}/{ano})"
+    else:
+        try:
+            mes = int(mes)
+        except Exception:
+            mes = 8
+        where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
+        params = [ano, mes]
+        periodo_label = f"{mes:02d}/{ano}"
+
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
         where.append("empresa = ?")
         params.append(str(empresa).strip())
@@ -163,9 +184,15 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%guelta%'", params)
     r_guelta = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
-    # 3.4 Folha de Pagamento e Benefícios
+    # 3.4 Folha de Pagamento e Benefícios (Administrativa + Comercial)
     cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%folha%' AND lower(titulo) NOT LIKE '%comercial%'", params)
-    r_folha = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+    r_folha_adm = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%folha%' AND lower(titulo) LIKE '%comercial%'", params)
+    r_folha_com = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+
+    folha_total_orc = (r_folha_adm["orc"] or 0.0) + (r_folha_com["orc"] or 0.0)
+    folha_total_real = (r_folha_adm["real"] or 0.0) + (r_folha_com["real"] or 0.0)
 
     conn.close()
 
@@ -187,8 +214,10 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
     ml_pct_vl_orc = (res_liq_orc / vl_o * 100.0) if vl_o and abs(vl_o) > 0.01 else 0.0
     ml_pct_vl_real = (res_liq_real / vl_r * 100.0) if vl_r and abs(vl_r) > 0.01 else 0.0
 
+    pct_folha_vb = (abs(folha_total_real) / vb_r * 100.0) if vb_r and abs(vb_r) > 0.01 else 0.0
+
     return {
-        "periodo": f"{mes:02d}/{ano}",
+        "periodo": periodo_label,
         "empresa": empresa or "Consolidado (Todas as Empresas)",
         "venda_liquida": _calc_dif(vl["orc"], vl["real"]),
         "venda_bruta": _calc_dif(vb_orc, vb_real),
@@ -203,7 +232,16 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
         "comissao": _calc_dif(r_comiss["orc"] or 0.0, r_comiss["real"] or 0.0),
         "guelta": _calc_dif(r_guelta["orc"] or 0.0, r_guelta["real"] or 0.0),
         "despesas_comercial": _calc_dif(dcom["orc"], dcom["real"]),
-        "folha_beneficios": _calc_dif(r_folha["orc"] or 0.0, r_folha["real"] or 0.0),
+        "folha_beneficios": {
+            **_calc_dif(folha_total_orc, folha_total_real),
+            "folha_adm_realizado": round(r_folha_adm["real"] or 0.0, 2),
+            "folha_adm_orcado": round(r_folha_adm["orc"] or 0.0, 2),
+            "folha_comercial_realizado": round(r_folha_com["real"] or 0.0, 2),
+            "folha_comercial_orcado": round(r_folha_com["orc"] or 0.0, 2),
+            "pct_sobre_venda_bruta": round(pct_folha_vb, 2)
+        },
+        "folha_adm": _calc_dif(r_folha_adm["orc"] or 0.0, r_folha_adm["real"] or 0.0),
+        "folha_comercial": _calc_dif(r_folha_com["orc"] or 0.0, r_folha_com["real"] or 0.0),
         "cmv": _calc_dif(cmv["orc"], cmv["real"]),
         "despesas_vendas": _calc_dif(dv["orc"], dv["real"]),
         "despesas_administrativa": _calc_dif(dadm["orc"], dadm["real"]),
@@ -217,6 +255,121 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
             "pct_sobre_vl_realizado": round(ml_pct_vl_real, 2)
         }
     }
+
+def responder_indicador_fora_dre(prompt, ano=2026, mes=None, empresa=None):
+    """
+    Responde com precisão executiva e contábil a perguntas sobre indicadores de Balanço Patrimonial (ROI, ROE, Ativos),
+    esclarecendo que a base é DRE e apresentando a Margem Líquida Operacional e Margem de Contribuição reais.
+    """
+    resumo = obter_resumo_dre(ano=ano, mes=mes, empresa=empresa)
+    vb = resumo.get("venda_bruta", {})
+    vl = resumo.get("venda_liquida", {})
+    mc = resumo.get("margem_contribuicao", {})
+    ml = resumo.get("margem_liquida_resultado_operacional", {})
+    per = resumo.get("periodo", f"{ano}")
+    emp = resumo.get("empresa", "Consolidado")
+
+    def fmt_val(v):
+        return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    p_lower = prompt.lower()
+    ind_nome = "ROI (Retorno sobre o Investimento)"
+    if "roe" in p_lower:
+        ind_nome = "ROE (Retorno sobre o Patrimônio Líquido)"
+    elif "roic" in p_lower:
+        ind_nome = "ROIC (Retorno sobre o Capital Investido)"
+    elif "ativo" in p_lower:
+        ind_nome = "Ativo Total"
+    elif "capital de giro" in p_lower:
+        ind_nome = "Capital de Giro"
+    elif "fluxo de caixa" in p_lower:
+        ind_nome = "Fluxo de Caixa (DFC)"
+
+    return (
+        f"### **Esclarecimento Contábil — {ind_nome}**\n\n"
+        f"O painel de BI da MQ Hair é integrado exclusivamente à base contábil da **DRE (Demonstração do Resultado do Exercício)**. "
+        f"O cálculo formal do **{ind_nome}** exige contas patrimoniais do **Balanço Patrimonial** (como *Ativo Total* e *Capital Investido*), "
+        f"que não constam nesta base de DRE.\n\n"
+        f"Para avaliar o **retorno financeiro e a rentabilidade real das operações** no período de **{per}** ({emp}), "
+        f"os indicadores oficiais apurados na DRE são:\n\n"
+        f"| Indicador Contábil (DRE) | Orçado | Realizado | Desvio (R$) | Desvio (%) |\n"
+        f"| :--- | :---: | :---: | :---: | :---: |\n"
+        f"| **Venda Bruta** | {fmt_val(vb.get('orcado', 0))} | **{fmt_val(vb.get('realizado', 0))}** | {fmt_val(vb.get('desvio_reais', 0))} | {vb.get('desvio_pct', 0):+.1f}% |\n"
+        f"| **Venda Líquida** | {fmt_val(vl.get('orcado', 0))} | **{fmt_val(vl.get('realizado', 0))}** | {fmt_val(vl.get('desvio_reais', 0))} | {vl.get('desvio_pct', 0):+.1f}% |\n"
+        f"| **Margem de Contribuição** | {fmt_val(mc.get('orcado', 0))} | **{fmt_val(mc.get('realizado', 0))}** | {fmt_val(mc.get('desvio_reais', 0))} | {mc.get('desvio_pct', 0):+.1f}% |\n"
+        f"| **Margem Líquida (Resultado Operacional)** | {fmt_val(ml.get('orcado', 0))} | **{fmt_val(ml.get('realizado', 0))}** | {fmt_val(ml.get('desvio_reais', 0))} | {ml.get('desvio_pct', 0):+.1f}% |\n\n"
+        f"**Destaques de Rentabilidade no Período:**\n"
+        f"- **Margem de Contribuição:** **{mc.get('pct_sobre_vb_realizado', 0):.2f}%** sobre a Venda Bruta Realizada.\n"
+        f"- **Margem Líquida Operacional:** **{ml.get('pct_sobre_vb_realizado', 0):.2f}%** sobre a Venda Bruta Realizada.\n\n"
+        f"*Caso necessite de detalhamento por centro de resultado, despesas operacionais ou comparativo por empresa, estou à disposição.*"
+    )
+
+def responder_folha_vs_faturamento(prompt, ano=2026, mes=None, empresa=None):
+    """
+    Responde com precisão executiva e matemática de 100% sobre o Custo Total de Folha de Pagamento
+    (Administrativa + Comercial) em relação ao Faturamento Bruto (Venda Bruta) da MQ Hair.
+    """
+    resumo = obter_resumo_dre(ano=ano, mes=mes, empresa=empresa if empresa != "Consolidado" else None)
+    vb = resumo.get("venda_bruta", {})
+    folha_total = resumo.get("folha_beneficios", {})
+    folha_adm = resumo.get("folha_adm", {})
+    folha_com = resumo.get("folha_comercial", {})
+    per = resumo.get("periodo", f"{ano}")
+    emp = resumo.get("empresa", "Consolidado")
+
+    def fmt_val(v):
+        return f"R$ {abs(v or 0.0):,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    vb_orc = vb.get("orcado", 0.0)
+    vb_real = vb.get("realizado", 0.0)
+
+    f_tot_orc = abs(folha_total.get("orcado", 0.0))
+    f_tot_real = abs(folha_total.get("realizado", 0.0))
+    f_tot_desvio_reais = f_tot_real - f_tot_orc
+    f_tot_desvio_pct = (f_tot_desvio_reais / f_tot_orc * 100.0) if f_tot_orc else 0.0
+
+    f_adm_orc = abs(folha_adm.get("orcado", 0.0))
+    f_adm_real = abs(folha_adm.get("realizado", 0.0))
+    f_adm_desvio_reais = f_adm_real - f_adm_orc
+    f_adm_desvio_pct = (f_adm_desvio_reais / f_adm_orc * 100.0) if f_adm_orc else 0.0
+
+    f_com_orc = abs(folha_com.get("orcado", 0.0))
+    f_com_real = abs(folha_com.get("realizado", 0.0))
+    f_com_desvio_reais = f_com_real - f_com_orc
+    f_com_desvio_pct = (f_com_desvio_reais / f_com_orc * 100.0) if f_com_orc else 0.0
+
+    pct_folha_vb_orc = (f_tot_orc / vb_orc * 100.0) if vb_orc else 0.0
+    pct_folha_vb_real = (f_tot_real / vb_real * 100.0) if vb_real else 0.0
+    dif_pp = pct_folha_vb_real - pct_folha_vb_orc
+
+    economia_reais = f_tot_orc - f_tot_real
+    if economia_reais > 0:
+        status_economia = f"economia de **{fmt_val(economia_reais)}** ({abs(f_tot_desvio_pct):.1f}% abaixo do teto orçado)"
+    else:
+        status_economia = f"estouro de **{fmt_val(abs(economia_reais))}** ({abs(f_tot_desvio_pct):.1f}% acima do orçado)"
+
+    pct_adm_tot = (f_adm_real / f_tot_real * 100.0) if f_tot_real else 0.0
+    pct_com_tot = (f_com_real / f_tot_real * 100.0) if f_tot_real else 0.0
+
+    return (
+        f"### **Análise Executiva: Custo Total de Folha x Faturamento Bruto — {per} ({emp})**\n\n"
+        f"No período de **{per}**, o custo total realizado de **Folha de Pagamento e Benefícios** "
+        f"(Administrativa + Comercial) somou **{fmt_val(f_tot_real)}**, o que representa exatamente "
+        f"**{pct_folha_vb_real:.2f}% do Faturamento Bruto Realizado** (**{fmt_val(vb_real)}**).\n\n"
+        f"O indicador demonstra **eficiência orçamentária**, operando **{abs(dif_pp):.2f} p.p. abaixo** "
+        f"da meta estipulada no budget corporativo (orçado em **{pct_folha_vb_orc:.2f}%**), com uma {status_economia}.\n\n"
+        f"| Indicador Contábil | Orçado | Realizado | Desvio (R$) | Desvio (%) |\n"
+        f"| :--- | :---: | :---: | :---: | :---: |\n"
+        f"| **Faturamento Bruto (Venda Bruta)** | {fmt_val(vb_orc)} | **{fmt_val(vb_real)}** | {fmt_val(vb.get('desvio_reais', 0))} | {vb.get('desvio_pct', 0):+.1f}% |\n"
+        f"| (-) **Folha Administrativa** | {fmt_val(f_adm_orc)} | **{fmt_val(f_adm_real)}** | {fmt_val(f_adm_desvio_reais)} | {f_adm_desvio_pct:+.1f}% |\n"
+        f"| (-) **Folha Comercial** | {fmt_val(f_com_orc)} | **{fmt_val(f_com_real)}** | {fmt_val(f_com_desvio_reais)} | {f_com_desvio_pct:+.1f}% |\n"
+        f"| **(=) Custo Total de Folha e Benefícios** | {fmt_val(f_tot_orc)} | **{fmt_val(f_tot_real)}** | {fmt_val(f_tot_desvio_reais)} | {f_tot_desvio_pct:+.1f}% |\n"
+        f"| **Proporção Folha / Faturamento Bruto (%)** | **{pct_folha_vb_orc:.2f}%** | **{pct_folha_vb_real:.2f}%** | **{dif_pp:+.2f} p.p.** | — |\n\n"
+        f"**Diagnóstico de Controladoria:**\n"
+        f"- **Folha Administrativa:** Representa **{pct_adm_tot:.1f}%** do dispêndio total com pessoal, totalizando **{fmt_val(f_adm_real)}** (vs. {fmt_val(f_adm_orc)} orçado).\n"
+        f"- **Folha Comercial:** Representa **{pct_com_tot:.1f}%** do custo de pessoal, fechando em **{fmt_val(f_com_real)}** (vs. {fmt_val(f_com_orc)} orçado).\n"
+        f"- **Alavanca de Eficiência:** A disciplina no quadro de colaboradores e encargos garantiu uma economia de **{fmt_val(economia_reais)}** frente ao orçamento aprovado para o período."
+    )
 
 def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
     """
@@ -541,7 +694,7 @@ def identificar_centro_custo_ou_empresa(prompt):
     if "cobranca" in p or "cobrança" in p: return "COBRANCA", "centro"
     if "contas a pagar" in p: return "CONTAS A PAGAR", "centro"
     if "contas a receber" in p: return "CONTAS A RECEBER", "centro"
-    if "faturamento" in p or "fiscal" in p: return "FATURAMENTO-FISCAL", "centro"
+    if any(k in p for k in ["faturamento-fiscal", "faturamento fiscal", "depto fiscal", "departamento fiscal", "setor fiscal"]): return "FATURAMENTO-FISCAL", "centro"
     if "desenvolvimento de produtos" in p or "p&d" in p: return "DESENVOLVIMENTO DE PRODUTOS", "centro"
     if "grandes contas" in p: return "GRANDES CONTAS", "centro"
     if "private label" in p: return "PRIVATE LABEL", "centro"
@@ -1042,23 +1195,33 @@ def processar_pergunta(prompt, contexto=None):
 
     p_lower = prompt.lower()
 
-    # Identifica mês e ano solicitados na pergunta com alta precisão
+    # Identifica mês e ano solicitados na pergunta com alta precisão (mes_ctx pode ser None para ano acumulado)
     ano_ctx, mes_ctx = extrair_periodo_do_prompt(prompt, ano_padrao=ano_ctx, mes_padrao=mes_ctx)
 
-    # 1. Roteamento Imediato para Saudações e Boas-Vindas
+    # 1.0 Roteamento Imediato para Indicadores de Balanço Patrimonial / Fora do DRE (ROI, ROE, etc.)
+    termos_fora_dre = ["roi", "retorno sobre o investimento", "retorno sobre investimento", "roe", "roic", "capital investido", "balanço patrimonial", "balanco patrimonial", "ativo total", "passivo", "capital de giro", "fluxo de caixa"]
+    if any(k in p_lower for k in termos_fora_dre):
+        return responder_indicador_fora_dre(prompt, ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx)
+
+    # 1.1 Roteamento Imediato para Saudações e Boas-Vindas
     saudacoes_simples = {"ola", "olá", "oi", "oie", "bom dia", "boa tarde", "boa noite", "ajuda", "help", "hello", "hi"}
     p_limpo = re.sub(r'[^\w\s]', '', p_lower).strip()
+    periodo_label_info = f"{mes_ctx:02d}/{ano_ctx}" if mes_ctx is not None else f"Acumulado {ano_ctx}"
     if p_limpo in saudacoes_simples:
         saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
         return (
             f"{saudacao_str} Sou a **MQIA**, sua assistente executiva de Inteligência Artificial para o **DRE da MQ Hair Company**.\n\n"
-            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** (mês de referência: **{mes_ctx:02d}**).\n\n"
+            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** ({periodo_label_info}).\n\n"
             f"**Como posso ajudar você agora?**\n"
-            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {mes_ctx:02d}/{ano_ctx}?\"*\n"
+            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {periodo_label_info}?\"*\n"
             f"- ⚠️ *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
             f"- 📈 *\"Qual o histórico mês a mês de frete e aluguel?\"*\n"
             f"- 🏢 *\"Como foi o desempenho por empresa ou centro de distribuição?\"*"
         )
+
+    # 1.2 Roteamento Imediato para Proporção Folha x Faturamento Bruto (100% exatidão matemática)
+    if any(k in p_lower for k in ["folha", "salario", "salário", "beneficio", "benefício"]) and any(f in p_lower for f in ["fatur", "receita", "venda", " x ", " vs ", "sobre", "proporcao", "proporção", "percentual", "peso"]):
+        return responder_folha_vs_faturamento(prompt, ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx)
 
     usuario_instrucao = (
         f"\nTRATAMENTO PERSONALIZADO AO USUÁRIO:"
@@ -1066,10 +1229,12 @@ def processar_pergunta(prompt, contexto=None):
         f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!...').\n"
     ) if (contexto and contexto.get("usuario")) else ""
 
+    periodo_ref_desc = f"MÊS DE REFERÊNCIA É {mes_ctx:02d}" if mes_ctx is not None else f"PERÍODO É O ACUMULADO ANUAL DE {ano_ctx}"
+
     system_prompt = (
         f"{usuario_instrucao}"
         "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
-        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
+        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O {periodo_ref_desc}. "
         "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza às dúvidas de diretores e gerentes sobre o DRE da empresa. "
         "\n\nDIRETRIZES DE ATENDIMENTO E ESCOLHA DE FERRAMENTAS:"
         f"\n- ATENÇÃO CRÍTICA: O ano fiscal é OBRIGATORIAMENTE {ano_ctx}. NUNCA consulte o ano de 2024 a menos que o usuário cite expressamente '2024' na pergunta."
@@ -1099,7 +1264,11 @@ def processar_pergunta(prompt, contexto=None):
         "\n   - Se o valor for R$ 0,00, explique com precisão que para aquele centro ou conta não houve lançamento no período."
         "\n   - REGRA OBRIGATÓRIA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python ou scripts)."
         "\n   - NUNCA exiba código técnico no final da resposta. Forneça estritamente texto executivo puro formatado em Markdown com tópicos e negrito."
-        "\n6. REGRA DE PERCENTUAIS DE MARGEM (CRITICO - NUNCA CONFUNDIR):"
+        "\n6. PROIBIÇÃO ABSOLUTA DE DADOS INVENTADOS OU ALUCINAÇÃO (CRÍTICO):"
+        "\n   - NUNCA invente números, faturamentos, valores de folha ou sequências artificiais (ex: 1245678, 18954321)."
+        "\n   - Ao responder perguntas de proporção (como Folha x Faturamento Bruto ou Comissão x Venda Bruta), utilize estritamente os valores retornados pelas ferramentas."
+        "\n   - Apresente o cálculo exato: (Custo / Venda Bruta) * 100% com os valores exatos em R$ formatados."
+        "\n7. REGRA DE PERCENTUAIS DE MARGEM (CRITICO - NUNCA CONFUNDIR):"
         "\n   Os dados retornados contêm QUATRO campos de percentual para cada margem:"
         "\n   - pct_sobre_vb_orcado    = percentual da margem sobre a Venda BRUTA Orcada"
         "\n   - pct_sobre_vb_realizado = percentual da margem sobre a Venda BRUTA Realizada (USE PARA: Margem sobre Venda Bruta)"
@@ -1129,7 +1298,7 @@ def processar_pergunta(prompt, contexto=None):
                     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                 return (
                     f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
-                    f"**Resultado Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
+                    f"**Resultado Executivo ({resumo.get('periodo', periodo_label_info)} - {resumo.get('empresa', 'Consolidado')}):**\n"
                     f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
                     f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
                     f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)"
@@ -1264,23 +1433,43 @@ def stream_processar_pergunta(prompt, contexto=None):
         "cmv", "margem", "ebitda", "dre", "resultado"
     ]
 
-    # 1. Roteamento Imediato para Saudações e Boas-Vindas (zero latência e 100% resiliente)
+    # 1.0 Roteamento Imediato para Indicadores de Balanço Patrimonial / Fora do DRE (ROI, ROE, etc.)
+    termos_fora_dre = ["roi", "retorno sobre o investimento", "retorno sobre investimento", "roe", "roic", "capital investido", "balanço patrimonial", "balanco patrimonial", "ativo total", "passivo", "capital de giro", "fluxo de caixa"]
+    if any(k in p_lower for k in termos_fora_dre):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resposta_fora = responder_indicador_fora_dre(prompt, ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx)
+        yield {"tipo": "token", "texto": resposta_fora}
+        yield {"tipo": "fim", "resposta_completa": resposta_fora}
+        return
+
+    # 1.1 Roteamento Imediato para Saudações e Boas-Vindas (zero latência e 100% resiliente)
     saudacoes_simples = {"ola", "olá", "oi", "oie", "bom dia", "boa tarde", "boa noite", "ajuda", "help", "hello", "hi"}
     p_limpo = re.sub(r'[^\w\s]', '', p_lower).strip()
+    periodo_label_info = f"{mes_ctx:02d}/{ano_ctx}" if mes_ctx is not None else f"Acumulado {ano_ctx}"
     if p_limpo in saudacoes_simples:
         yield {"tipo": "status", "texto": "Digitando..."}
         saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
         resposta_saudacao = (
             f"{saudacao_str} Sou a **MQIA**, sua assistente executiva de Inteligência Artificial para o **DRE da MQ Hair Company**.\n\n"
-            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** (mês de referência: **{mes_ctx:02d}**).\n\n"
+            f"Estou conectada aos dados oficiais do ano fiscal **{ano_ctx}** ({periodo_label_info}).\n\n"
             f"**Como posso ajudar você agora?**\n"
-            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {mes_ctx:02d}/{ano_ctx}?\"*\n"
+            f"- 📊 *\"Qual foi a Venda Bruta e a Margem em {periodo_label_info}?\"*\n"
             f"- ⚠️ *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
             f"- 📈 *\"Qual o histórico mês a mês de frete e aluguel?\"*\n"
             f"- 🏢 *\"Como foi o desempenho por empresa ou centro de distribuição?\"*"
         )
         yield {"tipo": "token", "texto": resposta_saudacao}
         yield {"tipo": "fim", "resposta_completa": resposta_saudacao}
+        return
+
+    # 1.2 Roteamento Imediato para Proporção Folha x Faturamento Bruto (zero latência, 100% de exatidão matemática)
+    if any(k in p_lower for k in ["folha", "salario", "salário", "beneficio", "benefício"]) and any(f in p_lower for f in ["fatur", "receita", "venda", " x ", " vs ", "sobre", "proporcao", "proporção", "percentual", "peso"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        resposta_folha = responder_folha_vs_faturamento(prompt, ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx)
+        yield {"tipo": "token", "texto": resposta_folha}
+        yield {"tipo": "fim", "resposta_completa": resposta_folha}
         return
 
     # 2. Roteamento de Pré-busca Indexada SQLite (< 10ms)
@@ -1296,8 +1485,10 @@ def stream_processar_pergunta(prompt, contexto=None):
         hist = consultar_conta_historico(conta="comiss", ano=ano_ctx)
         dados_pre = {
             "indicador": "Comissão (Despesas com Vendas)",
-            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "periodo": resumo.get("periodo", periodo_label_info),
             "empresa": emp_ctx,
+            "venda_bruta": resumo.get("venda_bruta", {}),
+            "venda_liquida": resumo.get("venda_liquida", {}),
             "card_kpi_mes_atual": resumo.get("comissao", {}),
             "historico_ano": hist
         }
@@ -1309,8 +1500,10 @@ def stream_processar_pergunta(prompt, contexto=None):
         hist = consultar_conta_historico(conta="bonif", ano=ano_ctx)
         dados_pre = {
             "indicador": "Bonificação (Dedução / Despesas)",
-            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "periodo": resumo.get("periodo", periodo_label_info),
             "empresa": emp_ctx,
+            "venda_bruta": resumo.get("venda_bruta", {}),
+            "venda_liquida": resumo.get("venda_liquida", {}),
             "card_kpi_mes_atual": resumo.get("bonificacao", {}),
             "historico_ano": hist
         }
@@ -1322,8 +1515,10 @@ def stream_processar_pergunta(prompt, contexto=None):
         hist = consultar_conta_historico(conta="guelta", ano=ano_ctx)
         dados_pre = {
             "indicador": "Guelta (Incentivo Comercial)",
-            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "periodo": resumo.get("periodo", periodo_label_info),
             "empresa": emp_ctx,
+            "venda_bruta": resumo.get("venda_bruta", {}),
+            "venda_liquida": resumo.get("venda_liquida", {}),
             "card_kpi_mes_atual": resumo.get("guelta", {}),
             "historico_ano": hist
         }
@@ -1334,10 +1529,17 @@ def stream_processar_pergunta(prompt, contexto=None):
         resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
         hist = consultar_conta_historico(conta="folha", ano=ano_ctx)
         dados_pre = {
-            "indicador": "Folha e Benefícios",
-            "periodo": f"{mes_ctx:02d}/{ano_ctx}",
+            "indicador": "Folha de Pagamento e Benefícios (Administrativa + Comercial)",
+            "periodo": resumo.get("periodo", periodo_label_info),
             "empresa": emp_ctx,
+            "faturamento_bruto": resumo.get("venda_bruta", {}),
+            "venda_bruta": resumo.get("venda_bruta", {}),
+            "venda_liquida": resumo.get("venda_liquida", {}),
             "card_kpi_mes_atual": resumo.get("folha_beneficios", {}),
+            "folha_total": resumo.get("folha_beneficios", {}),
+            "folha_administrativa": resumo.get("folha_adm", {}),
+            "folha_comercial": resumo.get("folha_comercial", {}),
+            "proporcao_folha_sobre_venda_bruta_pct": resumo.get("folha_beneficios", {}).get("pct_sobre_venda_bruta"),
             "historico_ano": hist
         }
 
@@ -1348,22 +1550,22 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta=conta, ano=ano_ctx)
 
-    centro_identificado, tipo_identificado = identificar_centro_custo_ou_empresa(prompt)
+    if dados_pre is None:
+        centro_identificado, tipo_identificado = identificar_centro_custo_ou_empresa(prompt)
+        if centro_identificado:
+            status_msg = "Digitando..."
+            yield {"tipo": "status", "texto": status_msg}
+            if tipo_identificado == "empresa":
+                dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=centro_identificado)
+            else:
+                dados_pre = obter_dre_centro_custo(centro_custo=centro_identificado, ano=ano_ctx, mes=mes_ctx)
 
-    if centro_identificado:
-        status_msg = "Digitando..."
-        yield {"tipo": "status", "texto": status_msg}
-        if tipo_identificado == "empresa":
-            dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=centro_identificado)
-        else:
-            dados_pre = obter_dre_centro_custo(centro_custo=centro_identificado, ano=ano_ctx, mes=mes_ctx)
-
-    elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms", "pis", "cofins"]):
+    if dados_pre is None and any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms", "pis", "cofins"]):
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta="IMPOST", ano=ano_ctx)
 
-    elif any(k in p_lower for k in termos_venda_geral):
+    if dados_pre is None and any(k in p_lower for k in termos_venda_geral):
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
@@ -1374,11 +1576,13 @@ def stream_processar_pergunta(prompt, contexto=None):
         f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!'). "
     ) if nome_usuario else ""
 
+    periodo_ref_desc = f"MÊS DE REFERÊNCIA É {mes_ctx:02d}" if mes_ctx is not None else f"PERÍODO É O ACUMULADO ANUAL DE {ano_ctx}"
+
     system_content = (
         f"{usuario_instrucao}"
         "Você é um Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior da MQ Hair Company, "
         "integrado diretamente à base contábil oficial do DRE (Oracle / Sankhya). "
-        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
+        f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O {periodo_ref_desc}. "
         "Seu objetivo é atender a demandas analíticas da Diretoria Executiva (CEO, CFO, CCO, COO e Controladoria) "
         "com 100% de exatidão matemática, foco em DRE, aderência orçamentária e rentabilidade.\n\n"
         "REGRAS OBRIGATÓRIAS DE APRESENTAÇÃO:\n"
@@ -1387,8 +1591,14 @@ def stream_processar_pergunta(prompt, contexto=None):
         "3. Diagnóstico de Causa-Raiz: Aponte as contas contábeis ofensoras ou alavancas que puxaram a variação (ex: folha, comissões, frete, impostos).\n"
         "4. Sem Jargão de TI: NUNCA mencione tabelas de banco, queries, SELECT, WHERE ou detalhes técnicos de sistema.\n"
         "5. Exatidão Matemática Absoluta: Baseie-se estritamente nos dados oficiais pré-calculados fornecidos no contexto. NUNCA invente fórmulas, contas divergentes ou deduções arbitrárias.\n"
-        "6. REGRA CRÍTICA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python). Responda com texto executivo puro formatado em Markdown com tabelas e negrito.\n"
-        "7. REGRA DE PERCENTUAIS DE MARGEM (CRÍTICO — NUNCA CONFUNDIR):\n"
+        "6. PROIBIÇÃO ABSOLUTA DE DADOS INVENTADOS OU ALUCINAÇÃO (CRÍTICO):\n"
+        "   - Use ESTRITAMENTE os valores do bloco [DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)].\n"
+        "   - NUNCA invente números, faturamentos, valores de folha ou sequências artificiais (ex: 1245678, 18954321).\n"
+        "   - Ao responder perguntas de proporção (como Folha x Faturamento Bruto ou Comissão x Venda Bruta), use EXATAMENTE a Venda Bruta e a despesa fornecidas no contexto.\n"
+        "   - Apresente o cálculo exato: (Custo / Venda Bruta) * 100% com os valores exatos em R$ formatados.\n"
+        "   - Se a pergunta envolver o ano acumulado ou não especificar mês, utilize os dados acumulados fornecidos no contexto.\n"
+        "7. REGRA CRÍTICA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python). Responda com texto executivo puro formatado em Markdown com tabelas e negrito.\n"
+        "8. REGRA DE PERCENTUAIS DE MARGEM (CRÍTICO — NUNCA CONFUNDIR):\n"
         "   Os dados retornados pelo banco contêm QUATRO campos de percentual para cada margem:\n"
         "   - 'pct_sobre_vb_orcado'    = % da margem em relação à Venda BRUTA Orçada\n"
         "   - 'pct_sobre_vb_realizado' = % da margem em relação à Venda BRUTA Realizada  ← USE ESTE para '% Margem s/ Venda Bruta'\n"
@@ -1401,13 +1611,16 @@ def stream_processar_pergunta(prompt, contexto=None):
 
     messages = [{"role": "system", "content": system_content}]
 
-    # Se dados já foram pré-buscados no banco, injeta e faz streaming imediato
+    # Se dados já foram pré-buscados no banco, injeta no prompt do usuário e faz streaming imediato
     if dados_pre:
-        messages.append({
-            "role": "system",
-            "content": f"[DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)]:\n{json.dumps(dados_pre, ensure_ascii=False)}"
-        })
-        messages.append({"role": "user", "content": prompt})
+        user_content = (
+            f"{prompt}\n\n"
+            f"[DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)]:\n"
+            f"{json.dumps(dados_pre, ensure_ascii=False, indent=2)}\n\n"
+            f"INSTRUÇÃO OBRIGATÓRIA: Responda com base ESTRITAMENTE nos dados acima. "
+            f"NUNCA invente números ou use valores que não estejam no bloco acima."
+        )
+        messages.append({"role": "user", "content": user_content})
 
         url = "https://api.mistral.ai/v1/chat/completions"
         payload = {
@@ -1480,13 +1693,19 @@ def stream_processar_pergunta(prompt, contexto=None):
                 if dados_pre and "card_kpi_mes_atual" in dados_pre:
                     kpi = dados_pre["card_kpi_mes_atual"]
                     nome_ind = dados_pre.get("indicador", "Indicador")
+                    per = dados_pre.get("periodo", periodo_label_info)
+                    vb = dados_pre.get("venda_bruta", {})
                     fb_card = (
                         f"Consultei os dados oficiais do DRE na base local:\n\n"
-                        f"**{nome_ind} ({mes_ctx:02d}/{ano_ctx} - {emp_ctx}):**\n"
+                        f"**{nome_ind} ({per} - {emp_ctx}):**\n"
                         f"- **Realizado:** **{fmt_val(kpi.get('realizado', 0))}**\n"
                         f"- **Orçado:** **{fmt_val(kpi.get('orcado', 0))}**\n"
-                        f"- **Desvio:** **{fmt_val(kpi.get('desvio_reais', 0))}** ({kpi.get('desvio_pct', 0):+.1f}%)"
+                        f"- **Desvio:** **{fmt_val(kpi.get('desvio_reais', 0))}** ({kpi.get('desvio_pct', 0):+.1f}%)\n"
                     )
+                    if vb and vb.get("realizado"):
+                        pct_vb = kpi.get("pct_sobre_venda_bruta") or (abs(kpi.get("realizado", 0)) / vb.get("realizado", 1) * 100)
+                        fb_card += f"- **Venda Bruta Realizada:** **{fmt_val(vb.get('realizado', 0))}**\n"
+                        fb_card += f"- **Proporção s/ Venda Bruta:** **{pct_vb:.2f}%**\n"
                     yield {"tipo": "token", "texto": fb_card}
                     yield {"tipo": "fim", "resposta_completa": fb_card}
                     return
@@ -1497,7 +1716,7 @@ def stream_processar_pergunta(prompt, contexto=None):
                 mc = resumo.get("margem_contribuicao", {})
                 fallback_local = (
                     f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
-                    f"**Resultado Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
+                    f"**Resultado Executivo ({resumo.get('periodo', periodo_label_info)} - {resumo.get('empresa', 'Consolidado')}):**\n"
                     f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
                     f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
                     f"- **Margem de Contribuição:** Realizado **{fmt_val(mc.get('realizado', 0))}** | Orçado **{fmt_val(mc.get('orcado', 0))}** ({mc.get('desvio_pct', 0):+.1f}%)"
@@ -1507,7 +1726,7 @@ def stream_processar_pergunta(prompt, contexto=None):
                 return
             except Exception as ex_fb:
                 msg_fb = (
-                    f"Olá! Sou a MQIA. No momento estou operando em contingência com os dados oficiais do DRE ({mes_ctx:02d}/{ano_ctx}). "
+                    f"Olá! Sou a MQIA. No momento estou operando em contingência com os dados oficiais do DRE ({periodo_label_info}). "
                     f"Você pode enviar uma pergunta sobre contas ou centros de custo específicos."
                 )
                 yield {"tipo": "token", "texto": msg_fb}

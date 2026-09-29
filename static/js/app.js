@@ -660,7 +660,7 @@ function carregarTudo(somenteDoisMeses = false, isUserClick = false) {
 
   const p = new URLSearchParams({
     ano: getAnoParam(),
-    mes: mesAtual,
+    mes: getMesParam(),
     emp: getEmpParam(),
     cenc: getCencParam(),
   });

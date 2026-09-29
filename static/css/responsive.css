@@ -1,151 +1,274 @@
 /* ==========================================================================
-   MQ PROFESSIONAL - RESPONSIVE & MOBILE STYLES
+   MQ PROFESSIONAL - RESPONSIVE DESIGN SYSTEM (DRE EMPRESA)
+   Padrão Oficial MQ Hair: Montserrat, Dourado #CB9727, Dark Luxury
    ========================================================================== */
 
-/* Mobile Menu Backdrop */
-.mobile-drawer-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.7);
-  backdrop-filter: blur(2px);
-  z-index: 998;
-  display: none;
+/* ── Container base fluido ── */
+body, html {
+  max-width: 100vw;
+  overflow-x: hidden;
 }
 
-.mobile-drawer-backdrop.active {
-  display: block;
-}
-
-/* Tablet & Laptop Adjustments (max-width: 1024px) */
-@media (max-width: 1024px) {
-  .app-content {
-    padding: var(--spacing-5) var(--spacing-5);
+/* ── 1. Telas Grandes e Laptops (<= 1680px) ── */
+@media (max-width: 1680px) {
+  .kpi-section {
+    grid-template-columns: repeat(4, 1fr) !important;
+    gap: 12px !important;
   }
-
-  .home-dashboard-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .charts-grid-row {
-    grid-template-columns: 1fr;
-  }
-
-  .admin-two-cols-row {
-    grid-template-columns: 1fr;
-  }
-
-  .perfil-page-layout {
-    grid-template-columns: 1fr;
-  }
-
-  .filter-toolbar-card {
-    flex-direction: column;
-    align-items: stretch;
-  }
-
-  .filter-group-container {
-    width: 100%;
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
-  }
-
-  .btn-pill-primary {
-    width: 100%;
-    text-align: center;
+  .filtros-bar {
+    padding: 12px 20px !important;
   }
 }
 
-/* Mobile Devices (max-width: 768px) */
-@media (max-width: 768px) {
-  .app-header {
-    height: 64px;
-    padding: 0 var(--spacing-4);
+/* ── 2. Laptops Médios / 1080p com 125% scaling (<= 1366px) ── */
+@media (max-width: 1366px) {
+  .filtros-bar {
+    gap: 10px !important;
+    padding: 10px 16px !important;
   }
-
-  .header-subtitle {
-    display: none;
+  .multi-select {
+    min-width: 0 !important;
   }
+  #multiSelectAno { min-width: 110px !important; }
+  #multiSelectMes { min-width: 140px !important; }
+  #multiSelectEmp { min-width: 170px !important; }
+  #multiSelectCenc { min-width: 200px !important; }
 
-  .header-logo-box {
-    border-right: none;
-    padding-right: 0;
+  .metric-kpi-card {
+    padding: 12px !important;
   }
-
-  .header-logo {
-    height: 32px;
-  }
-
-  .user-name-label {
-    display: none;
-  }
-
-  .btn-admin-header {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
-
-  /* Off-canvas Mobile Sidebar */
-  .app-sidebar {
-    position: fixed;
-    top: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 999;
-    transform: translateX(-100%);
-    box-shadow: var(--shadow-lg);
-    width: 280px !important;
-  }
-
-  .app-sidebar.mobile-open {
-    transform: translateX(0);
-  }
-
-  .app-content {
-    padding: var(--spacing-4) var(--spacing-3);
-  }
-
-  .page-main-title {
-    font-size: 20px;
-  }
-
-  .metrics-grid-container {
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--spacing-3);
-  }
-
   .metric-main-value {
-    font-size: 20px;
+    font-size: 20px !important;
+  }
+  .kpi-sub-line {
+    font-size: 10px !important;
+  }
+}
+
+/* ── 3. Telas Pequenas de Laptop / Tablets Paisagem (<= 1150px) ── */
+@media (max-width: 1150px) {
+  .charts-grid,
+  .charts-grid-row {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  
+  .filtros-bar {
+    margin: 12px 16px !important;
   }
 
-  .form-two-cols,
-  .form-three-cols {
-    grid-template-columns: 1fr;
+  .kpi-section {
+    margin: 0 16px 18px 16px !important;
   }
 
-  .ferramentas-grid {
-    grid-template-columns: 1fr;
+  .main-content {
+    padding: 0 16px 24px 16px !important;
   }
 
-  .painel-pessoal-grid {
-    grid-template-columns: 1fr;
+  .dre-table-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  .dre-mode-tabs {
+    width: 100% !important;
+  }
+  .dre-mode-tab {
+    flex: 1 !important;
+    text-align: center !important;
+  }
+  .dre-toolbar-actions {
+    width: 100% !important;
+    margin-left: 0 !important;
+    justify-content: space-between !important;
+  }
+  .dre-search-wrapper {
+    flex: 1 !important;
+  }
+}
+
+/* ── 4. Tablets Retrato (<= 992px) ── */
+@media (max-width: 992px) {
+  .app-header {
+    height: 64px !important;
+    padding: 0 16px !important;
+  }
+  .header-brand {
+    gap: 12px !important;
+  }
+  .header-subtitle {
+    display: none !important;
+  }
+  .header-logo {
+    height: 32px !important;
+  }
+  .header-logo-box {
+    border-right: none !important;
+    padding-right: 0 !important;
+  }
+  .status-pill-connected span:last-child {
+    display: none !important;
+  }
+  .status-pill-connected {
+    padding: 4px 8px !important;
+  }
+
+  .kpi-section {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .filtros-bar {
+    flex-wrap: wrap !important;
+  }
+  .filtro-group {
+    flex: 1 1 calc(50% - 10px) !important;
+  }
+  .multi-select {
+    width: 100% !important;
+  }
+  .filtros-bar > div:last-child {
+    width: 100% !important;
+    margin-left: 0 !important;
+    margin-top: 8px !important;
+    display: flex !important;
+    gap: 10px !important;
+  }
+  .btn-aplicar,
+  .btn-carregar {
+    flex: 1 !important;
+    width: 100% !important;
+    justify-content: center !important;
+  }
+
+  .table-responsive-container,
+  .table-wrapper {
+    width: 100% !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  .dre-table {
+    min-width: 880px !important;
+  }
+
+  .desvios-table {
+    min-width: 800px !important;
+  }
+}
+
+/* ── 5. Mobile (<= 680px) ── */
+@media (max-width: 680px) {
+  .app-header {
+    height: 58px !important;
+    padding: 0 12px !important;
+  }
+  .header-logo {
+    height: 26px !important;
+  }
+  .last-update {
+    display: none !important;
+  }
+  .btn-admin-header span:last-child {
+    display: none !important;
+  }
+  .btn-admin-header {
+    padding: 6px 8px !important;
+  }
+
+  .filtros-bar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    margin: 8px 10px !important;
+    padding: 12px !important;
+    gap: 10px !important;
+  }
+  .filtro-group {
+    width: 100% !important;
+    flex: 1 1 100% !important;
+  }
+  .multi-select-dropdown {
+    width: 100% !important;
+    max-width: calc(100vw - 44px) !important;
+    left: 0 !important;
+  }
+
+  .kpi-section {
+    grid-template-columns: 1fr !important;
+    margin: 0 10px 14px 10px !important;
+    gap: 10px !important;
+  }
+
+  .main-content {
+    padding: 0 10px 20px 10px !important;
+  }
+
+  .acum-diag-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+  }
+  .diag-item {
+    padding: 8px !important;
+  }
+  .diag-label {
+    font-size: 9px !important;
+  }
+  .diag-val {
+    font-size: 14px !important;
+  }
+
+  .deviation-header-banner {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 10px !important;
+  }
+  .deviation-counter-badge {
+    align-self: flex-start !important;
+  }
+
+  .dre-toolbar-actions {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+  }
+  .dre-search-wrapper {
+    width: 100% !important;
+  }
+  #dre-search-input {
+    width: 100% !important;
+  }
+  .dre-btn-toggle-all,
+  .btn-export {
+    width: 100% !important;
+    justify-content: center !important;
   }
 
   .app-footer {
-    flex-direction: column;
-    height: auto;
-    padding: var(--spacing-4) var(--spacing-4);
-    gap: 8px;
-    text-align: center;
+    flex-direction: column !important;
+    text-align: center !important;
+    gap: 8px !important;
+    padding: 14px 10px !important;
   }
 
-  .popover-container {
-    right: 10px;
-    left: 10px;
+  /* Widget de IA Mobile */
+  #ai-chat-widget.ai-chat-open {
+    right: 8px !important;
+    left: 8px !important;
+    bottom: 8px !important;
     width: auto !important;
-    top: 60px;
+    max-width: none !important;
+    height: 85vh !important;
+    border-radius: 12px !important;
   }
+}
 
-  .auth-form-card {
-    padding: var(--spacing-5);
+/* ── 6. Telas Ultra Pequenas (<= 380px) ── */
+@media (max-width: 380px) {
+  .acum-diag-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .metric-main-value {
+    font-size: 18px !important;
   }
 }
