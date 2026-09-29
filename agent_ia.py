@@ -169,12 +169,36 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
 
     conn.close()
 
+    vb_o = vb_orc or 0.0
+    vb_r = vb_real or 0.0
+    vl_o = vl["orc"] or 0.0
+    vl_r = vl["real"] or 0.0
+
+    mc_pct_vb_orc = (mc_orc / vb_o * 100.0) if vb_o and abs(vb_o) > 0.01 else 0.0
+    mc_pct_vb_real = (mc_real / vb_r * 100.0) if vb_r and abs(vb_r) > 0.01 else 0.0
+    mc_pct_vl_orc = (mc_orc / vl_o * 100.0) if vl_o and abs(vl_o) > 0.01 else 0.0
+    mc_pct_vl_real = (mc_real / vl_r * 100.0) if vl_r and abs(vl_r) > 0.01 else 0.0
+
+    res_liq_orc = vl_o + (cmv["orc"] or 0.0) + (dv["orc"] or 0.0) + (dcom["orc"] or 0.0) + (dadm["orc"] or 0.0) + (dfin["orc"] or 0.0) + (vic["orc"] or 0.0)
+    res_liq_real = vl_r + (cmv["real"] or 0.0) + (dv["real"] or 0.0) + (dcom["real"] or 0.0) + (dadm["real"] or 0.0) + (dfin["real"] or 0.0) + (vic["real"] or 0.0)
+
+    ml_pct_vb_orc = (res_liq_orc / vb_o * 100.0) if vb_o and abs(vb_o) > 0.01 else 0.0
+    ml_pct_vb_real = (res_liq_real / vb_r * 100.0) if vb_r and abs(vb_r) > 0.01 else 0.0
+    ml_pct_vl_orc = (res_liq_orc / vl_o * 100.0) if vl_o and abs(vl_o) > 0.01 else 0.0
+    ml_pct_vl_real = (res_liq_real / vl_r * 100.0) if vl_r and abs(vl_r) > 0.01 else 0.0
+
     return {
         "periodo": f"{mes:02d}/{ano}",
         "empresa": empresa or "Consolidado (Todas as Empresas)",
         "venda_liquida": _calc_dif(vl["orc"], vl["real"]),
         "venda_bruta": _calc_dif(vb_orc, vb_real),
-        "margem_contribuicao": _calc_dif(mc_orc, mc_real),
+        "margem_contribuicao": {
+            **_calc_dif(mc_orc, mc_real),
+            "pct_sobre_vb_orcado": round(mc_pct_vb_orc, 2),
+            "pct_sobre_vb_realizado": round(mc_pct_vb_real, 2),
+            "pct_sobre_vl_orcado": round(mc_pct_vl_orc, 2),
+            "pct_sobre_vl_realizado": round(mc_pct_vl_real, 2)
+        },
         "bonificacao": _calc_dif(r_bonif["orc"] or 0.0, r_bonif["real"] or 0.0),
         "comissao": _calc_dif(r_comiss["orc"] or 0.0, r_comiss["real"] or 0.0),
         "guelta": _calc_dif(r_guelta["orc"] or 0.0, r_guelta["real"] or 0.0),
@@ -184,7 +208,14 @@ def obter_resumo_dre(ano=2026, mes=8, empresa=None):
         "despesas_vendas": _calc_dif(dv["orc"], dv["real"]),
         "despesas_administrativa": _calc_dif(dadm["orc"], dadm["real"]),
         "financeiro": _calc_dif(dfin["orc"], dfin["real"]),
-        "vendas_ic": _calc_dif(vic["orc"], vic["real"])
+        "vendas_ic": _calc_dif(vic["orc"], vic["real"]),
+        "margem_liquida_resultado_operacional": {
+            **_calc_dif(res_liq_orc, res_liq_real),
+            "pct_sobre_vb_orcado": round(ml_pct_vb_orc, 2),
+            "pct_sobre_vb_realizado": round(ml_pct_vb_real, 2),
+            "pct_sobre_vl_orcado": round(ml_pct_vl_orc, 2),
+            "pct_sobre_vl_realizado": round(ml_pct_vl_real, 2)
+        }
     }
 
 def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
@@ -438,6 +469,239 @@ def consultar_conta_historico(conta, ano=2026):
         "historico_mensal": historico
     }
 
+def identificar_centro_custo_ou_empresa(prompt):
+    """
+    Identifica com precisão cirúrgica a regional, centro de custo ou empresa
+    mencionada no prompt pelo usuário (ex: 'Varejo Sul' -> 'VAREJO - SUL').
+    """
+    p = (prompt or "").lower()
+    
+    # 1. Varejo por regional
+    if "varejo" in p:
+        if "sul" in p: return "VAREJO - SUL", "centro"
+        if any(sp in p for sp in ["sp", "são paulo", "sao paulo", "paulista"]): return "VAREJO - SP", "centro"
+        if any(rj in p for rj in ["rj", "rio", "carioca"]): return "VAREJO - RJ", "centro"
+        if any(nd in p for nd in ["nd", "norte", "nordeste"]): return "VAREJO - ND", "centro"
+        if "geral" in p: return "VAREJO - GERAL", "centro"
+        return "VAREJO - GERAL", "centro"
+        
+    # 2. Promotoras por regional
+    if "promotora" in p:
+        if "sul" in p: return "PROMOTORAS - SUL", "centro"
+        if any(sp in p for sp in ["sp", "são paulo", "sao paulo"]): return "PROMOTORAS - SP", "centro"
+        if any(rj in p for rj in ["rj", "rio"]): return "PROMOTORAS - RJ", "centro"
+        if any(nd in p for nd in ["nd", "norte", "nordeste"]): return "PROMOTORAS - ND", "centro"
+        return "PROMOTORAS GERAL - BUDGET", "centro"
+
+    # 3. Trade Marketing por regional
+    if "trademarketing" in p or "trade marketing" in p or "trade" in p:
+        if "sul" in p: return "TRADEMARKETING - SUL", "centro"
+        if any(sp in p for sp in ["sp", "são paulo", "sao paulo"]): return "TRADEMARKETING - SP", "centro"
+        if any(rj in p for rj in ["rj", "rio"]): return "TRADEMARKETING - RJ", "centro"
+        if any(nd in p for nd in ["nd", "norte", "nordeste"]): return "TRADEMARKETING - ND", "centro"
+        return "TRADEMARKETING GERAL - BUDGET", "centro"
+
+    # 4. Logística por regional
+    if "logistica" in p or "logística" in p:
+        if any(sp in p for sp in ["sp", "são paulo", "sao paulo"]): return "LOGISTICA - SP", "centro"
+        if any(rj in p for rj in ["rj", "rio"]): return "LOGISTICA - RJ", "centro"
+        if any(sc in p for sc in ["sc", "santa catarina"]): return "LOGISTICA - SC", "centro"
+        return "LOGISTICA GERAL - BUDGET", "centro"
+
+    # 5. Marketplaces, Lojas e E-commerce
+    if "mercado livre" in p or "meli" in p: return "MERCADO LIVRE", "centro"
+    if "amazon" in p: return "AMAZON", "centro"
+    if "magalu" in p or "magazine luiza" in p: return "MAGALU", "centro"
+    if "b2w" in p or "americanas" in p: return "B2W", "centro"
+    if "vtex" in p: return "LOJA VTEX", "centro"
+    if "shopee" in p: return "LOJA SHOPEE", "centro"
+    if "parlux" in p or "dm commerce" in p: return "LOJA DM COMMERCE (PARLUX)", "centro"
+    if "ecommerce" in p or "e-commerce" in p or "loja virtual" in p: return "E-COMMERCE", "centro"
+    if "loja fisica" in p or "loja física" in p: return "LOJA PROPRIA (FISICA)", "centro"
+    if "carrefour" in p: return "CARREFOUR", "centro"
+    if "cissa" in p: return "CISSA", "centro"
+    if "cnova" in p: return "CNOVA", "centro"
+    if "dafiti" in p: return "DAFITI", "centro"
+    if "via" in p or "casas bahia" in p: return "VIA", "centro"
+    if "olist" in p: return "OLIST", "centro"
+    if "madeira" in p: return "MADEIRA", "centro"
+    if "martins" in p: return "MARTINS", "centro"
+
+    # 6. Departamentos e Operações Internas
+    if "distribui" in p: return "DISTRIBUICAO", "centro"
+    if "assistencia" in p or "assistência" in p or "sac" in p: return "ASSISTENCIA TECNICA", "centro"
+    if "marketing digital" in p: return "MARKETING - DIGITAL", "centro"
+    if "marketing" in p or "mkt" in p: return "MARKETING", "centro"
+    if "comex" in p or "comercio exterior" in p or "comércio exterior" in p: return "COMERCIO EXTERIOR", "centro"
+    if "rh" in p or "recursos humanos" in p: return "RH", "centro"
+    if "fabrica" in p or "fábrica" in p: return "FÁBRICA", "centro"
+    if "controladoria" in p: return "CONTROLADORIA", "centro"
+    if "contabilidade" in p: return "CONTABILIDADE", "centro"
+    if "financeiro" in p and not any(f in p for f in ["receita financeira", "despesa financeira", "desc financeiro"]): return "FINANCEIRO", "centro"
+    if "cobranca" in p or "cobrança" in p: return "COBRANCA", "centro"
+    if "contas a pagar" in p: return "CONTAS A PAGAR", "centro"
+    if "contas a receber" in p: return "CONTAS A RECEBER", "centro"
+    if "faturamento" in p or "fiscal" in p: return "FATURAMENTO-FISCAL", "centro"
+    if "desenvolvimento de produtos" in p or "p&d" in p: return "DESENVOLVIMENTO DE PRODUTOS", "centro"
+    if "grandes contas" in p: return "GRANDES CONTAS", "centro"
+    if "private label" in p: return "PRIVATE LABEL", "centro"
+
+    # 7. Empresas específicas da MQ Hair
+    empresas_map = {
+        "sl online": "SL ONLINE - SP",
+        "quality matriz": "QUALITY MATRIZ",
+        "quality rj": "QUALITY - RJ",
+        "quality": "QUALITY MATRIZ",
+        "mcr matriz": "MCR - MATRIZ",
+        "mcr fabrica": "MCR - FABRICA",
+        "mcr fábrica": "MCR - FABRICA",
+        "mcr filial": "MCR - FILIAL 03",
+        "filial 03": "MCR - FILIAL 03",
+        "filial 3": "MCR - FILIAL 03",
+        "mcr sc": "MCR - SC",
+        "globral": "GLOBRAL - SC",
+        "forx mg": "FORX MG",
+        "forx sc": "FORX SC",
+        "forx": "FORX SC",
+        "vls sp": "VLS - SP",
+        "vls rj": "VLS - RJ",
+        "vls": "VLS - SP"
+    }
+    for k, v in empresas_map.items():
+        if re.search(r'\b' + re.escape(k) + r'\b', p):
+            return v, "empresa"
+
+    return None, None
+
+def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
+    """
+    Calcula com precisão contábil e matemática exata o DRE Completo e as Margens de um Centro de Custo.
+    Calcula: Venda Bruta, Venda Líquida, CPV, Margem de Contribuição (R$ e %), Despesas de Vendas,
+    Despesas Comerciais, Despesas Adm, Financeiro e Resultado Líquido Operacional (Margem Líquida R$ e %).
+    """
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    try:
+        ano = int(ano)
+        mes = int(mes)
+    except Exception:
+        ano, mes = 2026, 8
+
+    where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
+    params = [ano, mes]
+
+    # Busca exata no descrcencus
+    where.append("descrcencus = ?")
+    params.append(centro_custo)
+
+    if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
+        where.append("empresa = ?")
+        params.append(str(empresa).strip())
+
+    where_str = " AND ".join(where)
+
+    # 1. Venda Bruta
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND titulo = '1.Venda Bruta'", params)
+    r_vb = cur.fetchone() or {"orc": 0.0, "real": 0.0}
+    vb_orc = r_vb["orc"] or 0.0
+    vb_real = r_vb["real"] or 0.0
+
+    # 2. Totais por Bloco
+    cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} GROUP BY bloco", params)
+    blocos = {r["bloco"]: {"orc": r["orc"] or 0.0, "real": r["real"] or 0.0} for r in cur.fetchall()}
+
+    vl = blocos.get("1.Venda Liquida", {"orc": 0.0, "real": 0.0})
+    vl_orc = vl["orc"] or 0.0
+    vl_real = vl["real"] or 0.0
+
+    cmv = blocos.get("2.Custo Mercadoria Vendida", {"orc": 0.0, "real": 0.0})
+    cmv_orc = cmv["orc"] or 0.0
+    cmv_real = cmv["real"] or 0.0
+
+    # Margem de Contribuição = Venda Líquida + CPV (CMV vem negativo)
+    mc_orc = vl_orc + cmv_orc
+    mc_real = vl_real + cmv_real
+
+    # % Margem Contribuição
+    mc_pct_vb_orc = (mc_orc / vb_orc * 100.0) if vb_orc and abs(vb_orc) > 0.01 else 0.0
+    mc_pct_vb_real = (mc_real / vb_real * 100.0) if vb_real and abs(vb_real) > 0.01 else 0.0
+    mc_pct_vl_orc = (mc_orc / vl_orc * 100.0) if vl_orc and abs(vl_orc) > 0.01 else 0.0
+    mc_pct_vl_real = (mc_real / vl_real * 100.0) if vl_real and abs(vl_real) > 0.01 else 0.0
+
+    dv = blocos.get("3.Despesas com Vendas", {"orc": 0.0, "real": 0.0})
+    dv_orc = dv["orc"] or 0.0
+    dv_real = dv["real"] or 0.0
+
+    dcom = blocos.get("4.Despesas Comercial Operacional", {"orc": 0.0, "real": 0.0})
+    dcom_orc = dcom["orc"] or 0.0
+    dcom_real = dcom["real"] or 0.0
+
+    dadm = blocos.get("5.Despesas Administrativa Operacional", {"orc": 0.0, "real": 0.0})
+    dadm_orc = dadm["orc"] or 0.0
+    dadm_real = dadm["real"] or 0.0
+
+    dfin = blocos.get("6.Receitas/Despesas Financeiras", {"orc": 0.0, "real": 0.0})
+    dfin_orc = dfin["orc"] or 0.0
+    dfin_real = dfin["real"] or 0.0
+
+    vic = blocos.get("7.Vendas IC", {"orc": 0.0, "real": 0.0})
+    vic_orc = vic["orc"] or 0.0
+    vic_real = vic["real"] or 0.0
+
+    # Margem / Resultado Líquido Operacional
+    # = Venda Líquida + CPV + Desp Vendas + Desp Comerciais + Desp Adm + Financeiro
+    res_liq_orc = vl_orc + cmv_orc + dv_orc + dcom_orc + dadm_orc + dfin_orc + vic_orc
+    res_liq_real = vl_real + cmv_real + dv_real + dcom_real + dadm_real + dfin_real + vic_real
+
+    # % Margem Líquida
+    ml_pct_vb_orc = (res_liq_orc / vb_orc * 100.0) if vb_orc and abs(vb_orc) > 0.01 else 0.0
+    ml_pct_vb_real = (res_liq_real / vb_real * 100.0) if vb_real and abs(vb_real) > 0.01 else 0.0
+    ml_pct_vl_orc = (res_liq_orc / vl_orc * 100.0) if vl_orc and abs(vl_orc) > 0.01 else 0.0
+    ml_pct_vl_real = (res_liq_real / vl_real * 100.0) if vl_real and abs(vl_real) > 0.01 else 0.0
+
+    # Detalhamento de títulos importantes (Frete, Comissões, Bonificação, Guelta, Folha, Impostos)
+    cur.execute(f"""
+        SELECT titulo, SUM(orcado) as orc, SUM(realizado) as real 
+        FROM dre_data 
+        WHERE {where_str} AND (abs(orcado) > 0.01 OR abs(realizado) > 0.01) 
+        GROUP BY titulo 
+        ORDER BY ABS(SUM(realizado)) DESC
+    """, params)
+    titulos = {r["titulo"]: {"orc": round(r["orc"] or 0.0, 2), "real": round(r["real"] or 0.0, 2)} for r in cur.fetchall()}
+
+    conn.close()
+
+    return {
+        "tipo": "DRE Centro de Custo",
+        "centro_custo": centro_custo,
+        "periodo": f"{mes:02d}/{ano}",
+        "empresa": empresa or "Consolidado",
+        "venda_bruta": _calc_dif(vb_orc, vb_real),
+        "venda_liquida": _calc_dif(vl_orc, vl_real),
+        "cmv_cpv": _calc_dif(cmv_orc, cmv_real),
+        "margem_contribuicao": {
+            **_calc_dif(mc_orc, mc_real),
+            "pct_sobre_vb_orcado": round(mc_pct_vb_orc, 2),
+            "pct_sobre_vb_realizado": round(mc_pct_vb_real, 2),
+            "pct_sobre_vl_orcado": round(mc_pct_vl_orc, 2),
+            "pct_sobre_vl_realizado": round(mc_pct_vl_real, 2)
+        },
+        "despesas_com_vendas": _calc_dif(dv_orc, dv_real),
+        "despesas_comerciais": _calc_dif(dcom_orc, dcom_real),
+        "despesas_administrativas": _calc_dif(dadm_orc, dadm_real),
+        "financeiro": _calc_dif(dfin_orc, dfin_real),
+        "margem_liquida_resultado_operacional": {
+            **_calc_dif(res_liq_orc, res_liq_real),
+            "pct_sobre_vb_orcado": round(ml_pct_vb_orc, 2),
+            "pct_sobre_vb_realizado": round(ml_pct_vb_real, 2),
+            "pct_sobre_vl_orcado": round(ml_pct_vl_orc, 2),
+            "pct_sobre_vl_realizado": round(ml_pct_vl_real, 2)
+        },
+        "detalhe_titulos": titulos
+    }
+
 def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None):
     """
     Consulta os valores realizados e orçados de um centro de resultado específico.
@@ -613,6 +877,23 @@ TOOLS_SCHEMA = [
                     "ano": {"type": "integer", "description": "Ano (ex: 2026)"},
                     "mes": {"type": "integer", "description": "Mês (ex: 8)"},
                     "filtro_conta": {"type": "string", "description": "Filtro opcional de conta ou título dentro do centro (ex: 'Comissão', 'Frete', 'Salários')"}
+                },
+                "required": ["centro_custo", "ano", "mes"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "obter_dre_centro_custo",
+            "description": "Calcula com 100% de exatidão matemática o DRE Completo e as Margens (Margem de Contribuição e Margem Líquida / Resultado Operacional) de um Centro de Custo específico (ex: 'VAREJO - SUL', 'VAREJO - SP', 'DISTRIBUICAO', 'LOGISTICA - SC', 'MERCADO LIVRE'). Retorna Venda Bruta, Venda Líquida, CPV/CMV, Margens em R$ e %, Despesas com Vendas, Despesas Comerciais e Administrativas.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "centro_custo": {"type": "string", "description": "Nome exato do centro de custo (ex: 'VAREJO - SUL', 'VAREJO - SP', 'DISTRIBUICAO')"},
+                    "ano": {"type": "integer", "description": "Ano fiscal (ex: 2026)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8)"},
+                    "empresa": {"type": "string", "description": "Nome da empresa ou null/Consolidado"}
                 },
                 "required": ["centro_custo", "ano", "mes"]
             }
@@ -818,6 +1099,15 @@ def processar_pergunta(prompt, contexto=None):
         "\n   - Se o valor for R$ 0,00, explique com precisão que para aquele centro ou conta não houve lançamento no período."
         "\n   - REGRA OBRIGATÓRIA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python ou scripts)."
         "\n   - NUNCA exiba código técnico no final da resposta. Forneça estritamente texto executivo puro formatado em Markdown com tópicos e negrito."
+        "\n6. REGRA DE PERCENTUAIS DE MARGEM (CRITICO - NUNCA CONFUNDIR):"
+        "\n   Os dados retornados contêm QUATRO campos de percentual para cada margem:"
+        "\n   - pct_sobre_vb_orcado    = percentual da margem sobre a Venda BRUTA Orcada"
+        "\n   - pct_sobre_vb_realizado = percentual da margem sobre a Venda BRUTA Realizada (USE PARA: Margem sobre Venda Bruta)"
+        "\n   - pct_sobre_vl_orcado    = percentual da margem sobre a Venda LIQUIDA Orcada"
+        "\n   - pct_sobre_vl_realizado = percentual da margem sobre a Venda LIQUIDA Realizada (USE PARA: Margem sobre Venda Liquida)"
+        "\n   ATENCAO: NUNCA cite pct_sobre_vb_realizado como se fosse margem sobre Venda Liquida. Sao bases COMPLETAMENTE DIFERENTES!"
+        "\n   Padrao MQ Hair: Margem Liquida pct principal = pct_sobre_vb_realizado (calculado sobre Venda Bruta Realizada)."
+        "\n   Ao citar percentuais, especifique a base: X pct sobre Venda Bruta OU Y pct sobre Venda Liquida."
     )
 
     messages = [
@@ -890,6 +1180,11 @@ def processar_pergunta(prompt, contexto=None):
                 cenc_arg = args.get("centro_custo", "Distribuição")
                 filtro_arg = args.get("filtro_conta")
                 tool_output = consultar_por_centro_custo(centro_custo=cenc_arg, ano=ano_arg, mes=mes_arg, filtro_conta=filtro_arg)
+
+            elif fname == "obter_dre_centro_custo":
+                cenc_arg = args.get("centro_custo", "VAREJO - SUL")
+                emp_arg = args.get("empresa")
+                tool_output = obter_dre_centro_custo(centro_custo=cenc_arg, ano=ano_arg, mes=mes_arg, empresa=emp_arg)
 
             elif fname == "obter_resumo_dre":
                 emp_arg = args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None)
@@ -1053,12 +1348,15 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta=conta, ano=ano_ctx)
 
-    elif any(k in p_lower for k in ["distribui", "varejo", "mercado livre", "logistica", "marketing", "rh"]):
-        centro = "Distribuição" if "distribui" in p_lower else ("Varejo" if "varejo" in p_lower else ("Mercado Livre" if "mercado" in p_lower else "Logística"))
-        filtro = "Comiss" if "comiss" in p_lower else None
+    centro_identificado, tipo_identificado = identificar_centro_custo_ou_empresa(prompt)
+
+    if centro_identificado:
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
-        dados_pre = consultar_por_centro_custo(centro_custo=centro, ano=ano_ctx, mes=mes_ctx, filtro_conta=filtro)
+        if tipo_identificado == "empresa":
+            dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=centro_identificado)
+        else:
+            dados_pre = obter_dre_centro_custo(centro_custo=centro_identificado, ano=ano_ctx, mes=mes_ctx)
 
     elif any(k in p_lower for k in ["imposto", "impostos", "tributo", "tributos", "darf", "icms", "pis", "cofins"]):
         status_msg = "Digitando..."
@@ -1070,7 +1368,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
 
-    # 3. Instruções do Sistema para a MQIA
+    # 3. Instruções do Sistema para o Agente Executivo MQIA
     usuario_instrucao = (
         f"O usuário conectado chama-se **{nome_usuario}**. "
         f"Cumprimente-o cordialmente pelo nome ao iniciar uma resposta formal (ex: '{saudacao_periodo}, {nome_usuario}!'). "
@@ -1078,16 +1376,27 @@ def stream_processar_pergunta(prompt, contexto=None):
 
     system_content = (
         f"{usuario_instrucao}"
-        "Você é a MQIA, consultora executiva sênior de Finanças & BI da MQ Hair Company. "
+        "Você é um Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior da MQ Hair Company, "
+        "integrado diretamente à base contábil oficial do DRE (Oracle / Sankhya). "
         f"O ANO FISCAL EM ANÁLISE É {ano_ctx} E O MÊS DE REFERÊNCIA É {mes_ctx:02d}. "
-        "Sua missão é responder com 100% de exatidão matemática, agilidade executiva e clareza. "
-        "ATENÇÃO AOS CARDS DO PAINEL: Venda Bruta, Venda Líquida, Margem de Contribuição, Bonificação, Comissão, Guelta, Despesas Comercial Operacional e Folha e Benefícios são os 8 cards de topo. "
-        "Comissão, Bonificação, Guelta e Folha são CONTAS/INDICADORES do DRE, NUNCA centros de custo. "
-        "Responda diretamente com valores formatados em R$ (ex: R$ 7.834.166,26) e destaques em negrito. "
-        "Seja objetiva e concisa. Apresente os valores realizado, orçado e a variação percentual. "
-        "Se o valor for R$ 0,00, explique objetivamente que não constam lançamentos para o filtro solicitado. "
-        "REGRA CRÍTICA E OBRIGATÓRIA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python ou scripts técnicos). "
-        "NÃO exiba nenhum código no final da resposta. Forneça estritamente texto executivo puro formatado em Markdown com negrito e listas."
+        "Seu objetivo é atender a demandas analíticas da Diretoria Executiva (CEO, CFO, CCO, COO e Controladoria) "
+        "com 100% de exatidão matemática, foco em DRE, aderência orçamentária e rentabilidade.\n\n"
+        "REGRAS OBRIGATÓRIAS DE APRESENTAÇÃO:\n"
+        "1. Conclusão no Primeiro Parágrafo: Inicie SEMPRE com um resumo executivo direto em 2 ou 3 linhas, com os números principais destacados em negrito.\n"
+        "2. Tabelas Sintéticas: Exiba os dados estruturados em tabela limpa em Markdown com colunas: Indicador Contábil | Orçado | Realizado | Desvio (R$ e %). Formate valores monetários em R$ #.###.##0,00 e percentuais com 1 ou 2 casas decimais (ex: 16,2% ou 21,7%).\n"
+        "3. Diagnóstico de Causa-Raiz: Aponte as contas contábeis ofensoras ou alavancas que puxaram a variação (ex: folha, comissões, frete, impostos).\n"
+        "4. Sem Jargão de TI: NUNCA mencione tabelas de banco, queries, SELECT, WHERE ou detalhes técnicos de sistema.\n"
+        "5. Exatidão Matemática Absoluta: Baseie-se estritamente nos dados oficiais pré-calculados fornecidos no contexto. NUNCA invente fórmulas, contas divergentes ou deduções arbitrárias.\n"
+        "6. REGRA CRÍTICA: NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python). Responda com texto executivo puro formatado em Markdown com tabelas e negrito.\n"
+        "7. REGRA DE PERCENTUAIS DE MARGEM (CRÍTICO — NUNCA CONFUNDIR):\n"
+        "   Os dados retornados pelo banco contêm QUATRO campos de percentual para cada margem:\n"
+        "   - 'pct_sobre_vb_orcado'    = % da margem em relação à Venda BRUTA Orçada\n"
+        "   - 'pct_sobre_vb_realizado' = % da margem em relação à Venda BRUTA Realizada  ← USE ESTE para '% Margem s/ Venda Bruta'\n"
+        "   - 'pct_sobre_vl_orcado'    = % da margem em relação à Venda LÍQUIDA Orçada\n"
+        "   - 'pct_sobre_vl_realizado' = % da margem em relação à Venda LÍQUIDA Realizada ← USE ESTE para '% Margem s/ Venda Líquida'\n"
+        "   ATENÇÃO ABSOLUTA: NUNCA cite 'pct_sobre_vb_realizado' como se fosse a margem sobre Venda Líquida. São bases diferentes!\n"
+        "   Padrão MQ Hair: a Margem Líquida % principal é sempre calculada sobre a Venda BRUTA Realizada (pct_sobre_vb_realizado).\n"
+        "   Ao mencionar percentuais, especifique SEMPRE a base: 'X% sobre a Venda Bruta' ou 'Y% sobre a Venda Líquida'."
     )
 
     messages = [{"role": "system", "content": system_content}]
@@ -1105,7 +1414,7 @@ def stream_processar_pergunta(prompt, contexto=None):
             "model": "open-mistral-nemo",
             "messages": messages,
             "temperature": 0.1,
-            "max_tokens": 550,
+            "max_tokens": 950,
             "stream": True
         }
 
@@ -1141,6 +1450,33 @@ def stream_processar_pergunta(prompt, contexto=None):
                 def fmt_val(v):
                     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                 
+                if dados_pre and dados_pre.get("tipo") == "DRE Centro de Custo":
+                    c_nome = dados_pre.get("centro_custo")
+                    per = dados_pre.get("periodo")
+                    vb = dados_pre.get("venda_bruta", {})
+                    vl = dados_pre.get("venda_liquida", {})
+                    mc = dados_pre.get("margem_contribuicao", {})
+                    ml = dados_pre.get("margem_liquida_resultado_operacional", {})
+                    dv = dados_pre.get("despesas_com_vendas", {})
+                    dc = dados_pre.get("despesas_comerciais", {})
+                    fb_centro = (
+                        f"**Resumo Executivo — {c_nome} ({per}):**\n\n"
+                        f"Em {per}, a **Margem de Contribuição** realizada foi de **{fmt_val(mc.get('realizado', 0))}** "
+                        f"({mc.get('pct_sobre_vb_realizado', 0):.1f}% da Venda Bruta) e a **Margem Líquida Operacional** atingiu **{fmt_val(ml.get('realizado', 0))}** "
+                        f"({ml.get('pct_sobre_vb_realizado', 0):.1f}% da Venda Bruta).\n\n"
+                        f"| Indicador Contábil | Orçado | Realizado | Desvio (R$) | Desvio (%) |\n"
+                        f"| :--- | :---: | :---: | :---: | :---: |\n"
+                        f"| **Venda Bruta** | {fmt_val(vb.get('orcado', 0))} | **{fmt_val(vb.get('realizado', 0))}** | {fmt_val(vb.get('desvio_reais', 0))} | {vb.get('desvio_pct', 0):+.1f}% |\n"
+                        f"| **Venda Líquida** | {fmt_val(vl.get('orcado', 0))} | **{fmt_val(vl.get('realizado', 0))}** | {fmt_val(vl.get('desvio_reais', 0))} | {vl.get('desvio_pct', 0):+.1f}% |\n"
+                        f"| **Margem de Contribuição** | {fmt_val(mc.get('orcado', 0))} | **{fmt_val(mc.get('realizado', 0))}** | {fmt_val(mc.get('desvio_reais', 0))} | {mc.get('desvio_pct', 0):+.1f}% |\n"
+                        f"| **Despesas com Vendas** | {fmt_val(dv.get('orcado', 0))} | **{fmt_val(dv.get('realizado', 0))}** | {fmt_val(dv.get('desvio_reais', 0))} | {dv.get('desvio_pct', 0):+.1f}% |\n"
+                        f"| **Despesas Comerciais** | {fmt_val(dc.get('orcado', 0))} | **{fmt_val(dc.get('realizado', 0))}** | {fmt_val(dc.get('desvio_reais', 0))} | {dc.get('desvio_pct', 0):+.1f}% |\n"
+                        f"| **Margem Líquida Operacional** | {fmt_val(ml.get('orcado', 0))} | **{fmt_val(ml.get('realizado', 0))}** | {fmt_val(ml.get('desvio_reais', 0))} | {ml.get('desvio_pct', 0):+.1f}% |\n"
+                    )
+                    yield {"tipo": "token", "texto": fb_centro}
+                    yield {"tipo": "fim", "resposta_completa": fb_centro}
+                    return
+
                 if dados_pre and "card_kpi_mes_atual" in dados_pre:
                     kpi = dados_pre["card_kpi_mes_atual"]
                     nome_ind = dados_pre.get("indicador", "Indicador")
@@ -1243,6 +1579,8 @@ def stream_processar_pergunta(prompt, contexto=None):
             out = consultar_conta_historico(args.get("conta", "Aluguel"), ano_arg)
         elif fname == "consultar_por_centro_custo":
             out = consultar_por_centro_custo(args.get("centro_custo", "Distribuição"), ano_arg, mes_arg, args.get("filtro_conta"))
+        elif fname == "obter_dre_centro_custo":
+            out = obter_dre_centro_custo(args.get("centro_custo", "VAREJO - SUL"), ano_arg, mes_arg, args.get("empresa"))
         elif fname == "obter_resumo_dre":
             out = obter_resumo_dre(ano_arg, mes_arg, args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None))
         elif fname == "detalhar_bloco":
@@ -1268,7 +1606,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         "model": "open-mistral-nemo",
         "messages": messages,
         "temperature": 0.1,
-        "max_tokens": 550,
+        "max_tokens": 950,
         "stream": True
     }
     try:
