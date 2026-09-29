@@ -32,28 +32,32 @@ body, html {
     width: 100% !important;
   }
   .filtro-ano {
-    min-width: 95px !important;
-    flex: 0 0 95px !important;
+    min-width: 90px !important;
+    flex: 0 0 90px !important;
   }
   .filtro-mes {
-    min-width: 135px !important;
-    flex: 0 0 135px !important;
+    min-width: 130px !important;
+    flex: 0 0 130px !important;
   }
   .filtro-empresa {
-    min-width: 180px !important;
-    flex: 1 1 200px !important;
-    max-width: 270px !important;
+    min-width: 160px !important;
+    flex: 0 1 190px !important;
+    max-width: 220px !important;
   }
   .filtro-cenc {
-    min-width: 250px !important;
-    flex: 1.5 1 280px !important;
-    max-width: 380px !important;
+    min-width: 190px !important;
+    flex: 0 1 230px !important;
+    max-width: 260px !important;
+  }
+
+  #empDropdown {
+    width: 280px !important;
+    max-width: min(300px, calc(100vw - 32px)) !important;
   }
 
   #cencDropdown {
-    width: 480px !important;
-    min-width: 420px !important;
-    max-width: min(520px, calc(100vw - 32px)) !important;
+    width: 370px !important;
+    max-width: min(390px, calc(100vw - 32px)) !important;
     right: 0 !important;
     left: auto !important;
   }
@@ -108,20 +112,24 @@ body, html {
     flex: 0 0 125px !important;
   }
   .filtro-empresa {
-    min-width: 170px !important;
-    flex: 1 1 190px !important;
-    max-width: 250px !important;
+    min-width: 150px !important;
+    flex: 0 1 180px !important;
+    max-width: 210px !important;
   }
   .filtro-cenc {
-    min-width: 230px !important;
-    flex: 1.5 1 260px !important;
-    max-width: 360px !important;
+    min-width: 180px !important;
+    flex: 0 1 220px !important;
+    max-width: 250px !important;
+  }
+
+  #empDropdown {
+    width: 280px !important;
+    max-width: min(300px, calc(100vw - 28px)) !important;
   }
 
   #cencDropdown {
-    width: 460px !important;
-    min-width: 380px !important;
-    max-width: min(480px, calc(100vw - 28px)) !important;
+    width: 360px !important;
+    max-width: min(380px, calc(100vw - 28px)) !important;
     right: 0 !important;
     left: auto !important;
   }
@@ -227,27 +235,24 @@ body, html {
   }
 
   /* Dropdowns no Tablet */
-  #anoDropdown,
   #empDropdown {
     left: 0 !important;
     right: auto !important;
-    width: 100% !important;
-    min-width: 250px !important;
-    max-width: calc(100vw - 40px) !important;
+    width: 280px !important;
+    max-width: calc(100vw - 32px) !important;
   }
 
   #mesDropdown {
     right: 0 !important;
     left: auto !important;
-    width: 260px !important;
+    width: 220px !important;
     max-width: calc(100vw - 32px) !important;
   }
 
   #cencDropdown {
     right: 0 !important;
     left: auto !important;
-    width: 480px !important;
-    min-width: 320px !important;
+    width: 370px !important;
     max-width: calc(100vw - 32px) !important;
   }
 
