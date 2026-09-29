@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260929_v3" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260929_v3" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260929_v4" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260929_v4" />
 </head>
 <body class="dre-empresa-app">
 
@@ -40,9 +40,9 @@
 </header>
 
 <!-- ════ FILTROS ═══════════════════════════════════════════════════════════ -->
-<section class="filtros-bar filter-toolbar-card" id="filtrosBar" style="margin: 16px 24px; padding: 12px 18px;">
+<section class="filtros-bar filter-toolbar-card" id="filtrosBar">
   <!-- Filtro 1: Ano -->
-  <div class="filtro-group filter-field">
+  <div class="filtro-group filtro-ano filter-field">
     <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Ano</label>
     <div class="multi-select" id="multiSelectAno">
       <div class="multi-select-btn" id="anoBtn" tabindex="0" title="Clique para selecionar um ou mais Anos">
@@ -62,7 +62,7 @@
   </div>
 
   <!-- Filtro 2: Mês -->
-  <div class="filtro-group filter-field">
+  <div class="filtro-group filtro-mes filter-field">
     <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Mês</label>
     <div class="multi-select" id="multiSelectMes">
       <div class="multi-select-btn" id="mesBtn" tabindex="0" title="Clique para selecionar um ou mais Meses">
@@ -82,7 +82,7 @@
   </div>
 
   <!-- Filtro 3: Empresa -->
-  <div class="filtro-group filter-field">
+  <div class="filtro-group filtro-empresa filter-field">
     <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Empresa</label>
     <div class="multi-select" id="multiSelectEmp">
       <div class="multi-select-btn" id="empBtn" tabindex="0" title="Clique para selecionar uma ou mais Empresas">
@@ -105,7 +105,7 @@
   </div>
 
   <!-- Filtro 4: Centro de Custo -->
-  <div class="filtro-group cenc-filter-group filter-field">
+  <div class="filtro-group filtro-cenc cenc-filter-group filter-field">
     <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Centro de Custo</label>
     <div class="multi-select" id="multiSelectCenc">
       <div class="multi-select-btn" id="cencBtn" tabindex="0" title="Clique para selecionar um ou mais Centros de Custo">
@@ -127,12 +127,12 @@
     </div>
   </div>
 
-  <div style="display: flex; align-items: flex-end; gap: 10px; margin-left: auto;">
-    <button class="btn-aplicar btn-pill-primary" id="btnAplicar" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 20px; border-radius: 8px; font-weight: 700; font-size: 13px; background: var(--brand-secondary-dourado, #CB9727); color: #000; border: none; cursor: pointer; box-shadow: 0 2px 8px rgba(203,151,39,0.25);" title="Aplicar filtros selecionados em todo o dashboard">
+  <div class="filtros-actions" id="filtrosActions">
+    <button class="btn-aplicar btn-pill-primary" id="btnAplicar" title="Aplicar filtros selecionados em todo o dashboard">
       <span class="material-symbols-outlined" style="font-size: 17px;">filter_alt</span>
       <span>Aplicar</span>
     </button>
-    <button class="btn-aplicar btn-carregar btn-pill-primary" id="btnCarregar" style="display: inline-flex; align-items: center; gap: 6px; padding: 9px 16px; border-radius: 8px; font-weight: 600; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid rgba(255,255,255,0.15); cursor: pointer;" title="Sincronizar dados em tempo real direto do banco Oracle Sankhya">
+    <button class="btn-carregar btn-pill-secondary" id="btnCarregar" title="Sincronizar dados em tempo real direto do banco Oracle Sankhya">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
         <polyline points="23 4 23 10 17 10"></polyline>
         <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>

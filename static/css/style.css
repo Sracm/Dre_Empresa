@@ -175,17 +175,26 @@ body {
 .filtros-bar {
   display: flex;
   align-items: flex-end;
-  gap: 16px;
-  padding: 10px 28px;
+  gap: 12px;
+  padding: 12px 20px;
+  margin: 16px 24px;
   background: rgba(24, 24, 24, 0.96);
-  border-bottom: 1px solid var(--border);
-  flex-wrap: wrap;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
   position: sticky;
   top: 54px;
   z-index: 95;
   backdrop-filter: blur(12px);
   -webkit-backdrop-filter: blur(12px);
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.45);
+}
+
+.filtros-actions {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
 .filtro-group { display: flex; flex-direction: column; gap: 5px; }
@@ -228,18 +237,18 @@ body {
 /* ── MULTI-SELECT FILTROS (ANO, MÊS, EMPRESA, CENTRO DE CUSTO) ──────────── */
 .multi-select {
   position: relative;
-  min-width: 130px;
+  min-width: 110px;
 }
 
-#multiSelectAno { min-width: 125px; }
-#multiSelectMes { min-width: 170px; }
-#multiSelectEmp { min-width: 220px; }
-#multiSelectCenc { min-width: 250px; }
+#multiSelectAno { min-width: 110px; }
+#multiSelectMes { min-width: 145px; }
+#multiSelectEmp { min-width: 180px; }
+#multiSelectCenc { min-width: 210px; }
 
 #anoDropdown { width: 170px; }
 #mesDropdown { width: 210px; }
 #empDropdown { width: 280px; }
-#cencDropdown { width: 320px; }
+#cencDropdown { width: 320px; right: 0; left: auto; }
 
 .multi-select-btn {
   background: var(--surface);
@@ -258,6 +267,8 @@ body {
   gap: 8px;
   transition: var(--transition);
   user-select: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .multi-select-btn:hover,
@@ -272,7 +283,8 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 210px;
+  flex: 1;
+  min-width: 0;
   font-size: 12px;
 }
 
@@ -280,6 +292,7 @@ body {
   font-size: 11px;
   color: var(--gold);
   transition: transform var(--transition);
+  flex-shrink: 0;
 }
 
 .multi-select-btn.active .multi-select-arrow {
@@ -412,36 +425,62 @@ body {
   color: var(--text-muted);
 }
 
-.btn-aplicar,
-.btn-carregar {
-  background: linear-gradient(135deg, var(--gold-light), var(--gold));
+.btn-aplicar {
+  background: var(--gold, #CB9727);
   border: none;
-  color: var(--black);
+  color: #000;
   font-family: 'Montserrat', sans-serif;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
+  letter-spacing: 0.5px;
   height: 36px;
   padding: 0 18px;
   border-radius: 8px;
   cursor: pointer;
   transition: var(--transition);
-  box-shadow: var(--shadow-gold);
+  box-shadow: 0 2px 8px rgba(203,151,39,0.25);
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 7px;
+  gap: 6px;
   white-space: nowrap;
 }
 
-.btn-aplicar:hover,
-.btn-carregar:hover {
+.btn-aplicar:hover {
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(203,151,39,.35);
+  box-shadow: 0 4px 14px rgba(203,151,39,.4);
+  background: #deb03a;
 }
 
-.btn-aplicar:active,
+.btn-aplicar:active { transform: translateY(0); }
+
+.btn-carregar {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: #fff;
+  font-family: 'Montserrat', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: var(--transition);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn-carregar:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(203, 151, 39, 0.5);
+  color: #CB9727;
+  transform: translateY(-1px);
+}
+
 .btn-carregar:active { transform: translateY(0); }
 
 /* ── Badge de Congelamento dos Meses Anteriores ───────────────────────── */
