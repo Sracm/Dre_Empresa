@@ -33,21 +33,29 @@ body, html {
   }
   .filtro-ano {
     min-width: 95px !important;
-    flex: 0.8 1 95px !important;
+    flex: 0 0 95px !important;
   }
   .filtro-mes {
-    min-width: 130px !important;
-    flex: 1 1 130px !important;
+    min-width: 135px !important;
+    flex: 0 0 135px !important;
   }
   .filtro-empresa {
-    min-width: 160px !important;
-    flex: 1.3 1 160px !important;
+    min-width: 180px !important;
+    flex: 1 1 200px !important;
     max-width: 270px !important;
   }
   .filtro-cenc {
-    min-width: 180px !important;
-    flex: 1.5 1 180px !important;
-    max-width: 310px !important;
+    min-width: 250px !important;
+    flex: 1.5 1 280px !important;
+    max-width: 380px !important;
+  }
+
+  #cencDropdown {
+    width: 480px !important;
+    min-width: 420px !important;
+    max-width: min(520px, calc(100vw - 32px)) !important;
+    right: 0 !important;
+    left: auto !important;
   }
 
   .filtros-actions {
@@ -92,20 +100,30 @@ body, html {
   }
 
   .filtro-ano {
-    min-width: 85px !important;
-    flex: 0.7 1 85px !important;
+    min-width: 90px !important;
+    flex: 0 0 90px !important;
   }
   .filtro-mes {
-    min-width: 120px !important;
-    flex: 0.9 1 120px !important;
+    min-width: 125px !important;
+    flex: 0 0 125px !important;
   }
   .filtro-empresa {
-    min-width: 150px !important;
-    flex: 1.2 1 150px !important;
+    min-width: 170px !important;
+    flex: 1 1 190px !important;
+    max-width: 250px !important;
   }
   .filtro-cenc {
-    min-width: 170px !important;
-    flex: 1.4 1 170px !important;
+    min-width: 230px !important;
+    flex: 1.5 1 260px !important;
+    max-width: 360px !important;
+  }
+
+  #cencDropdown {
+    width: 460px !important;
+    min-width: 380px !important;
+    max-width: min(480px, calc(100vw - 28px)) !important;
+    right: 0 !important;
+    left: auto !important;
   }
 
   .kpi-section {
@@ -218,13 +236,19 @@ body, html {
     max-width: calc(100vw - 40px) !important;
   }
 
-  #mesDropdown,
+  #mesDropdown {
+    right: 0 !important;
+    left: auto !important;
+    width: 260px !important;
+    max-width: calc(100vw - 32px) !important;
+  }
+
   #cencDropdown {
     right: 0 !important;
     left: auto !important;
-    width: 100% !important;
-    min-width: 250px !important;
-    max-width: calc(100vw - 40px) !important;
+    width: 480px !important;
+    min-width: 320px !important;
+    max-width: calc(100vw - 32px) !important;
   }
 
   .table-responsive-container,
