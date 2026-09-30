@@ -2413,8 +2413,40 @@ document.addEventListener('DOMContentLoaded', () => {
           cleanJson = cleanJson.replace(/(\d+)\.(\d{3})(?=[,\s\]\}])/g, '$1$2');
           // Remove vírgulas residuais antes de fechar arrays ou objetos
           cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
+
+          // Isola o objeto JSON caso haja texto residual antes/depois
+          const firstBrace = cleanJson.indexOf('{');
+          const lastBrace = cleanJson.lastIndexOf('}');
+          if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+            cleanJson = cleanJson.substring(firstBrace, lastBrace + 1);
+          }
           
-          const config = JSON.parse(cleanJson);
+          let config = null;
+          try {
+            config = JSON.parse(cleanJson);
+          } catch(e1) {
+            try {
+              const cleanSingle = cleanJson.replace(/'/g, '"').replace(/,\s*([}\]])/g, '$1');
+              config = JSON.parse(cleanSingle);
+            } catch(e2) {
+              console.error("Erro ao analisar JSON do gráfico:", e1, jsonStr);
+              return '';
+            }
+          }
+
+          if (!config || typeof config !== 'object') return '';
+
+          // Assegura valores positivos para gráficos de pizza ou rosca
+          if (config.type === 'pie' || config.type === 'doughnut') {
+            if (config.datasets && Array.isArray(config.datasets)) {
+              config.datasets.forEach(ds => {
+                if (ds && Array.isArray(ds.data)) {
+                  ds.data = ds.data.map(v => Math.abs(Number(v) || 0));
+                }
+              });
+            }
+          }
+
           chartConfigs.push({ id: chartId, config });
           // Usa placeholder em vez de HTML direto para não ser escapado pelo formatMarkdown
           const placeholder = `CHARTPLACEHOLDER${chartConfigs.length - 1}END`;
@@ -2431,8 +2463,8 @@ document.addEventListener('DOMContentLoaded', () => {
           });
           return placeholder;
         } catch(e) {
-          console.error("Erro ao analisar JSON do gráfico:", e, jsonStr);
-          return ''; // Não exibe bloco de código se falhar
+          console.error("Erro ao processar bloco do gráfico:", e, jsonStr);
+          return ''; // Não exibe bloco de código corrompido se falhar
         }
       });
 
@@ -2478,53 +2510,73 @@ document.addEventListener('DOMContentLoaded', () => {
               borderRadius: isPie ? 0 : 4
             }));
 
-            new window.Chart(ctx, {
-              type: config.type || 'bar',
-              data: {
-                labels: labels,
-                datasets: datasets
-              },
-              options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: {
-                    display: isPie || (datasets.length > 1),
-                    position: 'top',
-                    labels: { color: '#d1d5db', font: { family: 'Montserrat', size: 10 } }
-                  },
-                  title: {
-                    display: !!(config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text)),
-                    text: config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text) || '',
-                    color: '#ffffff',
-                    font: { family: 'Montserrat', size: 11, weight: '600' },
-                    padding: { bottom: 8 }
-                  },
-                  tooltip: {
-                    callbacks: {
-                      label: function(c) {
-                        const val = c.raw || 0;
-                        return `${c.dataset.label || ''}: R$ ${Number(val).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+            try {
+              new window.Chart(ctx, {
+                type: config.type || 'bar',
+                data: {
+                  labels: labels,
+                  datasets: datasets
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  plugins: {
+                    legend: {
+                      display: isPie || (datasets.length > 1),
+                      position: 'top',
+                      labels: { color: '#d1d5db', font: { family: 'Montserrat', size: 10 } }
+                    },
+                    title: {
+                      display: !!(config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text)),
+                      text: config.title || (config.options && config.options.plugins && config.options.plugins.title && config.options.plugins.title.text) || '',
+                      color: '#ffffff',
+                      font: { family: 'Montserrat', size: 11, weight: '600' },
+                      padding: { bottom: 8 }
+                    },
+                    tooltip: {
+                      callbacks: {
+                        label: function(c) {
+                          const val = c.raw || 0;
+                          return `${c.dataset.label || ''}: R$ ${Number(val).toLocaleString('pt-BR', {minimumFractionDigits: 2})}`;
+                        }
                       }
                     }
-                  }
-                },
-                scales: isPie ? {} : {
-                  x: {
-                    ticks: { color: '#9ca3af', font: { family: 'Montserrat', size: 9 } },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
                   },
-                  y: {
-                    ticks: {
-                      color: '#9ca3af',
-                      font: { family: 'Montserrat', size: 9 },
-                      callback: v => (Math.abs(v) >= 1e6 ? (v/1e6).toFixed(1)+'M' : (Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0)+'k' : v))
+                  scales: isPie ? {} : {
+                    x: {
+                      ticks: { color: '#9ca3af', font: { family: 'Montserrat', size: 9 } },
+                      grid: { color: 'rgba(255,255,255,0.05)' }
                     },
-                    grid: { color: 'rgba(255,255,255,0.05)' }
+                    y: {
+                      ticks: {
+                        color: '#9ca3af',
+                        font: { family: 'Montserrat', size: 9 },
+                        callback: v => (Math.abs(v) >= 1e6 ? (v/1e6).toFixed(1)+'M' : (Math.abs(v) >= 1e3 ? (v/1e3).toFixed(0)+'k' : v))
+                      },
+                      grid: { color: 'rgba(255,255,255,0.05)' }
+                    }
                   }
                 }
+              });
+            } catch (chartErr) {
+              console.error("Falha ao inicializar Chart.js, aplicando fallback visual:", chartErr);
+              const wrapper = cvs.closest('.ai-chart-wrapper');
+              if (wrapper) {
+                const listHtml = labels.map((lbl, idx) => {
+                  const v = Math.abs(Number(datasets[0]?.data[idx] || 0));
+                  return `<div style="display: flex; justify-content: space-between; align-items: center; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.05); font-size: 11px;">
+                    <span style="color: #d1d5db;">${lbl}</span>
+                    <span style="font-weight: 700; color: #e0aa3e;">R$ ${v.toLocaleString('pt-BR', {minimumFractionDigits: 2})}</span>
+                  </div>`;
+                }).join('');
+                wrapper.innerHTML = `
+                  <div style="font-size: 11px; font-weight: 700; color: #e0aa3e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                    <span>📊 ${config.title || 'Demonstrativo Visual MQIA'}</span>
+                  </div>
+                  <div style="padding: 4px 0;">${listHtml}</div>
+                `;
               }
-            });
+            }
           });
         }, 50);
     }
@@ -2695,7 +2747,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
               // Concatena palavra por palavra / token em tempo real
               accumulatedText += data.texto;
-              textSpan.innerHTML = formatMarkdown(accumulatedText);
+              // Durante o streaming, se o bloco de gráfico estiver sendo recebido, oculta o código bruto
+              let displayText = accumulatedText;
+              if (displayText.includes('```chart') || displayText.includes('```grafico')) {
+                displayText = displayText.split(/```(?:chart|grafico)/i)[0] + '\n\n*(📊 Renderizando gráfico interativo...)*';
+              }
+              textSpan.innerHTML = formatMarkdown(displayText);
               // Garante o scroll automático para o final da conversa
               body.scrollTop = body.scrollHeight;
 

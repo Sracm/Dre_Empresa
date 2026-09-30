@@ -89,6 +89,75 @@ def _calc_dif(orc, real):
         "desvio_pct": round(pct, 2)
     }
 
+# ─── TRAVA 1: VALIDADOR ANTI-ALUCINAÇÃO ────────────────────────────────────
+def _extrair_valores_oficiais(dados):
+    """
+    Percorre recursivamente um dicionário/lista de dados do banco
+    e extrai todos os valores numéricos absolutos relevantes (> R$ 100).
+    Retorna um conjunto de floats para comparação rápida.
+    """
+    valores = set()
+    if isinstance(dados, dict):
+        for k, v in dados.items():
+            if isinstance(v, (int, float)) and abs(v) > 100:
+                valores.add(round(abs(float(v)), 0))
+            elif isinstance(v, (dict, list)):
+                valores |= _extrair_valores_oficiais(v)
+    elif isinstance(dados, list):
+        for item in dados:
+            valores |= _extrair_valores_oficiais(item)
+    return valores
+
+def _detectar_alucinacao(texto_llm, dados_oficiais):
+    """
+    Verifica se algum valor monetário R$ na resposta do LLM
+    não existe nos dados oficiais do banco (tolerância 2%).
+    Retorna True se alucinação detectada, False se tudo ok.
+    """
+    if not texto_llm or not dados_oficiais:
+        return False
+
+    # Extrai valores R$ da resposta (formato BR: R$ 1.234,56 ou R$ 1234.56)
+    padroes = re.findall(r'R\$\s*([\d.,\s]+)', texto_llm)
+    if not padroes:
+        return False
+
+    valores_resposta = []
+    for raw in padroes:
+        clean = raw.strip().replace(' ', '')
+        try:
+            # Tenta formato BR: 1.234.567,89
+            if ',' in clean:
+                num = float(clean.replace('.', '').replace(',', '.'))
+            else:
+                num = float(clean.replace('.', ''))
+            if num > 100:
+                valores_resposta.append(round(num, 0))
+        except Exception:
+            pass
+
+    if not valores_resposta:
+        return False
+
+    valores_db = _extrair_valores_oficiais(dados_oficiais)
+    if not valores_db:
+        return False
+
+    for val in valores_resposta:
+        encontrou = False
+        for val_db in valores_db:
+            if val_db == 0:
+                continue
+            desvio = abs(val - val_db) / val_db
+            if desvio <= 0.05:  # Tolerância 5% para arredondamentos e somatórios
+                encontrou = True
+                break
+        if not encontrou:
+            print(f"[TRAVA ANTI-ALUCINAÇÃO] Valor R$ {val:,.2f} não encontrado nos dados oficiais do banco.", flush=True)
+            return True  # Possível alucinação detectada
+
+    return False
+
 def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=8):
     """
     Identifica com precisão o mês e ano mencionados pelo usuário no prompt,
@@ -468,6 +537,81 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
         "empresa": empresa or "Consolidado",
         "total_linhas": len(itens),
         "titulos": itens
+    }
+
+def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacional", limite=10):
+    """
+    Retorna os maiores custos e despesas operacionais registrados no DRE oficial da MQ Hair.
+    Agrupa por título contábil em blocos de despesas e custos operacionais:
+    - 2.Custo Mercadoria Vendida (se tipo='geral' ou se solicitado)
+    - 3.Despesas com Vendas
+    - 4.Despesas Comercial Operacional
+    - 5.Despesas Administrativa Operacional
+    Garante valores 100% fiéis ao banco de dados SQLite oficial.
+    """
+    conn = sqlite3.connect(DB_PATH, timeout=10.0)
+    conn.row_factory = sqlite3.Row
+    cur = conn.cursor()
+
+    try:
+        ano = int(ano)
+    except Exception:
+        ano = 2026
+
+    where = ["ano = ?", "codcencus != 21010000"]
+    params = [ano]
+
+    if mes is not None and str(mes).strip().lower() not in ("0", "none", "all", "ano", "anual", "acumulado", "ytd"):
+        try:
+            mes = int(mes)
+            where.append("mes = ?")
+            params.append(mes)
+            periodo_label = f"{mes:02d}/{ano}"
+        except Exception:
+            periodo_label = f"08/{ano}"
+    else:
+        periodo_label = f"Acumulado {ano}"
+
+    if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
+        where.append("empresa = ?")
+        params.append(str(empresa).strip())
+
+    where.append("(bloco LIKE '%Despesas%' OR bloco LIKE '%Custo%')")
+    where_str = " AND ".join(where)
+
+    query = f"""
+        SELECT titulo, bloco, SUM(orcado) as orc, SUM(realizado) as real
+        FROM dre_data
+        WHERE {where_str}
+        GROUP BY titulo
+        ORDER BY ABS(SUM(realizado)) DESC
+        LIMIT ?
+    """
+    params_lim = params + [int(limite)]
+    cur.execute(query, params_lim)
+    rows = cur.fetchall()
+    conn.close()
+
+    itens = []
+    for r in rows:
+        orc = r["orc"] or 0.0
+        real = r["real"] or 0.0
+        # Formata nome limpo do título removendo prefixos numéricos como '1.', '2.', '3.'
+        tit_limpo = re.sub(r'^\d+\.\s*', '', r["titulo"] or "").strip()
+        itens.append({
+            "titulo": tit_limpo or r["titulo"],
+            "titulo_original": r["titulo"],
+            "bloco": r["bloco"],
+            **_calc_dif(orc, real)
+        })
+
+    return {
+        "tipo": "Maiores Custos e Despesas Operacionais DRE",
+        "periodo": periodo_label,
+        "empresa": empresa or "Consolidado (Todas as Empresas)",
+        "total_itens": len(itens),
+        "itens": itens,
+        "maiores_custos": itens
     }
 
 def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
@@ -1129,6 +1273,80 @@ def auto_injetar_bloco_grafico(prompt, texto_resposta, dados_ferramenta=None):
     
     return f"```chart\n{json.dumps(chart_json, ensure_ascii=False, indent=2)}\n```"
 
+def validar_e_higienizar_bloco_grafico(texto, prompt="", dados_ferramenta=None):
+    """
+    TRAVA DEFINITIVA DE GRÁFICOS (ZERO ERROS NO CHAT):
+    1. Se o usuário pediu gráfico e o LLM não gerou o bloco ```chart, auto-injeta usando os dados oficiais.
+    2. Se o LLM emitiu o bloco ```chart ou ```grafico, higieniza e valida o JSON:
+       - Converte números negativos em positivos para pizza/rosca (pie/doughnut)
+       - Remove vírgulas sobressalentes, comentários JS e caracteres ilegais
+       - Garante a presença dos campos obrigatórios (type, labels, datasets)
+    3. Retorna o texto 100% pronto e blindado para o frontend Chart.js.
+    """
+    if not texto:
+        return texto
+
+    p = (prompt or "").lower()
+    quer_grafico = any(k in p for k in ["gráfico", "grafico", "gráficos", "graficos", "pizza", "pie", "rosca", "doughnut", "donut", "barras", "linha", "evolu"])
+
+    # Regex tolerante para identificar blocos de gráfico no texto
+    chart_pattern = re.compile(r'```(?:chart|grafico)\s*([\s\S]*?)\s*```', re.IGNORECASE)
+    matches = list(chart_pattern.finditer(texto))
+
+    if matches:
+        def _limpar_json_chart(match):
+            raw = match.group(1).strip()
+            # Limpa comentários JS //... e /* ... */
+            clean = re.sub(r'//.*$', '', raw, flags=re.MULTILINE)
+            clean = re.sub(r'/\*[\s\S]*?\*/', '', clean)
+            # Remove pontos de milhar em números (ex: 349.736,65 -> 349736.65)
+            clean = re.sub(r'(\d+)\.(\d{3})\.(\d{3})(?:\.(\d{3}))?', r'\1\2\3\4', clean)
+            clean = re.sub(r'(\d+)\.(\d{3})(?=[,\s\]\}])', r'\1\2', clean)
+            # Remove vírgulas residuais antes de fechar array ou objeto
+            clean = re.sub(r',\s*([\}\]])', r'\1', clean)
+
+            cfg = None
+            try:
+                cfg = json.loads(clean)
+            except Exception:
+                try:
+                    clean_aspas = clean.replace("'", '"')
+                    clean_aspas = re.sub(r',\s*([\}\]])', r'\1', clean_aspas)
+                    cfg = json.loads(clean_aspas)
+                except Exception:
+                    pass
+
+            if isinstance(cfg, dict):
+                chart_type = cfg.get("type", "bar")
+                # Gráficos de pizza/rosca exigem SEMPRE valores positivos
+                if chart_type in ("pie", "doughnut"):
+                    datasets = cfg.get("datasets")
+                    if isinstance(datasets, list):
+                        for ds in datasets:
+                            if isinstance(ds, dict) and "data" in ds and isinstance(ds["data"], list):
+                                clean_data = []
+                                for v in ds["data"]:
+                                    try:
+                                        clean_data.append(abs(float(v)))
+                                    except Exception:
+                                        clean_data.append(0.0)
+                                ds["data"] = clean_data
+                return f"\n```chart\n{json.dumps(cfg, ensure_ascii=False, indent=2)}\n```\n"
+
+            # Se não conseguiu interpretar o JSON quebrado, reconstrói usando os dados oficiais
+            bloco_reconstruido = auto_injetar_bloco_grafico(prompt, texto, dados_ferramenta=dados_ferramenta)
+            return ("\n" + bloco_reconstruido + "\n") if bloco_reconstruido else ""
+
+        texto = chart_pattern.sub(_limpar_json_chart, texto)
+
+    elif quer_grafico:
+        # Usuário pediu gráfico, mas o LLM esqueceu de gerar o bloco: auto-injeta usando os dados oficiais
+        bloco_auto = auto_injetar_bloco_grafico(prompt, texto, dados_ferramenta=dados_ferramenta)
+        if bloco_auto:
+            texto = texto.rstrip() + "\n\n" + bloco_auto
+
+    return texto
+
 def consultar_sql(query):
     """
     Executa consulta SELECT SQL livre no banco SQLite (tabela dre_data).
@@ -1243,6 +1461,23 @@ TOOLS_SCHEMA = [
     {
         "type": "function",
         "function": {
+            "name": "obter_maiores_custos_despesas",
+            "description": "Retorna o ranking dos maiores custos e despesas operacionais da MQ Hair (ranking oficial de valores realizados e orçados no DRE). Use SEMPRE para responder: 'quais os maiores custos?', 'divisão dos custos operacionais', 'maiores despesas', 'ranking de gastos', 'gráfico de pizza dos custos'.",
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "ano": {"type": "integer", "description": "Ano fiscal (ex: 2026)"},
+                    "mes": {"type": "integer", "description": "Mês (ex: 8 para Agosto)"},
+                    "empresa": {"type": "string", "description": "Nome da empresa ou null/Consolidado"},
+                    "limite": {"type": "integer", "description": "Quantidade máxima de contas no ranking (padrão 10)"}
+                },
+                "required": ["ano", "mes"]
+            }
+        }
+    },
+    {
+        "type": "function",
+        "function": {
             "name": "detalhar_bloco",
             "description": "Detalha os títulos contábeis de um bloco do DRE (ex: 'Despesas com Vendas', 'Custo Mercadoria Vendida', 'Despesas Administrativa Operacional').",
             "parameters": {
@@ -1305,7 +1540,7 @@ def _executar_llm(messages, tools=None):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.1,
+                "temperature": 0.0,
                 "max_tokens": 850
             }
             if tools:
@@ -1328,7 +1563,7 @@ def _executar_llm(messages, tools=None):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.1,
+                "temperature": 0.0,
                 "max_tokens": 850
             }
             if tools:
@@ -1354,7 +1589,7 @@ def _executar_llm(messages, tools=None):
         payload = {
             "model": model,
             "messages": messages,
-            "temperature": 0.1,
+            "temperature": 0.0,
             "max_tokens": 650
         }
         if tools:
@@ -1389,7 +1624,7 @@ def _stream_llm(messages, max_tokens=1000):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.1,
+                "temperature": 0.0,
                 "max_tokens": max_tokens,
                 "stream": True
             }
@@ -1428,7 +1663,7 @@ def _stream_llm(messages, max_tokens=1000):
             payload = {
                 "model": model,
                 "messages": messages,
-                "temperature": 0.1,
+                "temperature": 0.0,
                 "max_tokens": max_tokens,
                 "stream": True
             }
@@ -1469,7 +1704,7 @@ def _stream_llm(messages, max_tokens=1000):
     payload_mis = {
         "model": "open-mistral-nemo",
         "messages": messages,
-        "temperature": 0.1,
+        "temperature": 0.0,
         "max_tokens": max_tokens,
         "stream": True
     }
@@ -1509,6 +1744,12 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
 
     return (
         f"{usuario_instrucao}"
+        "# ⚠️ REGRA ZERO DE SEGURANÇA E FIDELIDADE CONTÁBIL (ABSOLUTA E INEGOCIÁVEL)\n"
+        "1. ZERO ALUCINAÇÃO: Você é um auditor e controlador corporativo de alta precisão. Todo e qualquer valor financeiro em R$, percentual (%) ou desvio orçamentário citado na sua resposta DEVE ser estritamente extraído dos [DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)] fornecidos nesta conversa ou retornados pelas ferramentas contábeis.\n"
+        "2. PROIBIÇÃO CATEGÓRICA DE INVENÇÃO: É terminantemente proibido inventar, deduzir, supor ou estimar valores numéricos que não constem na base oficial. Se não souber ou o dado não estiver na base, declare expressamente que a informação não consta no extrato contábil do período.\n"
+        "3. PRECISÃO EXATA: Não invente contas contábeis, nem agrupe valores sem correspondência exata na DRE.\n"
+        "4. GERAÇÃO OBRIGATÓRIA DE GRÁFICOS: Se o usuário solicitar qualquer visualização em gráfico (pizza, rosca, barras, linhas, evolução temporal, custos), você DEVE OBRIGATORIAMENTE incluir ao final da sua resposta o bloco ```chart {...}``` com o JSON válido do Chart.js. No array `data`, use SEMPRE números puros positivos (ex: 204179.50) para custos e despesas em gráficos de pizza/rosca.\n\n"
+        "---\n\n"
         "# Papel e Identidade\n"
         "Você é um Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior, integrado diretamente ao banco de dados Oracle.\n"
         "Seu objetivo é atender a demandas analíticas de Diretores Executivos (CEO, CFO, CCO/Comercial, COO e Controladoria/Contábil) com foco em Demonstração do Resultado do Exercício (DRE), aderência orçamentária e rentabilidade.\n\n"
@@ -1706,16 +1947,7 @@ def processar_pergunta(prompt, contexto=None):
         tool_calls = asst_msg.get("tool_calls", [])
         if not tool_calls:
             texto_final = asst_msg.get("content") or "Análise concluída com sucesso."
-            quer_grafico = any(k in prompt.lower() for k in ["gráfico", "grafico", "gráficos", "graficos"])
-            if quer_grafico:
-                if blocos_graficos_gerados:
-                    for bg in blocos_graficos_gerados:
-                        if bg and "```chart" not in texto_final and "```grafico" not in texto_final:
-                            texto_final = texto_final + "\n\n" + bg
-                elif "```chart" not in texto_final and "```grafico" not in texto_final:
-                    bloco_auto = auto_injetar_bloco_grafico(prompt, texto_final, dados_ferramenta=ultimas_ferramentas_outputs)
-                    if bloco_auto:
-                        texto_final = texto_final + "\n\n" + bloco_auto
+            texto_final = validar_e_higienizar_bloco_grafico(texto_final, prompt, dados_ferramenta=ultimas_ferramentas_outputs)
             return texto_final
 
         # Executa ferramentas
@@ -1756,6 +1988,10 @@ def processar_pergunta(prompt, contexto=None):
             elif fname == "obter_resumo_dre":
                 emp_arg = args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None)
                 tool_output = obter_resumo_dre(ano=ano_arg, mes=mes_arg, empresa=emp_arg)
+
+            elif fname == "obter_maiores_custos_despesas":
+                emp_arg = args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None)
+                tool_output = obter_maiores_custos_despesas(ano=ano_arg, mes=mes_arg, empresa=emp_arg, limite=args.get("limite", 10))
 
             elif fname == "detalhar_bloco":
                 bloco_arg = args.get("bloco", "Despesas com Vendas")
@@ -1965,7 +2201,19 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = consultar_conta_historico(conta="IMPOST", ano=ano_ctx)
 
+    if dados_pre is None and any(k in p_lower for k in ["custo", "custos", "despesa", "despesas", "gasto", "gastos", "operacion"]):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = obter_maiores_custos_despesas(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+
     if dados_pre is None and any(k in p_lower for k in termos_venda_geral):
+        status_msg = "Digitando..."
+        yield {"tipo": "status", "texto": status_msg}
+        dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
+
+    # TRAVA FUNDAMENTAL ANTI-ALUCINAÇÃO (O LLM NUNCA OPERA SEM CONTEXTO OFICIAL DO BANCO):
+    # Se nenhuma rota específica capturou dados_pre, SEMPRE carrega o resumo contábil oficial (obter_resumo_dre).
+    if dados_pre is None:
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
         dados_pre = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
@@ -1982,8 +2230,8 @@ def stream_processar_pergunta(prompt, contexto=None):
             f"{prompt}\n\n"
             f"[DADOS OFICIAIS DO BANCO DE DADOS MQ HAIR (DRE)]:\n"
             f"{json.dumps(dados_pre, ensure_ascii=False, indent=2)}\n\n"
-            f"INSTRUÇÃO OBRIGATÓRIA: Responda com base ESTRITAMENTE nos dados acima. "
-            f"NUNCA invente números ou use valores que não estejam no bloco acima."
+            f"INSTRUÇÃO OBRIGATÓRIA: Responda com base ESTRITAMENTE nos dados oficiais acima. "
+            f"NUNCA invente números, percentuais ou contas que não estejam no bloco acima."
         )
         messages.append({"role": "user", "content": user_content})
 
@@ -1992,13 +2240,17 @@ def stream_processar_pergunta(prompt, contexto=None):
             texto_total += token
             yield {"tipo": "token", "texto": token}
 
-        # Auto-injeção se o usuário pediu gráfico
-        quer_grafico = any(k in p_lower for k in ["gráfico", "grafico", "gráficos", "graficos"])
-        if quer_grafico and "```chart" not in texto_total and "```grafico" not in texto_total:
-            bloco_auto = auto_injetar_bloco_grafico(prompt, texto_total, dados_ferramenta=[("dados_pre", dados_pre)])
-            if bloco_auto:
-                texto_total += "\n\n" + bloco_auto
-                yield {"tipo": "token", "texto": "\n\n" + bloco_auto}
+        # TRAVA DEFINITIVA DE GRÁFICOS: Valida, higieniza JSON e auto-injeta se necessário
+        texto_validado = validar_e_higienizar_bloco_grafico(texto_total, prompt, dados_ferramenta=[("dados_pre", dados_pre)])
+        if texto_validado != texto_total:
+            diferenca = texto_validado[len(texto_total):]
+            if diferenca:
+                yield {"tipo": "token", "texto": diferenca}
+            texto_total = texto_validado
+
+        # Auditoria anti-alucinação contra dados oficiais
+        if _detectar_alucinacao(texto_total, dados_pre):
+            print("[TRAVA DE SEGURANÇA] Alucinação detectada na resposta gerada pelo LLM.", flush=True)
 
         if texto_total.strip():
             yield {"tipo": "fim", "resposta_completa": texto_total}
@@ -2008,6 +2260,25 @@ def stream_processar_pergunta(prompt, contexto=None):
             try:
                 def fmt_val(v):
                     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+                if dados_pre and "maiores_custos" in dados_pre:
+                    itens = dados_pre.get("itens", [])
+                    linhas_md = []
+                    for it in itens[:8]:
+                        linhas_md.append(f"| **{it['titulo']}** | {fmt_val(it['orcado'])} | **{fmt_val(it['realizado'])}** | {fmt_val(it['desvio_reais'])} | {it['desvio_pct']:+.1f}% |")
+                    tabela_custos = "\n".join(linhas_md)
+                    fb_custos = (
+                        f"**Maiores Custos e Despesas Operacionais — {dados_pre.get('periodo')} ({dados_pre.get('empresa')}):**\n\n"
+                        f"| Título Contábil | Orçado | Realizado | Desvio (R$) | Desvio (%) |\n"
+                        f"| :--- | :---: | :---: | :---: | :---: |\n"
+                        f"{tabela_custos}\n\n"
+                    )
+                    bloco_g = auto_injetar_bloco_grafico(prompt, fb_custos, dados_ferramenta=[("dados_pre", dados_pre)])
+                    if bloco_g:
+                        fb_custos += "\n\n" + bloco_g
+                    yield {"tipo": "token", "texto": fb_custos}
+                    yield {"tipo": "fim", "resposta_completa": fb_custos}
+                    return
                 
                 if dados_pre and dados_pre.get("tipo") == "DRE Centro de Custo":
                     c_nome = dados_pre.get("centro_custo")
@@ -2149,6 +2420,8 @@ def stream_processar_pergunta(prompt, contexto=None):
             out = obter_dre_centro_custo(args.get("centro_custo", "VAREJO - SUL"), ano_arg, mes_arg, args.get("empresa"))
         elif fname == "obter_resumo_dre":
             out = obter_resumo_dre(ano_arg, mes_arg, args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None))
+        elif fname == "obter_maiores_custos_despesas":
+            out = obter_maiores_custos_despesas(ano_arg, mes_arg, args.get("empresa", emp_ctx if emp_ctx != "Consolidado" else None), limite=args.get("limite", 10))
         elif fname == "detalhar_bloco":
             out = detalhar_bloco(args.get("bloco", "Despesas com Vendas"), ano_arg, mes_arg, args.get("empresa"))
         elif fname == "comparar_empresas":
@@ -2175,20 +2448,13 @@ def stream_processar_pergunta(prompt, contexto=None):
         texto_total += token
         yield {"tipo": "token", "texto": token}
 
-    quer_grafico = any(k in p_lower for k in ["gráfico", "grafico", "gráficos", "graficos"])
-    if quer_grafico:
-        if blocos_graficos_gerados:
-            for bg in blocos_graficos_gerados:
-                if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
-                    extra = "\n\n" + bg
-                    texto_total += extra
-                    yield {"tipo": "token", "texto": extra}
-        elif "```chart" not in texto_total and "```grafico" not in texto_total:
-            bloco_auto = auto_injetar_bloco_grafico(prompt, texto_total, dados_ferramenta=ultimas_ferramentas_outputs)
-            if bloco_auto:
-                extra = "\n\n" + bloco_auto
-                texto_total += extra
-                yield {"tipo": "token", "texto": extra}
+    # TRAVA DEFINITIVA DE GRÁFICOS: Valida, higieniza JSON e auto-injeta se necessário
+    texto_validado = validar_e_higienizar_bloco_grafico(texto_total, prompt, dados_ferramenta=ultimas_ferramentas_outputs)
+    if texto_validado != texto_total:
+        diferenca = texto_validado[len(texto_total):]
+        if diferenca:
+            yield {"tipo": "token", "texto": diferenca}
+        texto_total = texto_validado
 
     if texto_total.strip():
         yield {"tipo": "fim", "resposta_completa": texto_total}
