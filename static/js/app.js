@@ -2399,6 +2399,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   function renderContentWithCharts(containerEl, text) {
     const chartConfigs = [];
+    const chartHtmlParts = [];
       // Extrai blocos ```chart ... ``` ou ```grafico ... ```
       let processedText = text.replace(/```(?:chart|grafico)\s*([\s\S]*?)\s*```/gi, (match, jsonStr) => {
         const chartId = 'ai-chart-' + Math.random().toString(36).substring(2, 9);
@@ -2415,14 +2416,20 @@ document.addEventListener('DOMContentLoaded', () => {
           
           const config = JSON.parse(cleanJson);
           chartConfigs.push({ id: chartId, config });
-          return `<div class="ai-chart-wrapper" style="margin: 12px 0; background: #141416; border: 1px solid rgba(224,170,62,0.3); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
+          // Usa placeholder em vez de HTML direto para não ser escapado pelo formatMarkdown
+          const placeholder = `CHARTPLACEHOLDER${chartConfigs.length - 1}END`;
+          chartHtmlParts.push({
+            placeholder,
+            html: `<div class="ai-chart-wrapper" style="margin: 12px 0; background: #141416; border: 1px solid rgba(224,170,62,0.3); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.5);">
                     <div style="font-size: 11px; font-weight: 700; color: #e0aa3e; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
                       <span>📊 Gráfico Interativo MQIA</span>
                     </div>
                     <div style="position: relative; height: 210px; width: 100%;">
                       <canvas id="${chartId}"></canvas>
                     </div>
-                  </div>`;
+                  </div>`
+          });
+          return placeholder;
         } catch(e) {
           console.error("Erro ao analisar JSON do gráfico:", e, jsonStr);
           return ''; // Não exibe bloco de código se falhar
@@ -2433,7 +2440,15 @@ document.addEventListener('DOMContentLoaded', () => {
     processedText = processedText.replace(/```[a-zA-Z0-9_-]*\s*[\s\S]*?```/gi, '');
     processedText = processedText.replace(/```[a-zA-Z0-9_-]*/g, '');
 
-    containerEl.innerHTML = formatMarkdown(processedText.trim());
+    // Aplica formatMarkdown no texto com placeholders (não no HTML dos gráficos)
+    let htmlContent = formatMarkdown(processedText.trim());
+
+    // Substitui os placeholders pelo HTML real dos gráficos
+    chartHtmlParts.forEach(({ placeholder, html }) => {
+      htmlContent = htmlContent.replace(placeholder, html);
+    });
+
+    containerEl.innerHTML = htmlContent;
 
       // Renderiza os gráficos com Chart.js
       if (chartConfigs.length > 0 && window.Chart) {
