@@ -17,10 +17,12 @@ import re
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
 
-DEFAULT_MISTRAL_KEY = "mstrl_QjLIPXVSQlth0eGa5szH4nhazKxNf8s3_3PElyn"
+DEFAULT_OPENROUTER_KEY = "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"
 DEFAULT_OPENAI_KEY = "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"
+DEFAULT_MISTRAL_KEY = "mstrl_QjLIPXVSQlth0eGa5szH4nhazKxNf8s3_3PElyn"
 
 # Carrega chaves do ambiente ou do .env
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
@@ -29,10 +31,15 @@ if os.path.exists(env_file):
     with open(env_file, "r", encoding="utf-8") as f:
         for line in f:
             line = line.strip()
-            if line.startswith("OPENAI_API_KEY=") and not OPENAI_API_KEY:
+            if line.startswith("OPENROUTER_API_KEY=") and not OPENROUTER_API_KEY:
+                OPENROUTER_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
+            elif line.startswith("OPENAI_API_KEY=") and not OPENAI_API_KEY:
                 OPENAI_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
             elif line.startswith("MISTRAL_API_KEY=") and not MISTRAL_API_KEY:
                 MISTRAL_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
+
+if not OPENROUTER_API_KEY or len(OPENROUTER_API_KEY) < 15:
+    OPENROUTER_API_KEY = DEFAULT_OPENROUTER_KEY
 
 if not OPENAI_API_KEY or len(OPENAI_API_KEY) < 15:
     OPENAI_API_KEY = DEFAULT_OPENAI_KEY
@@ -40,10 +47,19 @@ if not OPENAI_API_KEY or len(OPENAI_API_KEY) < 15:
 if not MISTRAL_API_KEY or len(MISTRAL_API_KEY) < 15:
     MISTRAL_API_KEY = DEFAULT_MISTRAL_KEY
 
+OPENROUTER_MODELS = ["openai/gpt-4o-mini", "google/gemini-2.0-flash-001", "meta-llama/llama-3.3-70b-instruct"]
 OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o"]
 MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest", "open-mistral-7b"]
 
 # Sessões HTTP persistentes para eliminar latência de handshake TLS/TCP
+_OPENROUTER_SESSION = requests.Session()
+_OPENROUTER_SESSION.headers.update({
+    "Authorization": f"Bearer {OPENROUTER_API_KEY}",
+    "Content-Type": "application/json",
+    "HTTP-Referer": "http://localhost:5150",
+    "X-Title": "MQ Hair DRE IA - Controladoria"
+})
+
 _OPENAI_SESSION = requests.Session()
 _OPENAI_SESSION.headers.update({
     "Authorization": f"Bearer {OPENAI_API_KEY}",
@@ -57,7 +73,7 @@ _MISTRAL_SESSION.headers.update({
 })
 
 # Compatibilidade retroativa
-_HTTP_SESSION = _MISTRAL_SESSION
+_HTTP_SESSION = _OPENROUTER_SESSION
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  FUNÇÕES ANALÍTICAS FINANCEIRAS (DRE MQ HAIR)
@@ -1138,10 +1154,33 @@ TOOLS_SCHEMA = [
 
 def _executar_llm(messages, tools=None):
     """
-    Executa a chamada com Function Calling prioritariamente via OpenAI (gpt-4o-mini / gpt-4o).
-    Se OpenAI falhar (ex: quota 429 ou erro de rede), aciona automaticamente o fallback para Mistral AI.
+    Executa a chamada com Function Calling prioritariamente via OpenRouter (openai/gpt-4o-mini).
+    Se OpenRouter falhar (ex: quota 429 ou rede), aciona automaticamente o fallback para OpenAI direta e Mistral AI.
     """
-    # 1. Prioridade: OpenAI (GPT-4o-mini / GPT-4o)
+    # 1. Prioridade: OpenRouter (openai/gpt-4o-mini, google/gemini-2.0-flash-001, etc.)
+    if OPENROUTER_API_KEY and len(OPENROUTER_API_KEY) > 20:
+        url_openrouter = "https://openrouter.ai/api/v1/chat/completions"
+        for model in OPENROUTER_MODELS:
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": 850
+            }
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+            try:
+                r = _OPENROUTER_SESSION.post(url_openrouter, json=payload, timeout=25)
+                if r.status_code == 200:
+                    return r.json(), f"openrouter:{model}"
+                print(f"[OpenRouter - {model}] Status {r.status_code}: {r.text[:140]}", flush=True)
+                if r.status_code == 429:
+                    break
+            except Exception as e:
+                print(f"[OpenRouter - {model}] Erro de conexão: {e}", flush=True)
+
+    # 2. Fallback: OpenAI Direta (GPT-4o-mini / GPT-4o)
     if OPENAI_API_KEY and len(OPENAI_API_KEY) > 20:
         url_openai = "https://api.openai.com/v1/chat/completions"
         for model in OPENAI_MODELS:
@@ -1160,12 +1199,11 @@ def _executar_llm(messages, tools=None):
                     return r.json(), f"openai:{model}"
                 print(f"[OpenAI - {model}] Status {r.status_code}: {r.text[:140]}", flush=True)
                 if r.status_code == 429:
-                    # Sem créditos (insufficient_quota) ou rate limit -> avança para fallback
                     break
             except Exception as e:
                 print(f"[OpenAI - {model}] Erro de conexão: {e}", flush=True)
 
-    # 2. Fallback: Mistral AI
+    # 3. Fallback: Mistral AI
     url_mistral = "https://api.mistral.ai/v1/chat/completions"
     headers_mistral = {
         "Authorization": f"Bearer {MISTRAL_API_KEY}",
@@ -1200,10 +1238,49 @@ def _executar_mistral(messages, tools=None):
 
 def _stream_llm(messages, max_tokens=1000):
     """
-    Transmite tokens via Server-Sent Events (SSE) prioritariamente via OpenAI (gpt-4o-mini / gpt-4o).
-    Se OpenAI falhar (ex: quota 429), aciona automaticamente o fallback para Mistral AI.
+    Transmite tokens via Server-Sent Events (SSE) prioritariamente via OpenRouter (openai/gpt-4o-mini).
+    Se OpenRouter falhar (ex: quota 429), aciona automaticamente o fallback para OpenAI direta e Mistral AI.
     """
-    # 1. Tenta OpenAI
+    # 1. Prioridade: OpenRouter (openai/gpt-4o-mini, etc.)
+    if OPENROUTER_API_KEY and len(OPENROUTER_API_KEY) > 20:
+        url_openrouter = "https://openrouter.ai/api/v1/chat/completions"
+        for model in OPENROUTER_MODELS:
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": max_tokens,
+                "stream": True
+            }
+            try:
+                r = _OPENROUTER_SESSION.post(url_openrouter, json=payload, stream=True, timeout=25)
+                if r.status_code == 200:
+                    sucesso = False
+                    for line in r.iter_lines():
+                        if line:
+                            decoded = line.decode('utf-8')
+                            if decoded.startswith('data: '):
+                                d_str = decoded[6:].strip()
+                                if d_str == '[DONE]':
+                                    break
+                                try:
+                                    chunk = json.loads(d_str)
+                                    token = chunk['choices'][0]['delta'].get('content', '')
+                                    if token:
+                                        sucesso = True
+                                        yield token
+                                except Exception:
+                                    pass
+                    if sucesso:
+                        return
+                else:
+                    print(f"[OpenRouter Stream - {model}] Status {r.status_code}: {r.text[:140]}", flush=True)
+                    if r.status_code == 429:
+                        break
+            except Exception as e:
+                print(f"[OpenRouter Stream - {model}] Erro: {e}", flush=True)
+
+    # 2. Fallback: OpenAI Direta
     if OPENAI_API_KEY and len(OPENAI_API_KEY) > 20:
         url_op = "https://api.openai.com/v1/chat/completions"
         for model in OPENAI_MODELS:
@@ -1242,7 +1319,7 @@ def _stream_llm(messages, max_tokens=1000):
             except Exception as e:
                 print(f"[OpenAI Stream - {model}] Erro: {e}", flush=True)
 
-    # 2. Fallback Mistral AI
+    # 3. Fallback: Mistral AI
     url_mis = "https://api.mistral.ai/v1/chat/completions"
     headers_mis = {
         "Authorization": f"Bearer {MISTRAL_API_KEY}",
@@ -1447,7 +1524,7 @@ def processar_pergunta(prompt, contexto=None):
     blocos_graficos_gerados = []
 
     for step in range(3):
-        res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
+        res, model_used = _executar_llm(messages, TOOLS_SCHEMA)
         if not res:
             try:
                 resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
@@ -1490,7 +1567,7 @@ def processar_pergunta(prompt, contexto=None):
             except Exception:
                 args = {}
 
-            print(f"[IA MISTRAL] Executando tool: {fname}({args})", flush=True)
+            print(f"[IA LLM - {model_used}] Executando tool: {fname}({args})", flush=True)
 
             ano_arg = args.get("ano")
             if not ano_arg or (ano_arg == 2024 and "2024" not in prompt):
@@ -1834,7 +1911,7 @@ def stream_processar_pergunta(prompt, contexto=None):
     # Fallback: Se pergunta não foi coberta pelo pre-fetch rápido, usa Function Calling dinâmico
     yield {"tipo": "status", "texto": "Digitando..."}
     messages.append({"role": "user", "content": prompt})
-    res, model_used = _executar_mistral(messages, TOOLS_SCHEMA)
+    res, model_used = _executar_llm(messages, TOOLS_SCHEMA)
     if not res:
         # Fallback inteligente local caso o Mistral falhe na análise
         try:
