@@ -18,31 +18,46 @@ BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
 
 DEFAULT_MISTRAL_KEY = "mstrl_QjLIPXVSQlth0eGa5szH4nhazKxNf8s3_3PElyn"
+DEFAULT_OPENAI_KEY = "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"
 
-# Carrega chave do .env
+# Carrega chaves do ambiente ou do .env
+OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 MISTRAL_API_KEY = os.getenv("MISTRAL_API_KEY")
 
-if not MISTRAL_API_KEY:
-    env_file = os.path.join(BASE_DIR, ".env")
-    if os.path.exists(env_file):
-        with open(env_file, "r", encoding="utf-8") as f:
-            for line in f:
-                line = line.strip()
-                if line.startswith("MISTRAL_API_KEY="):
-                    MISTRAL_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
+env_file = os.path.join(BASE_DIR, ".env")
+if os.path.exists(env_file):
+    with open(env_file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line.startswith("OPENAI_API_KEY=") and not OPENAI_API_KEY:
+                OPENAI_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
+            elif line.startswith("MISTRAL_API_KEY=") and not MISTRAL_API_KEY:
+                MISTRAL_API_KEY = line.split("=", 1)[1].strip().strip('"').strip("'")
 
-# Se não constar no .env ou estiver vazia/inválida, utiliza a chave corporativa ativa como fallback padrão
+if not OPENAI_API_KEY or len(OPENAI_API_KEY) < 15:
+    OPENAI_API_KEY = DEFAULT_OPENAI_KEY
+
 if not MISTRAL_API_KEY or len(MISTRAL_API_KEY) < 15:
     MISTRAL_API_KEY = DEFAULT_MISTRAL_KEY
 
+OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o"]
 MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest", "open-mistral-7b"]
 
-# Sessão HTTP persistente para eliminar latência de handshake TLS/TCP
-_HTTP_SESSION = requests.Session()
-_HTTP_SESSION.headers.update({
+# Sessões HTTP persistentes para eliminar latência de handshake TLS/TCP
+_OPENAI_SESSION = requests.Session()
+_OPENAI_SESSION.headers.update({
+    "Authorization": f"Bearer {OPENAI_API_KEY}",
+    "Content-Type": "application/json"
+})
+
+_MISTRAL_SESSION = requests.Session()
+_MISTRAL_SESSION.headers.update({
     "Authorization": f"Bearer {MISTRAL_API_KEY}",
     "Content-Type": "application/json"
 })
+
+# Compatibilidade retroativa
+_HTTP_SESSION = _MISTRAL_SESSION
 
 # ═══════════════════════════════════════════════════════════════════════════
 #  FUNÇÕES ANALÍTICAS FINANCEIRAS (DRE MQ HAIR)
@@ -1121,34 +1136,146 @@ TOOLS_SCHEMA = [
     }
 ]
 
-def _executar_mistral(messages, tools):
-    url = "https://api.mistral.ai/v1/chat/completions"
-    headers = {
+def _executar_llm(messages, tools=None):
+    """
+    Executa a chamada com Function Calling prioritariamente via OpenAI (gpt-4o-mini / gpt-4o).
+    Se OpenAI falhar (ex: quota 429 ou erro de rede), aciona automaticamente o fallback para Mistral AI.
+    """
+    # 1. Prioridade: OpenAI (GPT-4o-mini / GPT-4o)
+    if OPENAI_API_KEY and len(OPENAI_API_KEY) > 20:
+        url_openai = "https://api.openai.com/v1/chat/completions"
+        for model in OPENAI_MODELS:
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": 850
+            }
+            if tools:
+                payload["tools"] = tools
+                payload["tool_choice"] = "auto"
+            try:
+                r = _OPENAI_SESSION.post(url_openai, json=payload, timeout=25)
+                if r.status_code == 200:
+                    return r.json(), f"openai:{model}"
+                print(f"[OpenAI - {model}] Status {r.status_code}: {r.text[:140]}", flush=True)
+                if r.status_code == 429:
+                    # Sem créditos (insufficient_quota) ou rate limit -> avança para fallback
+                    break
+            except Exception as e:
+                print(f"[OpenAI - {model}] Erro de conexão: {e}", flush=True)
+
+    # 2. Fallback: Mistral AI
+    url_mistral = "https://api.mistral.ai/v1/chat/completions"
+    headers_mistral = {
         "Authorization": f"Bearer {MISTRAL_API_KEY}",
         "Content-Type": "application/json"
     }
-
     for model in MISTRAL_MODELS:
         payload = {
             "model": model,
             "messages": messages,
-            "tools": tools,
             "temperature": 0.1,
             "max_tokens": 650
         }
+        if tools:
+            payload["tools"] = tools
         for retry in range(2):
             try:
-                r = _HTTP_SESSION.post(url, headers=headers, json=payload, timeout=25)
+                r = _MISTRAL_SESSION.post(url_mistral, headers=headers_mistral, json=payload, timeout=25)
                 if r.status_code == 200:
-                    return r.json(), model
+                    return r.json(), f"mistral:{model}"
                 if r.status_code in (429, 503):
                     time.sleep(1.0 * (retry + 1))
                     continue
                 print(f"[Mistral - {model}] Erro {r.status_code}: {r.text[:140]}", flush=True)
                 break
-            except Exception as e:
+            except Exception:
                 time.sleep(0.5)
+
     return None, None
+
+def _executar_mistral(messages, tools=None):
+    return _executar_llm(messages, tools)
+
+def _stream_llm(messages, max_tokens=1000):
+    """
+    Transmite tokens via Server-Sent Events (SSE) prioritariamente via OpenAI (gpt-4o-mini / gpt-4o).
+    Se OpenAI falhar (ex: quota 429), aciona automaticamente o fallback para Mistral AI.
+    """
+    # 1. Tenta OpenAI
+    if OPENAI_API_KEY and len(OPENAI_API_KEY) > 20:
+        url_op = "https://api.openai.com/v1/chat/completions"
+        for model in OPENAI_MODELS:
+            payload = {
+                "model": model,
+                "messages": messages,
+                "temperature": 0.1,
+                "max_tokens": max_tokens,
+                "stream": True
+            }
+            try:
+                r = _OPENAI_SESSION.post(url_op, json=payload, stream=True, timeout=25)
+                if r.status_code == 200:
+                    sucesso = False
+                    for line in r.iter_lines():
+                        if line:
+                            decoded = line.decode('utf-8')
+                            if decoded.startswith('data: '):
+                                d_str = decoded[6:].strip()
+                                if d_str == '[DONE]':
+                                    break
+                                try:
+                                    chunk = json.loads(d_str)
+                                    token = chunk['choices'][0]['delta'].get('content', '')
+                                    if token:
+                                        sucesso = True
+                                        yield token
+                                except Exception:
+                                    pass
+                    if sucesso:
+                        return
+                else:
+                    print(f"[OpenAI Stream - {model}] Status {r.status_code}: {r.text[:140]}", flush=True)
+                    if r.status_code == 429:
+                        break
+            except Exception as e:
+                print(f"[OpenAI Stream - {model}] Erro: {e}", flush=True)
+
+    # 2. Fallback Mistral AI
+    url_mis = "https://api.mistral.ai/v1/chat/completions"
+    headers_mis = {
+        "Authorization": f"Bearer {MISTRAL_API_KEY}",
+        "Content-Type": "application/json"
+    }
+    payload_mis = {
+        "model": "open-mistral-nemo",
+        "messages": messages,
+        "temperature": 0.1,
+        "max_tokens": max_tokens,
+        "stream": True
+    }
+    try:
+        r = _MISTRAL_SESSION.post(url_mis, headers=headers_mis, json=payload_mis, stream=True, timeout=25)
+        if r.status_code == 200:
+            for line in r.iter_lines():
+                if line:
+                    decoded = line.decode('utf-8')
+                    if decoded.startswith('data: '):
+                        d_str = decoded[6:].strip()
+                        if d_str == '[DONE]':
+                            break
+                        try:
+                            chunk = json.loads(d_str)
+                            token = chunk['choices'][0]['delta'].get('content', '')
+                            if token:
+                                yield token
+                        except Exception:
+                            pass
+            return
+        print(f"[Mistral Stream] Status {r.status_code}: {r.text[:140]}", flush=True)
+    except Exception as ex_mis:
+        print(f"[Mistral Stream] Erro: {ex_mis}", flush=True)
 
 def processar_pergunta(prompt, contexto=None):
     """
@@ -1622,42 +1749,15 @@ def stream_processar_pergunta(prompt, contexto=None):
         )
         messages.append({"role": "user", "content": user_content})
 
-        url = "https://api.mistral.ai/v1/chat/completions"
-        payload = {
-            "model": "open-mistral-nemo",
-            "messages": messages,
-            "temperature": 0.1,
-            "max_tokens": 950,
-            "stream": True
-        }
+        texto_total = ""
+        for token in _stream_llm(messages, max_tokens=1000):
+            texto_total += token
+            yield {"tipo": "token", "texto": token}
 
-        try:
-            headers_stream = {
-                "Authorization": f"Bearer {MISTRAL_API_KEY}",
-                "Content-Type": "application/json"
-            }
-            r = _HTTP_SESSION.post(url, headers=headers_stream, json=payload, stream=True, timeout=25)
-            if r.status_code != 200:
-                raise Exception(f"Mistral API retornou status {r.status_code}")
-            texto_total = ""
-            for line in r.iter_lines():
-                if line:
-                    decoded = line.decode('utf-8')
-                    if decoded.startswith('data: '):
-                        d_str = decoded[6:].strip()
-                        if d_str == '[DONE]':
-                            break
-                        try:
-                            chunk = json.loads(d_str)
-                            token = chunk['choices'][0]['delta'].get('content', '')
-                            if token:
-                                texto_total += token
-                                yield {"tipo": "token", "texto": token}
-                        except Exception:
-                            pass
+        if texto_total.strip():
             yield {"tipo": "fim", "resposta_completa": texto_total}
             return
-        except Exception:
+        else:
             # Fallback resiliente usando dados pré-buscados locais
             try:
                 def fmt_val(v):
@@ -1821,48 +1921,23 @@ def stream_processar_pergunta(prompt, contexto=None):
         })
 
     # Agora transmite a resposta final gerada em streaming
-    payload = {
-        "model": "open-mistral-nemo",
-        "messages": messages,
-        "temperature": 0.1,
-        "max_tokens": 950,
-        "stream": True
-    }
-    try:
-        headers_stream = {
-            "Authorization": f"Bearer {MISTRAL_API_KEY}",
-            "Content-Type": "application/json"
-        }
-        r = _HTTP_SESSION.post("https://api.mistral.ai/v1/chat/completions", headers=headers_stream, json=payload, stream=True, timeout=25)
-        if r.status_code != 200:
-            raise Exception(f"Mistral status {r.status_code}")
-        texto_total = ""
-        for line in r.iter_lines():
-            if line:
-                decoded = line.decode('utf-8')
-                if decoded.startswith('data: '):
-                    d_str = decoded[6:].strip()
-                    if d_str == '[DONE]':
-                        break
-                    try:
-                        chunk = json.loads(d_str)
-                        token = chunk['choices'][0]['delta'].get('content', '')
-                        if token:
-                            texto_total += token
-                            yield {"tipo": "token", "texto": token}
-                    except Exception:
-                        pass
-        quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
-        if quer_grafico and blocos_graficos_gerados:
-            for bg in blocos_graficos_gerados:
-                if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
-                    extra = "\n\n" + bg
-                    texto_total += extra
-                    yield {"tipo": "token", "texto": extra}
+    texto_total = ""
+    for token in _stream_llm(messages, max_tokens=1000):
+        texto_total += token
+        yield {"tipo": "token", "texto": token}
 
+    quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
+    if quer_grafico and blocos_graficos_gerados:
+        for bg in blocos_graficos_gerados:
+            if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
+                extra = "\n\n" + bg
+                texto_total += extra
+                yield {"tipo": "token", "texto": extra}
+
+    if texto_total.strip():
         yield {"tipo": "fim", "resposta_completa": texto_total}
         return
-    except Exception:
+    else:
         # Fallback local com os dados das ferramentas já executadas
         try:
             resumo = obter_resumo_dre(ano=ano_ctx, mes=mes_ctx, empresa=emp_ctx if emp_ctx != "Consolidado" else None)
