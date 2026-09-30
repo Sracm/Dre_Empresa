@@ -2404,9 +2404,14 @@ document.addEventListener('DOMContentLoaded', () => {
         const chartId = 'ai-chart-' + Math.random().toString(36).substring(2, 9);
         try {
           let cleanJson = jsonStr.trim();
+          // Remove comentários JS //... ou /* ... */
+          cleanJson = cleanJson.replace(/\/\/.*$/gm, '');
+          cleanJson = cleanJson.replace(/\/\*[\s\S]*?\*\//g, '');
           // Remove pontos de milhar em números para evitar erro de JSON (ex: 2.800.000 -> 2800000)
           cleanJson = cleanJson.replace(/(\d+)\.(\d{3})\.(\d{3})(?:\.(\d{3}))?/g, '$1$2$3$4');
           cleanJson = cleanJson.replace(/(\d+)\.(\d{3})(?=[,\s\]\}])/g, '$1$2');
+          // Remove vírgulas residuais antes de fechar arrays ou objetos
+          cleanJson = cleanJson.replace(/,\s*([}\]])/g, '$1');
           
           const config = JSON.parse(cleanJson);
           chartConfigs.push({ id: chartId, config });
@@ -2419,7 +2424,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     </div>
                   </div>`;
         } catch(e) {
-          console.error("Erro ao analisar JSON do gráfico:", e);
+          console.error("Erro ao analisar JSON do gráfico:", e, jsonStr);
           return ''; // Não exibe bloco de código se falhar
         }
       });

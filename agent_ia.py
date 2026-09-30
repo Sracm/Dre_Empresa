@@ -988,6 +988,147 @@ def gerar_grafico(tipo="bar", titulo="Gráfico MQ Hair", labels=None, valores=No
         "instrucao": "Obrigatório: inclua o bloco_markdown fornecido diretamente na sua resposta para que o gráfico seja desenhado na tela!"
     }
 
+def extrair_dados_tabela_markdown(texto):
+    """
+    Extrai labels e valores numéricos de qualquer tabela Markdown presente no texto da resposta.
+    """
+    labels = []
+    valores = []
+    linhas = (texto or "").strip().split("\n")
+    for linha in linhas:
+        linha = linha.strip()
+        if not linha.startswith("|") or "---" in linha:
+            continue
+        partes = [p.strip() for p in linha.split("|") if p.strip()]
+        if len(partes) >= 2:
+            col_label = partes[0].replace("**", "").replace("(-)", "").replace("(=)", "").strip()
+            # Ignora cabeçalhos comuns
+            if any(h in col_label.lower() for h in ["descrição", "descricao", "indicador", "conta", "item", "centro de custo", "empresa"]):
+                continue
+            
+            val_num = None
+            cols_candidatas = list(range(1, len(partes)))
+            if len(partes) >= 3:
+                cols_candidatas = [2, 1] + [i for i in range(3, len(partes))]
+            
+            for idx in cols_candidatas:
+                if idx < len(partes):
+                    v_str = partes[idx].replace("**", "").replace("R$", "").replace("%", "").strip()
+                    v_clean = v_str.replace(".", "").replace(",", ".")
+                    try:
+                        num = abs(float(v_clean))
+                        if num > 0:
+                            val_num = num
+                            break
+                    except Exception:
+                        pass
+            
+            if val_num is not None:
+                labels.append(col_label)
+                valores.append(val_num)
+                
+    return labels, valores
+
+def auto_injetar_bloco_grafico(prompt, texto_resposta, dados_ferramenta=None):
+    """
+    Constrói o bloco ```chart ... ``` caso o usuário tenha solicitado um gráfico
+    mas a resposta textual do LLM não tenha emitido o bloco de renderização.
+    """
+    p = (prompt or "").lower()
+    quer_grafico = any(k in p for k in ["gráfico", "grafico", "gráficos", "graficos", "graf"])
+    if not quer_grafico:
+        return None
+        
+    if "```chart" in texto_resposta or "```grafico" in texto_resposta:
+        return None
+
+    # Identifica tipo de gráfico
+    if "pizza" in p or "pie" in p:
+        chart_type = "pie"
+    elif "rosca" in p or "doughnut" in p or "donut" in p:
+        chart_type = "doughnut"
+    elif any(k in p for k in ["linha", "line", "evolu", "mês a mês", "mes a mes", "temporal"]):
+        chart_type = "line"
+    else:
+        chart_type = "bar"
+        
+    labels, valores = extrair_dados_tabela_markdown(texto_resposta)
+    legenda = "Realizado (R$)"
+    
+    # Se não extraiu da tabela Markdown, tenta extrair dos dados das ferramentas
+    if not labels and dados_ferramenta:
+        items_to_check = dados_ferramenta if isinstance(dados_ferramenta, list) else [("data", dados_ferramenta)]
+            
+        for fname, out_data in items_to_check:
+            if not isinstance(out_data, dict):
+                continue
+            if "historico_mensal" in out_data:
+                for h in out_data["historico_mensal"]:
+                    labels.append(h.get("mes_nome") or str(h.get("mes_num")))
+                    valores.append(abs(float(h.get("realizado", 0))))
+                if "conta_pesquisada" in out_data:
+                    legenda = f"{out_data['conta_pesquisada']} (R$)"
+                break
+            elif "linhas" in out_data and isinstance(out_data["linhas"], list):
+                for r in out_data["linhas"][:10]:
+                    nome_item = r.get("titulo") or r.get("conta") or r.get("descricao") or r.get("descrnat")
+                    if nome_item:
+                        labels.append(nome_item)
+                        valores.append(abs(float(r.get("realizado", 0))))
+                break
+            elif "maiores_estouros_reais" in out_data:
+                for est in out_data["maiores_estouros_reais"][:10]:
+                    labels.append(est.get("conta") or est.get("descrcencus", "Conta"))
+                    valores.append(abs(float(est.get("desvio_reais", 0))))
+                legenda = "Desvio / Estouro (R$)"
+                break
+            elif "titulos" in out_data:
+                for t in out_data["titulos"][:10]:
+                    labels.append(t.get("titulo", "Item"))
+                    valores.append(abs(float(t.get("realizado", 0))))
+                break
+                
+    if not labels or not valores:
+        return None
+        
+    # Limita a 10 itens para visualização limpa
+    labels = labels[:10]
+    valores = valores[:10]
+    
+    # Define título inteligente
+    titulo = "Gráfico Analítico DRE MQ Hair"
+    if "custo" in p or "despesa" in p:
+        titulo = "Divisão dos Custos e Despesas"
+    elif "venda" in p or "fatur" in p:
+        titulo = "Demonstrativo de Vendas"
+    elif "estour" in p or "desvio" in p:
+        titulo = "Maiores Desvios de Orçamento"
+    elif "folha" in p:
+        titulo = "Despesas com Pessoal e Benefícios"
+    elif "frete" in p:
+        titulo = "Evolução das Despesas de Frete"
+    elif "comiss" in p:
+        titulo = "Despesas com Comissões"
+        
+    ano_match = re.search(r'\b(202[3-9])\b', p)
+    ano_txt = ano_match.group(1) if ano_match else "2026"
+    for mes_nome in ["janeiro", "fevereiro", "março", "marco", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"]:
+        if mes_nome in p:
+            titulo += f" - {mes_nome.capitalize()}/{ano_txt}"
+            break
+        
+    chart_json = {
+        "type": chart_type,
+        "title": titulo,
+        "labels": labels,
+        "datasets": [{
+            "label": legenda,
+            "data": valores
+        }]
+    }
+    
+    return f"```chart\n{json.dumps(chart_json, ensure_ascii=False, indent=2)}\n```"
+
 def consultar_sql(query):
     """
     Executa consulta SELECT SQL livre no banco SQLite (tabela dre_data).
@@ -1435,7 +1576,22 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "- **Regra Crítica de Percentuais de Margem:**\n"
         "  - `pct_sobre_vb_realizado`: Margem sobre a VENDA BRUTA Realizada (padrão principal da MQ Hair).\n"
         "  - `pct_sobre_vl_realizado`: Margem sobre a VENDA LÍQUIDA Realizada.\n"
-        "- **Geração de Gráficos Visuais:** Se o executivo solicitar expressamente um gráfico (ex: 'mostre em gráfico', 'gráfico de barras', 'gráfico de evolução', 'gere um gráfico'), acione a ferramenta `gerar_grafico` com os dados levantados. NUNCA gere códigos de linguagens de programação (como ```python, ```javascript, ```sql ou ```html soltos).\n"
+        "- **Geração de Gráficos Visuais Interativos:** Se o executivo solicitar um gráfico (ex: 'mostre em gráfico', 'gráfico de pizza', 'gráfico de barras', 'gráfico de linhas', 'evolução em gráfico', 'divisão dos custos em gráfico'), você DEVE OBRIGATORIAMENTE incluir ao final da sua resposta o bloco no formato exato:\n"
+        "```chart\n"
+        "{\n"
+        '  "type": "pie",\n'
+        '  "title": "Título Executivo do Gráfico",\n'
+        '  "labels": ["Item 1", "Item 2", "Item 3"],\n'
+        '  "datasets": [{\n'
+        '    "label": "Realizado (R$)",\n'
+        '    "data": [349736.65, 287798.27, 204179.50]\n'
+        '  }]\n'
+        "}\n"
+        "```\n"
+        "Regras vitais para gráficos:\n"
+        "- Escolha o `type` adequado: 'pie' (pizza para divisão/composição percentual), 'doughnut' (rosca), 'bar' (barras para ranking/comparação), 'line' (linha para evolução temporal mês a mês).\n"
+        "- No array `data`, use SEMPRE números puros (float/int), positivos para custos/despesas (ex: 204179.50 em vez de -204.179,50), sem símbolos de moeda dentro do JSON.\n"
+        "- NUNCA escreva apenas 'gerando gráfico...' sem colocar o bloco ```chart {...}```. O bloco ```chart``` é a instrução direta que faz o gráfico Chart.js renderizar na tela.\n"
         "- **Proibição Absoluta de Alucinação:** Utilize estritamente os dados oficiais contábeis fornecidos no contexto ou retornados pelas ferramentas. NUNCA invente números."
     )
 
@@ -1521,6 +1677,7 @@ def processar_pergunta(prompt, contexto=None):
     ]
 
     blocos_graficos_gerados = []
+    ultimas_ferramentas_outputs = []
 
     for step in range(3):
         res, model_used = _executar_llm(messages, TOOLS_SCHEMA)
@@ -1549,11 +1706,16 @@ def processar_pergunta(prompt, contexto=None):
         tool_calls = asst_msg.get("tool_calls", [])
         if not tool_calls:
             texto_final = asst_msg.get("content") or "Análise concluída com sucesso."
-            quer_grafico = "gráfico" in prompt.lower() or "grafico" in prompt.lower()
-            if quer_grafico and blocos_graficos_gerados:
-                for bg in blocos_graficos_gerados:
-                    if bg and "```chart" not in texto_final and "```grafico" not in texto_final:
-                        texto_final = texto_final + "\n\n" + bg
+            quer_grafico = any(k in prompt.lower() for k in ["gráfico", "grafico", "gráficos", "graficos"])
+            if quer_grafico:
+                if blocos_graficos_gerados:
+                    for bg in blocos_graficos_gerados:
+                        if bg and "```chart" not in texto_final and "```grafico" not in texto_final:
+                            texto_final = texto_final + "\n\n" + bg
+                elif "```chart" not in texto_final and "```grafico" not in texto_final:
+                    bloco_auto = auto_injetar_bloco_grafico(prompt, texto_final, dados_ferramenta=ultimas_ferramentas_outputs)
+                    if bloco_auto:
+                        texto_final = texto_final + "\n\n" + bloco_auto
             return texto_final
 
         # Executa ferramentas
@@ -1620,6 +1782,8 @@ def processar_pergunta(prompt, contexto=None):
 
             else:
                 tool_output = {"error": f"Ferramenta desconhecida: {fname}"}
+
+            ultimas_ferramentas_outputs.append((fname, tool_output))
 
             messages.append({
                 "role": "tool",
@@ -1828,6 +1992,14 @@ def stream_processar_pergunta(prompt, contexto=None):
             texto_total += token
             yield {"tipo": "token", "texto": token}
 
+        # Auto-injeção se o usuário pediu gráfico
+        quer_grafico = any(k in p_lower for k in ["gráfico", "grafico", "gráficos", "graficos"])
+        if quer_grafico and "```chart" not in texto_total and "```grafico" not in texto_total:
+            bloco_auto = auto_injetar_bloco_grafico(prompt, texto_total, dados_ferramenta=[("dados_pre", dados_pre)])
+            if bloco_auto:
+                texto_total += "\n\n" + bloco_auto
+                yield {"tipo": "token", "texto": "\n\n" + bloco_auto}
+
         if texto_total.strip():
             yield {"tipo": "fim", "resposta_completa": texto_total}
             return
@@ -1952,6 +2124,7 @@ def stream_processar_pergunta(prompt, contexto=None):
 
     messages.append(asst_msg)
     blocos_graficos_gerados = []
+    ultimas_ferramentas_outputs = []
     for tc in tool_calls:
         fname = tc.get("function", {}).get("name")
         call_id = tc.get("id")
@@ -1987,6 +2160,8 @@ def stream_processar_pergunta(prompt, contexto=None):
         else:
             out = {"error": f"Ferramenta desconhecida: {fname}"}
 
+        ultimas_ferramentas_outputs.append((fname, out))
+
         messages.append({
             "role": "tool",
             "tool_call_id": call_id,
@@ -2000,11 +2175,18 @@ def stream_processar_pergunta(prompt, contexto=None):
         texto_total += token
         yield {"tipo": "token", "texto": token}
 
-    quer_grafico = "gráfico" in p_lower or "grafico" in p_lower
-    if quer_grafico and blocos_graficos_gerados:
-        for bg in blocos_graficos_gerados:
-            if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
-                extra = "\n\n" + bg
+    quer_grafico = any(k in p_lower for k in ["gráfico", "grafico", "gráficos", "graficos"])
+    if quer_grafico:
+        if blocos_graficos_gerados:
+            for bg in blocos_graficos_gerados:
+                if bg and "```chart" not in texto_total and "```grafico" not in texto_total:
+                    extra = "\n\n" + bg
+                    texto_total += extra
+                    yield {"tipo": "token", "texto": extra}
+        elif "```chart" not in texto_total and "```grafico" not in texto_total:
+            bloco_auto = auto_injetar_bloco_grafico(prompt, texto_total, dados_ferramenta=ultimas_ferramentas_outputs)
+            if bloco_auto:
+                extra = "\n\n" + bloco_auto
                 texto_total += extra
                 yield {"tipo": "token", "texto": extra}
 
