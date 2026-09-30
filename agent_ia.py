@@ -1435,8 +1435,7 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "- **Regra Crítica de Percentuais de Margem:**\n"
         "  - `pct_sobre_vb_realizado`: Margem sobre a VENDA BRUTA Realizada (padrão principal da MQ Hair).\n"
         "  - `pct_sobre_vl_realizado`: Margem sobre a VENDA LÍQUIDA Realizada.\n"
-        "  - Ao citar percentuais, especifique SEMPRE a base: 'X% sobre a Venda Bruta' ou 'Y% sobre a Venda Líquida'.\n"
-        "- **Proibição Absoluta de Blocos de Código e Scripts:** NUNCA gere blocos de código (como ```chart, ```json, ```javascript, ```python). Responda com texto executivo puro formatado em Markdown com tabelas e negrito.\n"
+        "- **Geração de Gráficos Visuais:** Se o executivo solicitar expressamente um gráfico (ex: 'mostre em gráfico', 'gráfico de barras', 'gráfico de evolução', 'gere um gráfico'), acione a ferramenta `gerar_grafico` com os dados levantados. NUNCA gere códigos de linguagens de programação (como ```python, ```javascript, ```sql ou ```html soltos).\n"
         "- **Proibição Absoluta de Alucinação:** Utilize estritamente os dados oficiais contábeis fornecidos no contexto ou retornados pelas ferramentas. NUNCA invente números."
     )
 
