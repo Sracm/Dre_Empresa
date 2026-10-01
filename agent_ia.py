@@ -246,13 +246,13 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
     where_str = " AND ".join(where)
 
     # 1. Venda Bruta
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND titulo = '1.Venda Bruta'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND titulo = '1.Venda Bruta'", params)
     r_vb = cur.fetchone() or {"orc": 0.0, "real": 0.0}
     vb_orc = r_vb["orc"] or 0.0
     vb_real = r_vb["real"] or 0.0
 
     # 2. Blocos DRE
-    cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} GROUP BY bloco", params)
+    cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} GROUP BY bloco", params)
     blocos = {r["bloco"]: {"orc": r["orc"] or 0.0, "real": r["real"] or 0.0} for r in cur.fetchall()}
 
     vl = blocos.get("1.Venda Liquida", {"orc": 0.0, "real": 0.0})
@@ -268,28 +268,28 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
 
     # 3. Cards Específicos do Cabeçalho (Idênticos ao app.js)
     # 3.1 Bonificação (Bonificação Clientes)
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%bonifica%' AND lower(titulo) LIKE '%client%'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%bonifica%%' AND lower(titulo) LIKE '%%client%%'", params)
     r_bonif = cur.fetchone() or {"orc": 0.0, "real": 0.0}
     if not r_bonif["real"] and not r_bonif["orc"]:
-        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%bonifica%'", params)
+        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%bonifica%%'", params)
         r_bonif = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
     # 3.2 Comissão (Comissões)
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(bloco) LIKE '%despesas com vendas%' AND lower(titulo) LIKE '%comiss%'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(bloco) LIKE '%%despesas com vendas%%' AND lower(titulo) LIKE '%%comiss%%'", params)
     r_comiss = cur.fetchone() or {"orc": 0.0, "real": 0.0}
     if not r_comiss["real"] and not r_comiss["orc"]:
-        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%comiss%'", params)
+        cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%comiss%%'", params)
         r_comiss = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
     # 3.3 Guelta
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%guelta%'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%guelta%%'", params)
     r_guelta = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
     # 3.4 Folha de Pagamento e Benefícios (Administrativa + Comercial)
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%folha%' AND lower(titulo) NOT LIKE '%comercial%'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%folha%%' AND lower(titulo) NOT LIKE '%%comercial%%'", params)
     r_folha_adm = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%folha%' AND lower(titulo) LIKE '%comercial%'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND lower(titulo) LIKE '%%folha%%' AND lower(titulo) LIKE '%%comercial%%'", params)
     r_folha_com = cur.fetchone() or {"orc": 0.0, "real": 0.0}
 
     folha_total_orc = (r_folha_adm["orc"] or 0.0) + (r_folha_com["orc"] or 0.0)
@@ -503,7 +503,7 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
 
     termo_busca = mapa.get(bloco_limpo, bloco)
 
-    where = ["ano = %s", "mes = %s", "codcencus != 21010000", "bloco LIKE ?"]
+    where = ["ano = %s", "mes = %s", "codcencus != 21010000", "bloco LIKE %s"]
     params = [ano, mes, f"%{termo_busca}%"]
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
         where.append("empresa = %s")
@@ -512,7 +512,7 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
     where_str = " AND ".join(where)
 
     cur.execute(f"""
-        SELECT titulo, SUM(orcado) as orc, SUM(realizado) as real 
+        SELECT titulo, SUM(orcado) as orc, SUM(realizado) as `real` 
         FROM dre_data 
         WHERE {where_str} 
         GROUP BY titulo 
@@ -575,11 +575,11 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
         where.append("empresa = %s")
         params.append(str(empresa).strip())
 
-    where.append("(bloco LIKE '%Despesas%' OR bloco LIKE '%Custo%')")
+    where.append("(bloco LIKE '%%Despesas%%' OR bloco LIKE '%%Custo%%')")
     where_str = " AND ".join(where)
 
     query = f"""
-        SELECT titulo, bloco, SUM(orcado) as orc, SUM(realizado) as real
+        SELECT titulo, bloco, SUM(orcado) as orc, SUM(realizado) as `real`
         FROM dre_data
         WHERE {where_str}
         GROUP BY titulo
@@ -646,7 +646,7 @@ def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
         where.append("titulo = '1.Venda Bruta'")
 
     cur.execute(f"""
-        SELECT empresa, SUM(orcado) as orc, SUM(realizado) as real
+        SELECT empresa, SUM(orcado) as orc, SUM(realizado) as `real`
         FROM dre_data
         WHERE {' AND '.join(where)}
         GROUP BY empresa
@@ -686,7 +686,7 @@ def analisar_estouros_orcamento(ano=2026, mes=8, apenas_estouros=True):
     query = """
         SELECT codcencus, descrcencus, 
                SUM(orcado) as orc, 
-               SUM(realizado) as real,
+               SUM(realizado) as `real`,
                (SUM(realizado) - SUM(orcado)) as dif
         FROM dre_data
         WHERE ano=? AND mes=? AND codcencus != 21010000 
@@ -757,10 +757,10 @@ def consultar_conta_historico(conta, ano=2026):
         termo = "impost"
 
     query = """
-        SELECT mes, SUM(orcado) as orc, SUM(realizado) as real
+        SELECT mes, SUM(orcado) as orc, SUM(realizado) as `real`
         FROM dre_data
         WHERE ano=? AND codcencus != 21010000
-          AND (lower(descrnat) LIKE ? OR lower(titulo) LIKE ?)
+          AND (lower(descrnat) LIKE %s OR lower(titulo) LIKE %s)
         GROUP BY mes
         ORDER BY mes ASC
     """
@@ -926,13 +926,13 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
     where_str = " AND ".join(where)
 
     # 1. Venda Bruta
-    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} AND titulo = '1.Venda Bruta'", params)
+    cur.execute(f"SELECT SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} AND titulo = '1.Venda Bruta'", params)
     r_vb = cur.fetchone() or {"orc": 0.0, "real": 0.0}
     vb_orc = r_vb["orc"] or 0.0
     vb_real = r_vb["real"] or 0.0
 
     # 2. Totais por Bloco
-    cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as real FROM dre_data WHERE {where_str} GROUP BY bloco", params)
+    cur.execute(f"SELECT bloco, SUM(orcado) as orc, SUM(realizado) as `real` FROM dre_data WHERE {where_str} GROUP BY bloco", params)
     blocos = {r["bloco"]: {"orc": r["orc"] or 0.0, "real": r["real"] or 0.0} for r in cur.fetchall()}
 
     vl = blocos.get("1.Venda Liquida", {"orc": 0.0, "real": 0.0})
@@ -986,7 +986,7 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
 
     # Detalhamento de títulos importantes (Frete, Comissões, Bonificação, Guelta, Folha, Impostos)
     cur.execute(f"""
-        SELECT titulo, SUM(orcado) as orc, SUM(realizado) as real 
+        SELECT titulo, SUM(orcado) as orc, SUM(realizado) as `real` 
         FROM dre_data 
         WHERE {where_str} AND (abs(orcado) > 0.01 OR abs(realizado) > 0.01) 
         GROUP BY titulo 
@@ -1044,21 +1044,21 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
 
     if is_conta:
         filtro_conta = "comiss" if "comiss" in c_lower else ("bonif" if "bonif" in c_lower else ("guelta" if "guelta" in c_lower else ("folha" if "folha" in c_lower or "salario" in c_lower else c_lower)))
-        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)"]
+        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(titulo) LIKE %s OR lower(descrnat) LIKE %s)"]
         params = [ano, mes, f"%{filtro_conta}%", f"%{filtro_conta}%"]
     else:
-        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(descrcencus) LIKE ? OR codcencus LIKE ?)"]
+        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(descrcencus) LIKE %s OR codcencus LIKE %s)"]
         params = [ano, mes, f"%{c_lower}%", f"%{centro_custo}%"]
 
         if filtro_conta:
             f_lower = str(filtro_conta).strip().lower()
             if "comiss" in f_lower: f_lower = "comiss"
             elif "bonif" in f_lower: f_lower = "bonif"
-            where.append("(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)")
+            where.append("(lower(titulo) LIKE %s OR lower(descrnat) LIKE %s)")
             params.extend([f"%{f_lower}%", f"%{f_lower}%"])
 
     query = f"""
-        SELECT bloco, titulo, descrnat, SUM(orcado) as orc, SUM(realizado) as real
+        SELECT bloco, titulo, descrnat, SUM(orcado) as orc, SUM(realizado) as `real`
         FROM dre_data
         WHERE {' AND '.join(where)}
         GROUP BY bloco, titulo, descrnat
