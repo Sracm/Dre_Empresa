@@ -1893,7 +1893,7 @@ def processar_pergunta(prompt, contexto=None):
         saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
         return (
             f"{saudacao_str} Sou o **Agente de Inteligência Executiva e Controladoria Corporativa** da **MQ Hair Company**.\n\n"
-            f"Estou integrado à base de dados oficial da Controladoria para o exercício **{ano_ctx}** ({periodo_label_info}) com foco em **DRE, aderência orçamentária e rentabilidade**.\n\n"
+            f"Estou integrado à base de dados oficial da Controladoria para o exercício do ano atual com foco em **DRE, aderência orçamentária e rentabilidade**.\n\n"
             f"**Demandas executivas prontas para consulta:**\n"
             f"- 📊 **Estratégico & Resultados Globais:** *\"Qual foi a Venda Bruta e a Margem em {periodo_label_info}?\"*\n"
             f"- ⚠️ **Finanças & Orçamento:** *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
@@ -2085,7 +2085,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         saudacao_str = f"{saudacao_periodo}!" if not nome_usuario else f"{saudacao_periodo}, **{nome_usuario}**!"
         resposta_saudacao = (
             f"{saudacao_str} Sou o **Agente de Inteligência Executiva e Controladoria Corporativa** da **MQ Hair Company**.\n\n"
-            f"Estou integrado à base de dados oficial da Controladoria para o exercício **{ano_ctx}** ({periodo_label_info}) com foco em **DRE, aderência orçamentária e rentabilidade**.\n\n"
+            f"Estou integrado à base de dados oficial da Controladoria para o exercício do ano atual com foco em **DRE, aderência orçamentária e rentabilidade**.\n\n"
             f"**Demandas executivas prontas para consulta:**\n"
             f"- 📊 **Estratégico & Resultados Globais:** *\"Qual foi a Venda Bruta e a Margem em {periodo_label_info}?\"*\n"
             f"- ⚠️ **Finanças & Orçamento:** *\"Quais centros de custo estouraram o orçamento neste mês?\"*\n"
