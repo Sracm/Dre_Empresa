@@ -7,6 +7,7 @@ Garante precisão contábil e matemática de 100% sobre Orçado, Realizado e Des
 """
 
 import os
+from datetime import datetime
 from db import get_db_connection
 import time
 import sqlite3
@@ -1832,8 +1833,9 @@ def processar_pergunta(prompt, contexto=None):
     """
     Processa a pergunta do usuário no Chat da IA com Function Calling do Mistral.
     """
-    ano_ctx = 2026
-    mes_ctx = 8
+    hoje = datetime.now()
+    ano_ctx = hoje.year
+    mes_ctx = hoje.month
     emp_ctx = "Consolidado"
 
     contexto_str = ""
@@ -2027,8 +2029,9 @@ def stream_processar_pergunta(prompt, contexto=None):
     Processa a pergunta do usuário transmitindo a resposta em tempo real via Server-Sent Events (SSE).
     Efeito 'máquina de escrever' com Time-To-First-Token ultrarrápido (< 500ms).
     """
-    ano_ctx = 2026
-    mes_ctx = 8
+    hoje = datetime.now()
+    ano_ctx = hoje.year
+    mes_ctx = hoje.month
     emp_ctx = "Consolidado"
 
     if contexto:
