@@ -131,8 +131,8 @@ def extrair_mes(cur, view_texto_cortado, ano, mes):
     cur.execute(sql, dt_ini=dt_ini, dt_fim=dt_fim, cenc_excl=EXCLUDED_CODCENCUS, emp_excl=EXCLUDED_CODEMP)
     return cur.fetchall()
 
-def salvar_mes_sqlite(conn, ano, mes, rows, emp_map, caddre):
-    """Mapeia e salva os registros de um mês em dre_data e dre_resumo_mensal."""
+def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre):
+    """Mapeia e salva os registros de um mês em dre_data e dre_resumo_mensal no MariaDB."""
     permitidas = set(ALLOWED_COMPANIES)
     batch = []
 
@@ -162,32 +162,34 @@ def salvar_mes_sqlite(conn, ano, mes, rows, emp_map, caddre):
             orc * fator, real * fator, 0.0, 0.0
         ))
 
-    # Atualiza dre_data para o mês
-    conn.execute("DELETE FROM dre_data WHERE ano = %s AND mes = %s", (ano, mes))
-    conn.executemany("""
-        INSERT INTO dre_data
-        (ano,mes,trimestre,semestre,empresa,codcencus,descrcencus,
-         bloco,titulo,descrnat,orcado,realizado,vb_orcado,vb_realizado)
-        VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
-    """, batch)
+    with conn.cursor() as cur:
+        # Atualiza dre_data para o mês
+        cur.execute("DELETE FROM dre_data WHERE ano = %s AND mes = %s", (ano, mes))
+        if batch:
+            cur.executemany("""
+                INSERT INTO dre_data
+                (ano,mes,trimestre,semestre,empresa,codcencus,descrcencus,
+                 bloco,titulo,descrnat,orcado,realizado,vb_orcado,vb_realizado)
+                VALUES (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)
+            """, batch)
 
-    # Atualiza dre_resumo_mensal para o mês
-    conn.execute("DELETE FROM dre_resumo_mensal WHERE ano = %s AND mes = %s", (ano, mes))
-    conn.execute("""
-        INSERT INTO dre_resumo_mensal (ano, mes, empresa, codcencus, bloco, realizado, orcado)
-        SELECT ano, mes, empresa, codcencus, bloco, SUM(realizado), SUM(orcado)
-        FROM dre_data
-        WHERE ano = %s AND mes = %s
-        GROUP BY ano, mes, empresa, codcencus, bloco
-    """, (ano, mes))
+        # Atualiza dre_resumo_mensal para o mês
+        cur.execute("DELETE FROM dre_resumo_mensal WHERE ano = %s AND mes = %s", (ano, mes))
+        cur.execute("""
+            INSERT INTO dre_resumo_mensal (ano, mes, empresa, codcencus, bloco, realizado, orcado)
+            SELECT ano, mes, empresa, codcencus, bloco, SUM(realizado), SUM(orcado)
+            FROM dre_data
+            WHERE ano = %s AND mes = %s
+            GROUP BY ano, mes, empresa, codcencus, bloco
+        """, (ano, mes))
 
-    # Garante ano nos filtros
-    conn.execute("INSERT OR IGNORE INTO dre_filtros_anos (ano) VALUES (%s)", (ano,))
-    conn.commit()
+        # Garante ano nos filtros
+        cur.execute("INSERT IGNORE INTO dre_filtros_anos (ano) VALUES (%s)", (ano,))
+        conn.commit()
     return len(batch)
 
 def _executar_sincronizacao(meses_para_sincronizar):
-    """Executa a sincronização dos meses especificados no Oracle."""
+    """Executa a sincronização dos meses especificados no Oracle gravando no MariaDB."""
     t0 = time.time()
     total_linhas = 0
     _set_status("running", 5, "Conectando ao banco Oracle Sankhya...", f"Total de {len(meses_para_sincronizar)} mês(es) a sincronizar.")
@@ -209,7 +211,7 @@ def _executar_sincronizacao(meses_para_sincronizar):
         for orig, novo in _CORTES:
             texto_norm = texto_norm.replace(orig, novo)
 
-        conn_sqlite = sqlite3.connect(DB_PATH, timeout=60.0)
+        conn_db = get_db_connection()
 
         passo = 60 // len(meses_para_sincronizar)
         for idx, (ano_s, mes_s) in enumerate(meses_para_sincronizar):
@@ -218,11 +220,11 @@ def _executar_sincronizacao(meses_para_sincronizar):
             
             rows = extrair_mes(cur, texto_norm, ano_s, mes_s)
             
-            _set_status("running", pct_atual + (passo // 2), f"Gravando {ano_s}/{mes_s:02d} no cache local...", f"{len(rows)} linhas lidas do Oracle.")
-            linhas_mes = salvar_mes_sqlite(conn_sqlite, ano_s, mes_s, rows, emp_map, caddre)
+            _set_status("running", pct_atual + (passo // 2), f"Gravando {ano_s}/{mes_s:02d} no MariaDB...", f"{len(rows)} linhas lidas do Oracle.")
+            linhas_mes = salvar_mes_mariadb(conn_db, ano_s, mes_s, rows, emp_map, caddre)
             total_linhas += linhas_mes
 
-        conn_sqlite.close()
+        conn_db.close()
         oc.close()
 
         duracao = time.time() - t0
