@@ -2,3 +2,5 @@ flask
 openpyxl
 oracledb
 requests
+pymysql
+python-dotenv

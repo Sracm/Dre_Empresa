@@ -7,6 +7,7 @@ Garante precisão contábil e matemática de 100% sobre Orçado, Realizado e Des
 """
 
 import os
+from db import get_db_connection
 import time
 import sqlite3
 import requests
@@ -213,8 +214,7 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
     Retorna o resumo executivo oficial e consolidado do DRE para um mês e ano específicos ou acumulado anual.
     Calcula Venda Bruta, Venda Líquida, CMV, Margem de Contribuição e todas as Despesas Operacionais.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -223,7 +223,7 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
         ano = 2026
 
     if mes is None or str(mes).strip().lower() in ("0", "none", "all", "ano", "anual", "acumulado", "ytd"):
-        where = ["ano = ?", "codcencus != 21010000"]
+        where = ["ano = %s", "codcencus != 21010000"]
         params = [ano]
         cur.execute("SELECT MAX(mes) as max_m FROM dre_data WHERE ano=? AND abs(realizado) > 0.01", [ano])
         row_max = cur.fetchone()
@@ -234,12 +234,12 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
             mes = int(mes)
         except Exception:
             mes = 8
-        where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
+        where = ["ano = %s", "mes = %s", "codcencus != 21010000"]
         params = [ano, mes]
         periodo_label = f"{mes:02d}/{ano}"
 
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
-        where.append("empresa = ?")
+        where.append("empresa = %s")
         params.append(str(empresa).strip())
 
     where_str = " AND ".join(where)
@@ -475,8 +475,7 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
     """
     Detalha os títulos contábeis de um bloco específico da DRE.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -503,10 +502,10 @@ def detalhar_bloco(bloco, ano=2026, mes=8, empresa=None):
 
     termo_busca = mapa.get(bloco_limpo, bloco)
 
-    where = ["ano = ?", "mes = ?", "codcencus != 21010000", "bloco LIKE ?"]
+    where = ["ano = %s", "mes = %s", "codcencus != 21010000", "bloco LIKE ?"]
     params = [ano, mes, f"%{termo_busca}%"]
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
-        where.append("empresa = ?")
+        where.append("empresa = %s")
         params.append(str(empresa).strip())
 
     where_str = " AND ".join(where)
@@ -549,8 +548,7 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
     - 5.Despesas Administrativa Operacional
     Garante valores 100% fiéis ao banco de dados SQLite oficial.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -558,13 +556,13 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
     except Exception:
         ano = 2026
 
-    where = ["ano = ?", "codcencus != 21010000"]
+    where = ["ano = %s", "codcencus != 21010000"]
     params = [ano]
 
     if mes is not None and str(mes).strip().lower() not in ("0", "none", "all", "ano", "anual", "acumulado", "ytd"):
         try:
             mes = int(mes)
-            where.append("mes = ?")
+            where.append("mes = %s")
             params.append(mes)
             periodo_label = f"{mes:02d}/{ano}"
         except Exception:
@@ -573,7 +571,7 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
         periodo_label = f"Acumulado {ano}"
 
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
-        where.append("empresa = ?")
+        where.append("empresa = %s")
         params.append(str(empresa).strip())
 
     where.append("(bloco LIKE '%Despesas%' OR bloco LIKE '%Custo%')")
@@ -618,8 +616,7 @@ def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
     """
     Retorna o comparativo/ranking de todas as empresas da MQ Hair para um indicador financeiro específico.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -628,7 +625,7 @@ def comparar_empresas(indicador="venda_bruta", ano=2026, mes=8):
     except Exception:
         ano, mes = 2026, 8
 
-    where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
+    where = ["ano = %s", "mes = %s", "codcencus != 21010000"]
     params = [ano, mes]
 
     ind = str(indicador).strip().lower()
@@ -676,8 +673,7 @@ def analisar_estouros_orcamento(ano=2026, mes=8, apenas_estouros=True):
     Identifica com precisão cirúrgica quais centros de custo/resultados ESTOURARAM o orçamento
     em custos e despesas operacionais (blocos 2, 3, 4 e 5).
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -732,8 +728,7 @@ def consultar_conta_historico(conta, ano=2026):
     Retorna a evolução mês a mês (Janeiro a Dezembro) de uma conta contábil ou despesa específica.
     Exemplos: 'Aluguel', 'Frete', 'Comissões', 'Marketing', 'Energia', 'Impostos'.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -907,8 +902,7 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
     Calcula: Venda Bruta, Venda Líquida, CPV, Margem de Contribuição (R$ e %), Despesas de Vendas,
     Despesas Comerciais, Despesas Adm, Financeiro e Resultado Líquido Operacional (Margem Líquida R$ e %).
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -917,15 +911,15 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
     except Exception:
         ano, mes = 2026, 8
 
-    where = ["ano = ?", "mes = ?", "codcencus != 21010000"]
+    where = ["ano = %s", "mes = %s", "codcencus != 21010000"]
     params = [ano, mes]
 
     # Busca exata no descrcencus
-    where.append("descrcencus = ?")
+    where.append("descrcencus = %s")
     params.append(centro_custo)
 
     if empresa and str(empresa).strip().upper() not in ("ALL", "CONSOLIDAÇÃO", "CONSOLIDADO", "TODAS AS EMPRESAS", "TODAS", "NONE"):
-        where.append("empresa = ?")
+        where.append("empresa = %s")
         params.append(str(empresa).strip())
 
     where_str = " AND ".join(where)
@@ -1035,8 +1029,7 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
     Consulta os valores realizados e orçados de um centro de resultado específico.
     Exemplos de centro_custo: 'DISTRIBUICAO', 'VAREJO - SP', 'MERCADO LIVRE', 'LOGISTICA - SC'.
     """
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     cur = conn.cursor()
 
     try:
@@ -1050,10 +1043,10 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
 
     if is_conta:
         filtro_conta = "comiss" if "comiss" in c_lower else ("bonif" if "bonif" in c_lower else ("guelta" if "guelta" in c_lower else ("folha" if "folha" in c_lower or "salario" in c_lower else c_lower)))
-        where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)"]
+        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(titulo) LIKE ? OR lower(descrnat) LIKE ?)"]
         params = [ano, mes, f"%{filtro_conta}%", f"%{filtro_conta}%"]
     else:
-        where = ["ano = ?", "mes = ?", "codcencus != 21010000", "(lower(descrcencus) LIKE ? OR codcencus LIKE ?)"]
+        where = ["ano = %s", "mes = %s", "codcencus != 21010000", "(lower(descrcencus) LIKE ? OR codcencus LIKE ?)"]
         params = [ano, mes, f"%{c_lower}%", f"%{centro_custo}%"]
 
         if filtro_conta:
@@ -1360,8 +1353,7 @@ def consultar_sql(query):
         if p in query_clean.upper().split():
             return {"error": f"Comando '{p}' não é permitido por segurança."}
 
-    conn = sqlite3.connect(DB_PATH, timeout=10.0)
-    conn.row_factory = sqlite3.Row
+    conn = get_db_connection()
     try:
         cur = conn.cursor()
         cur.execute(query_clean)
