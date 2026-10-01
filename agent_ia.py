@@ -1826,7 +1826,9 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "- Escolha o `type` adequado: 'pie' (pizza para divisão/composição percentual), 'doughnut' (rosca), 'bar' (barras para ranking/comparação), 'line' (linha para evolução temporal mês a mês).\n"
         "- No array `data`, use SEMPRE números puros (float/int), positivos para custos/despesas (ex: 204179.50 em vez de -204.179,50), sem símbolos de moeda dentro do JSON.\n"
         "- NUNCA escreva apenas 'gerando gráfico...' sem colocar o bloco ```chart {...}```. O bloco ```chart``` é a instrução direta que faz o gráfico Chart.js renderizar na tela.\n"
-        "- **Proibição Absoluta de Alucinação:** Utilize estritamente os dados oficiais contábeis fornecidos no contexto ou retornados pelas ferramentas. NUNCA invente números."
+        "- **Proibição Absoluta de Alucinação:** Utilize estritamente os dados oficiais contábeis fornecidos no contexto ou retornados pelas ferramentas. NUNCA invente números.\n"
+        "- **Responder as Saudações:** Sempre responda adequadamente a saudações do usuário.\n"
+        "- **Restrição Rigorosa de Escopo:** NUNCA RESPONDA ALGO FORA DO CONTEXTO DE ARQUITETURA. Exemplo de resposta para bloqueio: NÃO POSSO RESPONDER ESSA PERGUNTA PORQUE ESTA FORA DO MEU CONTEXTO DE ANALISE."
     )
 
 def processar_pergunta(prompt, contexto=None):
