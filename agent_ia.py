@@ -226,7 +226,7 @@ def obter_resumo_dre(ano=2026, mes=None, empresa=None):
     if mes is None or str(mes).strip().lower() in ("0", "none", "all", "ano", "anual", "acumulado", "ytd"):
         where = ["ano = %s", "codcencus != 21010000"]
         params = [ano]
-        cur.execute("SELECT MAX(mes) as max_m FROM dre_data WHERE ano=? AND abs(realizado) > 0.01", [ano])
+        cur.execute("SELECT MAX(mes) as max_m FROM dre_data WHERE ano=%s AND abs(realizado) > 0.01", [ano])
         row_max = cur.fetchone()
         max_m = (row_max["max_m"] if row_max and row_max["max_m"] else 9)
         periodo_label = f"Acumulado {ano} (01 a {max_m:02d}/{ano})"
@@ -584,7 +584,7 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
         WHERE {where_str}
         GROUP BY titulo
         ORDER BY ABS(SUM(realizado)) DESC
-        LIMIT ?
+        LIMIT %s
     """
     params_lim = params + [int(limite)]
     cur.execute(query, params_lim)
@@ -689,7 +689,7 @@ def analisar_estouros_orcamento(ano=2026, mes=8, apenas_estouros=True):
                SUM(realizado) as `real`,
                (SUM(realizado) - SUM(orcado)) as dif
         FROM dre_data
-        WHERE ano=? AND mes=? AND codcencus != 21010000 
+        WHERE ano=%s AND mes=%s AND codcencus != 21010000 
           AND bloco IN ('2.Custo Mercadoria Vendida', '3.Despesas com Vendas', '4.Despesas Comercial Operacional', '5.Despesas Administrativa Operacional')
         GROUP BY codcencus, descrcencus
     """
@@ -759,7 +759,7 @@ def consultar_conta_historico(conta, ano=2026):
     query = """
         SELECT mes, SUM(orcado) as orc, SUM(realizado) as `real`
         FROM dre_data
-        WHERE ano=? AND codcencus != 21010000
+        WHERE ano=%s AND codcencus != 21010000
           AND (lower(descrnat) LIKE %s OR lower(titulo) LIKE %s)
         GROUP BY mes
         ORDER BY mes ASC
