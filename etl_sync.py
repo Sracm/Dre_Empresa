@@ -91,9 +91,12 @@ def conectar_oracle():
     return conn
 
 def carregar_dimensoes(cur):
-    """Carrega empresas e CADDRE em poucos segundos."""
+    """Carrega empresas, naturezas e CADDRE em poucos segundos."""
     cur.execute("SELECT CODEMP, RAZAOABREV FROM SANKHYA.VMQ_TSIEMP ORDER BY CODEMP")
     emp_map = {int(r[0]): str(r[1]) for r in cur.fetchall() if r[0] is not None}
+
+    cur.execute("SELECT CODNAT, DESCRNAT FROM SANKHYA.TGFNAT")
+    nat_map = {int(r[0]): str(r[1]).strip() for r in cur.fetchall() if r[0] is not None and r[1]}
 
     cur.arraysize = 10000
     cur.execute("SELECT BLOCO, TITULO, CODNAT, CODCENCUS, FATOR, REF FROM SANKHYA.VMQ_CADDRE")
@@ -107,7 +110,7 @@ def carregar_dimensoes(cur):
             "fator": float(fator) if fator else 1.0,
             "ref": ref_val
         }
-    return emp_map, caddre
+    return emp_map, caddre, nat_map
 
 def extrair_mes(cur, view_texto_cortado, ano, mes):
     """Extrai um mês agregando por empresa, centro, natureza e ref com os filtros oficiais."""
@@ -131,7 +134,7 @@ def extrair_mes(cur, view_texto_cortado, ano, mes):
     cur.execute(sql, dt_ini=dt_ini, dt_fim=dt_fim, cenc_excl=EXCLUDED_CODCENCUS, emp_excl=EXCLUDED_CODEMP)
     return cur.fetchall()
 
-def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre):
+def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map):
     """Mapeia e salva os registros de um mês em dre_data e dre_resumo_mensal no MariaDB."""
     permitidas = set(ALLOWED_COMPANIES)
     batch = []
@@ -155,10 +158,11 @@ def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre):
             continue
             
         fator = info["fator"]
+        descr_natureza = nat_map.get(int(codnat), str(codnat)) if codnat else ""
         batch.append((
             ano, mes, trimestre(mes), semestre(mes),
             emp_nome, codcencus, "",
-            info["bloco"], info["titulo"], str(codnat),
+            info["bloco"], info["titulo"], descr_natureza,
             orc * fator, real * fator, 0.0, 0.0
         ))
 
@@ -200,7 +204,7 @@ def _executar_sincronizacao(meses_para_sincronizar):
         cur = oc.cursor()
 
         _set_status("running", 15, "Carregando plano de contas e empresas...", "Lendo CADDRE e mapeamento de empresas.")
-        emp_map, caddre = carregar_dimensoes(cur)
+        emp_map, caddre, nat_map = carregar_dimensoes(cur)
 
         _set_status("running", 25, "Preparando consulta otimizada da view VMQ_DREQLIK...", "Injetando cortes temporais nos índices de data.")
         cur.execute("SELECT text FROM all_views WHERE owner = 'SANKHYA' AND view_name = 'VMQ_DREQLIK'")
@@ -221,7 +225,7 @@ def _executar_sincronizacao(meses_para_sincronizar):
             rows = extrair_mes(cur, texto_norm, ano_s, mes_s)
             
             _set_status("running", pct_atual + (passo // 2), f"Gravando {ano_s}/{mes_s:02d} no MariaDB...", f"{len(rows)} linhas lidas do Oracle.")
-            linhas_mes = salvar_mes_mariadb(conn_db, ano_s, mes_s, rows, emp_map, caddre)
+            linhas_mes = salvar_mes_mariadb(conn_db, ano_s, mes_s, rows, emp_map, caddre, nat_map)
             total_linhas += linhas_mes
 
         conn_db.close()
