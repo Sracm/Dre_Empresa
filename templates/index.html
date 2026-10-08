@@ -11,7 +11,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20260929_v6" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261008_lastupdate" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260929_v6" />
 </head>
 <body class="dre-empresa-app">
@@ -31,7 +31,10 @@
     </div>
   </div>
   <div class="header-actions">
-    <div class="last-update" id="lastUpdate">Carregando…</div>
+    <div class="header-meta-info" id="headerMetaInfo" title="Carga automática diária do ETL às 21:00">
+      <div class="last-update" id="lastUpdate">Última atualização: --/--/---- --:--:--</div>
+      <div class="next-update" id="nextUpdate">Próxima atualização em: --:--:--</div>
+    </div>
     <a href="http://localhost:5080/portal" class="btn-admin-header" style="text-decoration: none;" title="Voltar ao Portal MQ">
       <span class="material-symbols-outlined" style="font-size: 18px;">grid_view</span>
       <span>Portal Intranet</span>
@@ -466,6 +469,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20260929_multimeses_v3"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20261008_fixcharts"></script>
 </body>
 </html>

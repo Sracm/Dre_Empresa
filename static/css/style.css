@@ -146,10 +146,30 @@ body {
   font-weight: 700;
 }
 
+.header-meta-info {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  line-height: 1.25;
+  padding: 0 4px;
+}
+
 .last-update {
-  color: var(--text-muted);
+  color: var(--text-secondary, #94a3b8);
   font-size: 11px;
   font-weight: 500;
+  letter-spacing: 0.2px;
+  white-space: nowrap;
+}
+
+.next-update {
+  color: var(--brand-secondary-dourado, #CB9727);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  white-space: nowrap;
 }
 
 .btn-refresh {

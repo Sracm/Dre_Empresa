@@ -142,6 +142,8 @@ function showToast(msg, type = '') {
 
 // ── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
+  iniciarContadorProximaCarga();
+  atualizarTimestamp();
   await carregarFiltros();
   carregarTudo(false, false); // Carga inicial rápida a partir do cache (sem barra de progresso e sem sincronização com GitHub)
 
@@ -1891,10 +1893,11 @@ function renderizarGraficoMensal(data) {
   const NOMES = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
   const porMes = {};
   data.forEach(r => {
-    const m = r.MES;
+    const m = Number(r.mes ?? r.MES);
+    if (!m) return;
     if (!porMes[m]) porMes[m] = { real: 0, orc: 0 };
-    porMes[m].real += Number(r.REALIZADO || 0);
-    porMes[m].orc  += Number(r.ORCADO    || 0);
+    porMes[m].real += Number(r.realizado ?? r.REALIZADO ?? 0);
+    porMes[m].orc  += Number(r.orcado ?? r.ORCADO ?? 0);
   });
 
   // Mostrar apenas até o mês atual/selecionado e excluir meses onde o realizado é igual a zero (evita poluição)
@@ -1960,10 +1963,11 @@ function renderizarGraficoAcumulado(data, mesFiltro, filtroNome) {
 
   const porMes = {};
   (data || []).forEach(r => {
-    const m = Number(r.MES);
+    const m = Number(r.mes ?? r.MES);
+    if (!m) return;
     if (!porMes[m]) porMes[m] = { real: 0, orc: 0 };
-    porMes[m].real += Number(r.REALIZADO || 0);
-    porMes[m].orc  += Number(r.ORCADO    || 0);
+    porMes[m].real += Number(r.realizado ?? r.REALIZADO ?? 0);
+    porMes[m].orc  += Number(r.orcado ?? r.ORCADO ?? 0);
   });
 
   const mMax = Math.min(Math.max(Number(mesFiltro) || 1, 1), 12);
@@ -2143,11 +2147,44 @@ function pctBadge(v) {
   return `<span class="pct-badge ${n>0?'pos':n<0?'neg':'neu'}">${fmtPct(n)}</span>`;
 }
 
-function atualizarTimestamp() {
-  document.getElementById('lastUpdate').textContent =
-    'Atualizado: ' + new Date().toLocaleString('pt-BR', {
-      day:'2-digit', month:'2-digit', year:'numeric', hour:'2-digit', minute:'2-digit'
-    });
+// ── Próxima atualização: contagem regressiva até a carga diária do ETL ───
+const ETL_HORA_CARGA = 21; // agendamento diário (21:00)
+let contadorProximaCarga = null;
+
+function proximaCargaETL() {
+  const agora = new Date();
+  const alvo = new Date(agora);
+  alvo.setHours(ETL_HORA_CARGA, 0, 0, 0);
+  if (alvo <= agora) alvo.setDate(alvo.getDate() + 1);
+  return alvo;
+}
+
+function renderProximaCarga() {
+  const el = document.getElementById('nextUpdate');
+  if (!el) return;
+  const seg = Math.max(0, Math.floor((proximaCargaETL() - new Date()) / 1000));
+  const h = String(Math.floor(seg / 3600)).padStart(2, '0');
+  const m = String(Math.floor((seg % 3600) / 60)).padStart(2, '0');
+  const s = String(seg % 60).padStart(2, '0');
+  el.textContent = `Próxima atualização em: ${h}:${m}:${s}`;
+}
+
+function iniciarContadorProximaCarga() {
+  if (contadorProximaCarga) return;
+  renderProximaCarga();
+  contadorProximaCarga = setInterval(renderProximaCarga, 1000);
+}
+
+function atualizarTimestamp(dataRef = null) {
+  const el = document.getElementById('lastUpdate');
+  if (!el) return;
+  iniciarContadorProximaCarga();
+  const ts = dataRef ? new Date(dataRef) : new Date();
+  state.dadosAtualizadosEm = ts.toISOString();
+  el.textContent = 'Última atualização: ' + ts.toLocaleString('pt-BR', {
+    day: '2-digit', month: '2-digit', year: 'numeric',
+    hour: '2-digit', minute: '2-digit', second: '2-digit'
+  });
 }
 
 // ── Export CSV ───────────────────────────────────────────────────────────
