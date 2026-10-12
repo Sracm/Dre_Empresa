@@ -12,7 +12,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261008_lastupdate" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20260929_v6" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20261012_adaptive_all_screens" />
 </head>
 <body class="dre-empresa-app">
 
@@ -457,7 +457,12 @@
     </div>
   </div>
   <div class="ai-chat-body" id="ai-chat-body">
-    <div class="ai-message ai">Olá! Sou a MQIA, estou pronta e à disposição para o diagnóstico de hoje. Qual indicador vamos analisar primeiro?</div>
+    <div class="ai-message ai">
+      <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>Bom dia!</strong></p>
+      <p style="margin: 0 0 8px 0;">Sou a <strong>MQIA</strong>.</p>
+      <p style="margin: 0 0 8px 0;">Minha análise cruza dados e objetivos para trazer clareza às suas decisões.</p>
+      <p style="margin: 0;">Estou pronta e à disposição para o diagnóstico de hoje. Por qual indicador começamos?</p>
+    </div>
   </div>
   <div class="ai-chat-footer">
     <input type="text" id="ai-chat-input" placeholder="Faça uma pergunta sobre a DRE..." />
@@ -469,6 +474,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20261008_fixcharts"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20261011_v2"></script>
 </body>
 </html>
