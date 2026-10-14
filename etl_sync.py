@@ -10,11 +10,13 @@ import sys
 import time
 import threading
 import datetime as dt
+import json
 import sqlite3
 import oracledb
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
 DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
+STATUS_FILE = os.path.join(BASE_DIR, "data_sync_status.json")
 
 ORACLE_USER = os.getenv("ORACLE_USER", "POWERBI")
 ORACLE_PASS = os.getenv("ORACLE_PASS", "@Yzmpq100#")
@@ -70,6 +72,24 @@ def _set_status(status, pct, msg, detalhe="", linhas=0, erro=None):
             _sync_status["linhas_afetadas"] = linhas
         if erro:
             _sync_status["erro"] = str(erro)
+
+def gravar_status_sync(motivo):
+    """Registra em data_sync_status.json o horário da última sincronização concluída com sucesso."""
+    ts = dt.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    with open(STATUS_FILE, "w", encoding="utf-8") as f:
+        json.dump({
+            "ultima_sincronizacao": ts,
+            "motivo": motivo,
+            "status": "sucesso"
+        }, f, indent=2, ensure_ascii=False)
+    return ts
+
+def ler_status_sync():
+    try:
+        with open(STATUS_FILE, encoding="utf-8") as f:
+            return json.load(f)
+    except (FileNotFoundError, json.JSONDecodeError):
+        return {"ultima_sincronizacao": None}
 
 def trimestre(mes):
     return f"Q{((int(mes)-1)//3)+1}"
@@ -192,7 +212,7 @@ def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map):
         conn.commit()
     return len(batch)
 
-def _executar_sincronizacao(meses_para_sincronizar):
+def _executar_sincronizacao(meses_para_sincronizar, motivo="sincronização DRE via botão Carregar"):
     """Executa a sincronização dos meses especificados no Oracle gravando no MariaDB."""
     t0 = time.time()
     total_linhas = 0
@@ -230,6 +250,8 @@ def _executar_sincronizacao(meses_para_sincronizar):
 
         conn_db.close()
         oc.close()
+
+        gravar_status_sync(motivo)
 
         duracao = time.time() - t0
         _set_status("success", 100, "Sincronização com Oracle concluída!",
@@ -290,6 +312,6 @@ def sincronizar_agora(ano=None, mes=None, modo="mes"):
     if not _reservar_execucao(meses):
         return False, "Uma sincronização já está em andamento no momento."
 
-    if _executar_sincronizacao(meses):
+    if _executar_sincronizacao(meses, motivo="auto: atualização diária do mês atual"):
         return True, get_sync_status()["detalhe"]
     return False, get_sync_status()["erro"] or "Erro desconhecido na sincronização."

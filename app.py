@@ -1268,20 +1268,9 @@ def exportar_excel():
 # ═══════════════════════════════════════════════════════════════════════════
 #  INTEGRAÇÃO GITHUB: AUTO-COMMIT & PUSH
 # ═══════════════════════════════════════════════════════════════════════════
-def _gravar_status_sync(motivo, status):
-    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    status_file = os.path.join(BASE_DIR, "data_sync_status.json")
-    with open(status_file, "w", encoding="utf-8") as f:
-        json.dump({
-            "ultima_sincronizacao": ts,
-            "motivo": motivo,
-            "status": status
-        }, f, indent=2, ensure_ascii=False)
-    return ts
-
 def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
     try:
-        ts = _gravar_status_sync(motivo, "sucesso")
+        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         # Adiciona arquivos do projeto garantindo que não suba arquivos pesados do .gitignore
         subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "static/css/components.css", "static/css/responsive.css", "app.py", "etl_sync.py"], cwd=BASE_DIR, check=False)
@@ -1306,7 +1295,6 @@ def _log_agendador(msg):
     print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ATUALIZAÇÃO DIÁRIA] {msg}", flush=True)
 
 def executar_atualizacao_diaria():
-    motivo = "auto: atualização diária do mês atual"
     agora = datetime.now()
     _log_agendador(f"Iniciando sincronização de {agora.month:02d}/{agora.year} com o Oracle...")
     try:
@@ -1314,10 +1302,8 @@ def executar_atualizacao_diaria():
         if ok:
             with _cache_lock:
                 _cache.clear()
-            _gravar_status_sync(motivo, "sucesso")
             _log_agendador(f"Sucesso: {msg} Cache limpo.")
         else:
-            _gravar_status_sync(f"{motivo} — {msg}", "erro")
             _log_agendador(f"Falha: {msg}")
     except Exception as e:
         _log_agendador(f"Exceção: {e}")
@@ -1377,6 +1363,10 @@ def rota_sincronizar_oracle():
         return jsonify({"status": "iniciado", "msg": msg})
     else:
         return jsonify({"status": "ocupado", "msg": msg}), 409
+
+@app.route("/api/dre/ultima-sincronizacao", methods=["GET"])
+def rota_ultima_sincronizacao():
+    return jsonify(etl_sync.ler_status_sync())
 
 @app.route("/api/dre/sincronizar-status", methods=["GET"])
 def rota_sincronizar_status():

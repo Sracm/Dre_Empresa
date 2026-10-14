@@ -143,7 +143,7 @@ function showToast(msg, type = '') {
 // ── Init ─────────────────────────────────────────────────────────────────
 document.addEventListener('DOMContentLoaded', async () => {
   iniciarContadorProximaCarga();
-  atualizarTimestamp();
+  carregarUltimaSincronizacao();
   await carregarFiltros();
   carregarTudo(false, false); // Carga inicial rápida a partir do cache (sem barra de progresso e sem sincronização com GitHub)
 
@@ -738,7 +738,7 @@ function onDRELoaded(data, somenteDoisMeses = false) {
   renderizarDRE();
   renderizarQuadroDesvios();
   atualizarKPIs();
-  atualizarTimestamp();
+  carregarUltimaSincronizacao();
   try { ReportProgressBar?.notifyPartDone?.('dre'); } catch (_) {}
   if (somenteDoisMeses) {
     showToast('Mês atual e anterior atualizados. Sincronizado no GitHub!', 'success');
@@ -2175,11 +2175,28 @@ function iniciarContadorProximaCarga() {
   contadorProximaCarga = setInterval(renderProximaCarga, 1000);
 }
 
+// Busca no backend a data da última sincronização com o Oracle (data_sync_status.json)
+async function carregarUltimaSincronizacao() {
+  try {
+    const res = await fetch('/api/dre/ultima-sincronizacao');
+    const data = await res.json();
+    atualizarTimestamp(data.ultima_sincronizacao);
+  } catch (err) {
+    console.warn('Erro ao buscar data da última sincronização:', err);
+    atualizarTimestamp(null);
+  }
+}
+
 function atualizarTimestamp(dataRef = null) {
   const el = document.getElementById('lastUpdate');
   if (!el) return;
   iniciarContadorProximaCarga();
-  const ts = dataRef ? new Date(dataRef) : new Date();
+  // "2026-10-14 21:00:05" → "2026-10-14T21:00:05" (horário local, aceito por todos os navegadores)
+  const ts = dataRef ? new Date(String(dataRef).replace(' ', 'T')) : null;
+  if (!ts || isNaN(ts)) {
+    el.textContent = 'Última atualização: --/--/---- --:--:--';
+    return;
+  }
   state.dadosAtualizadosEm = ts.toISOString();
   el.textContent = 'Última atualização: ' + ts.toLocaleString('pt-BR', {
     day: '2-digit', month: '2-digit', year: 'numeric',
