@@ -1268,16 +1268,20 @@ def exportar_excel():
 # ═══════════════════════════════════════════════════════════════════════════
 #  INTEGRAÇÃO GITHUB: AUTO-COMMIT & PUSH
 # ═══════════════════════════════════════════════════════════════════════════
+def _gravar_status_sync(motivo, status):
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    status_file = os.path.join(BASE_DIR, "data_sync_status.json")
+    with open(status_file, "w", encoding="utf-8") as f:
+        json.dump({
+            "ultima_sincronizacao": ts,
+            "motivo": motivo,
+            "status": status
+        }, f, indent=2, ensure_ascii=False)
+    return ts
+
 def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
     try:
-        ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        status_file = os.path.join(BASE_DIR, "data_sync_status.json")
-        with open(status_file, "w", encoding="utf-8") as f:
-            json.dump({
-                "ultima_sincronizacao": ts,
-                "motivo": motivo,
-                "status": "sucesso"
-            }, f, indent=2, ensure_ascii=False)
+        ts = _gravar_status_sync(motivo, "sucesso")
 
         # Adiciona arquivos do projeto garantindo que não suba arquivos pesados do .gitignore
         subprocess.run(["git", "add", "data_sync_status.json", "templates/index.html", "static/js/app.js", "static/css/style.css", "static/css/components.css", "static/css/responsive.css", "app.py", "etl_sync.py"], cwd=BASE_DIR, check=False)
@@ -1293,46 +1297,52 @@ def git_auto_commit_and_push(motivo="auto: sincronização DRE"):
         return False, str(e)
 
 # ═══════════════════════════════════════════════════════════════════════════
-#  ROTINA DE CARGA COMPLETA NOTURNA (TODAS AS NOITES ÀS 20:00 DESDE 2022)
+#  ATUALIZAÇÃO DIÁRIA AUTOMÁTICA (MÊS ATUAL, TODOS OS DIAS ÀS DRE_SYNC_HORA)
 # ═══════════════════════════════════════════════════════════════════════════
-def executar_carga_completa_dre():
-    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Iniciando carregamento completo do DRE desde 2022 via etl_oracle.py...", flush=True)
+# Manter em sincronia com ETL_HORA_CARGA em static/js/app.js (contador do frontend)
+DRE_SYNC_HORA = int(os.getenv("DRE_SYNC_HORA", "21"))
+
+def _log_agendador(msg):
+    print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [ATUALIZAÇÃO DIÁRIA] {msg}", flush=True)
+
+def executar_atualizacao_diaria():
+    motivo = "auto: atualização diária do mês atual"
+    agora = datetime.now()
+    _log_agendador(f"Iniciando sincronização de {agora.month:02d}/{agora.year} com o Oracle...")
     try:
-        etl_script = os.path.join(BASE_DIR, "etl_oracle.py")
-        res = subprocess.run([sys.executable, etl_script, "--anos", "2022,2023,2024,2025,2026,2027"], capture_output=True, text=True, check=False)
-        if res.returncode == 0:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Sucesso no ETL DRE!", flush=True)
+        ok, msg = etl_sync.sincronizar_agora(modo="mes")
+        if ok:
             with _cache_lock:
                 _cache.clear()
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Cache limpo com sucesso.", flush=True)
-            # SALVAR NO GITHUB APÓS A CONCLUSÃO DA CARGA NOTURNA
-            git_auto_commit_and_push("auto: carga completa noturna DRE desde 2022")
+            _gravar_status_sync(motivo, "sucesso")
+            _log_agendador(f"Sucesso: {msg} Cache limpo.")
         else:
-            print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Erro no ETL: {res.stderr}", flush=True)
+            _gravar_status_sync(f"{motivo} — {msg}", "erro")
+            _log_agendador(f"Falha: {msg}")
     except Exception as e:
-        print(f"[{datetime.now().strftime('%Y-%m-%d %H:%M:%S')}] [CARGA NOTURNA] Exceção: {e}", flush=True)
+        _log_agendador(f"Exceção: {e}")
 
-def _loop_agendador_noturno():
+def _loop_agendador_diario():
     while True:
         agora = datetime.now()
-        alvo = agora.replace(hour=20, minute=0, second=0, microsecond=0)
+        alvo = agora.replace(hour=DRE_SYNC_HORA, minute=0, second=0, microsecond=0)
         if agora >= alvo:
             alvo += timedelta(days=1)
         segundos_espera = (alvo - agora).total_seconds()
-        print(f"[AGENDADOR] Carga completa noturna programada para: {alvo.strftime('%Y-%m-%d %H:%M:%S')} (em {segundos_espera/3600:.2f}h)", flush=True)
+        print(f"[AGENDADOR] Atualização diária do mês atual programada para: {alvo.strftime('%Y-%m-%d %H:%M:%S')} (em {segundos_espera/3600:.2f}h)", flush=True)
         time.sleep(segundos_espera)
-        executar_carga_completa_dre()
+        executar_atualizacao_diaria()
         time.sleep(60)
 
-def iniciar_agendador_noturno():
-    t = threading.Thread(target=_loop_agendador_noturno, daemon=True, name="AgendadorNoturnoDRE")
+def iniciar_agendador_diario():
+    t = threading.Thread(target=_loop_agendador_diario, daemon=True, name="AgendadorDiarioDRE")
     t.start()
 
 @app.route("/api/dre/carga-completa-noturna", methods=["POST", "GET"])
 def rota_carga_noturna():
-    t = threading.Thread(target=executar_carga_completa_dre, daemon=True)
+    t = threading.Thread(target=executar_atualizacao_diaria, daemon=True)
     t.start()
-    return jsonify({"status": "iniciado", "msg": "Carga completa noturna do DRE disparada em background."})
+    return jsonify({"status": "iniciado", "msg": "Atualização diária do mês atual disparada em background."})
 
 @app.route("/api/git/salvar", methods=["POST", "GET"])
 def rota_git_salvar():
@@ -1424,6 +1434,6 @@ def rota_ia_perguntar_stream():
         return Response(err_gen(), mimetype="text/event-stream")
 
 if __name__ == "__main__":
-    iniciar_agendador_noturno()
+    iniciar_agendador_diario()
     app.run(debug=False, port=5150, host="0.0.0.0", threaded=True)
 

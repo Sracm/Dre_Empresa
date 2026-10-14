@@ -249,25 +249,47 @@ def _executar_sincronizacao(meses_para_sincronizar):
                 pass
         return False
 
-def sincronizar_background(ano=None, mes=None, modo="dois_meses"):
-    """Dispara a sincronização em uma thread separada para não travar a requisição HTTP."""
-    with _sync_lock:
-        if _sync_status["status"] == "running":
-            return False, "Uma sincronização já está em andamento no momento."
-
+def _montar_meses(ano=None, mes=None, modo="dois_meses"):
+    """Resolve ano/mês (padrão: data atual do servidor) e devolve a lista de (ano, mes) a sincronizar."""
     agora = dt.datetime.now()
     ano = int(ano) if ano else agora.year
     mes = int(mes) if mes else agora.month
 
-    if modo == "mes":
-        meses = [(ano, mes)]
-    elif modo == "dois_meses":
+    if modo == "dois_meses":
         mes_ant = mes - 1 if mes > 1 else 12
         ano_ant = ano if mes > 1 else ano - 1
-        meses = [(ano_ant, mes_ant), (ano, mes)]
-    else:
-        meses = [(ano, mes)]
+        return [(ano_ant, mes_ant), (ano, mes)]
+    return [(ano, mes)]
+
+def _reservar_execucao(meses):
+    """Marca a sincronização como 'running' de forma atômica. Retorna False se já houver uma em andamento."""
+    with _sync_lock:
+        if _sync_status["status"] == "running":
+            return False
+        _sync_status.update({
+            "status": "running", "pct": 1, "msg": "Iniciando sincronização...",
+            "detalhe": f"Total de {len(meses)} mês(es) a sincronizar.",
+            "linhas_afetadas": 0, "duracao_seg": 0, "erro": None,
+            "inicio": dt.datetime.now().isoformat(), "fim": None
+        })
+        return True
+
+def sincronizar_background(ano=None, mes=None, modo="dois_meses"):
+    """Dispara a sincronização em uma thread separada para não travar a requisição HTTP."""
+    meses = _montar_meses(ano, mes, modo)
+    if not _reservar_execucao(meses):
+        return False, "Uma sincronização já está em andamento no momento."
 
     t = threading.Thread(target=_executar_sincronizacao, args=(meses,), daemon=True, name="OracleSyncThread")
     t.start()
     return True, f"Sincronização iniciada para {len(meses)} mês(es)."
+
+def sincronizar_agora(ano=None, mes=None, modo="mes"):
+    """Executa a sincronização na thread atual (usado pelo agendador diário)."""
+    meses = _montar_meses(ano, mes, modo)
+    if not _reservar_execucao(meses):
+        return False, "Uma sincronização já está em andamento no momento."
+
+    if _executar_sincronizacao(meses):
+        return True, get_sync_status()["detalhe"]
+    return False, get_sync_status()["erro"] or "Erro desconhecido na sincronização."

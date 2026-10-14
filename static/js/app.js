@@ -2148,7 +2148,7 @@ function pctBadge(v) {
 }
 
 // ── Próxima atualização: contagem regressiva até a carga diária do ETL ───
-const ETL_HORA_CARGA = 21; // agendamento diário (21:00)
+const ETL_HORA_CARGA = 21; // agendamento diário (21:00) — manter igual a DRE_SYNC_HORA no app.py/.env
 let contadorProximaCarga = null;
 
 function proximaCargaETL() {
