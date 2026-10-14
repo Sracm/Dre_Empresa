@@ -1,6 +1,10 @@
-flask
-openpyxl
-oracledb
-requests
-pymysql
-python-dotenv
+# MQ HAIR - DRE Empresa Dashboard (Produção Linux / Gunicorn)
+Flask>=3.0.0
+gunicorn>=21.2.0
+python-dotenv>=1.0.0
+pymysql>=1.1.0
+cryptography>=41.0.0
+oracledb>=2.0.0
+pandas>=2.0.0
+openpyxl>=3.1.0
+requests>=2.31.0

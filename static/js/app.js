@@ -2275,33 +2275,77 @@ document.addEventListener('DOMContentLoaded', () => {
     return 'Boa noite';
   }
 
+  function formatarNomeUsuario(rawName) {
+    if (!rawName) return '';
+    let name = String(rawName).trim();
+    if (name.includes('@')) name = name.split('@')[0];
+    if (name.includes('.')) name = name.replace(/\./g, ' ');
+    const parts = name.split(/\s+/).map(p => {
+      const lower = p.toLowerCase();
+      if (['da', 'de', 'do', 'das', 'dos', 'e'].includes(lower)) return lower;
+      return p.charAt(0).toUpperCase() + p.slice(1).toLowerCase();
+    });
+    const fullName = parts.join(' ');
+    const lowerName = fullName.toLowerCase();
+    if (lowerName.includes('vagner')) return 'Vagner';
+    if (lowerName.includes('pinhata')) return 'Rodrigo Pinhata';
+    if (lowerName.includes('nobrega')) return 'Rodrigo Nobrega';
+    if (lowerName.includes('iara')) return 'Iara Teixeira';
+    if (lowerName.includes('antonio') || lowerName.includes('mello') || lowerName === 'admin' || lowerName.includes('administrador') || lowerName.includes('amello')) return 'Antônio';
+    return fullName;
+  }
+
+  function obterCookie(name) {
+    const value = `; ${document.cookie}`;
+    const parts = value.split(`; ${name}=`);
+    if (parts.length === 2) return decodeURIComponent(parts.pop().split(';').shift());
+    return null;
+  }
+
   function obterNomeUsuario() {
-    // 1. URL Param (ex: ?user=Antonio ou ?usuario=Antonio ou ?nome=Antonio)
+    // 1. URL Param
     const params = new URLSearchParams(window.location.search);
     const uUrl = params.get('user') || params.get('usuario') || params.get('nome');
     if (uUrl) {
-      const nomeLimpo = uUrl.trim().split(' ')[0];
-      localStorage.setItem('usuario_intranet_nome', nomeLimpo);
-      return nomeLimpo;
+      const formatted = formatarNomeUsuario(uUrl);
+      try { localStorage.setItem('mq_user_name', formatted); } catch (e) {}
+      return formatted;
     }
     // 2. LocalStorage compartilhado
-    const uStorage = localStorage.getItem('usuario_intranet_nome') || localStorage.getItem('usuario_nome') || localStorage.getItem('user_name');
-    if (uStorage) {
-      return uStorage.trim().split(' ')[0];
+    try {
+      const uStorage = localStorage.getItem('mq_user_name') || localStorage.getItem('usuario_intranet_nome') || localStorage.getItem('usuario_nome') || localStorage.getItem('user_name');
+      if (uStorage) {
+        return formatarNomeUsuario(uStorage);
+      }
+    } catch (e) {}
+    // 3. Cookie compartilhado da Intranet
+    const cUser = obterCookie('mq_user_name') || obterCookie('mq_user');
+    if (cUser) {
+      return formatarNomeUsuario(cUser);
     }
-    return null;
+    // 4. Fallback para ambiente local (localhost ou 127.0.0.1)
+    const host = window.location.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return 'Antônio';
+    }
+    return '';
   }
 
   function atualizarMensagemBoasVindas() {
     const nome = obterNomeUsuario();
     const periodo = obterSaudacaoPeriodo();
-    const texto = nome 
-      ? `${periodo}, ${nome}! Sou a MQIA, estou pronta e à disposição para o diagnóstico de hoje. Qual indicador vamos analisar primeiro?`
-      : `${periodo}! Sou a MQIA, estou pronta e à disposição para o diagnóstico de hoje. Qual indicador vamos analisar primeiro?`;
+    const saudacao = nome ? `${periodo}, ${nome}!` : `${periodo}!`;
+    
+    const textoHtml = `
+      <p style="margin: 0 0 8px 0; font-size: 14px;"><strong>${saudacao}</strong></p>
+      <p style="margin: 0 0 8px 0;">Sou a <strong>MQIA</strong>.</p>
+      <p style="margin: 0 0 8px 0;">Minha análise cruza dados e objetivos para trazer clareza às suas decisões.</p>
+      <p style="margin: 0;">Estou pronta e à disposição para o diagnóstico de hoje. Por qual indicador começamos?</p>
+    `;
     
     const msgInicial = body.querySelector('.ai-message.ai');
     if (msgInicial) {
-      msgInicial.textContent = texto;
+      msgInicial.innerHTML = textoHtml;
     }
   }
 
