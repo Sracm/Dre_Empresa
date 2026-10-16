@@ -11,8 +11,8 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='css/tokens.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/base.css') }}?v=20260924_v20" />
   <link rel="stylesheet" href="{{ url_for('static', filename='css/components.css') }}?v=20260924_v20" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261008_lastupdate" />
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20261012_adaptive_all_screens" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}?v=20261016_audit_final" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/responsive.css') }}?v=20261016_audit_final" />
 </head>
 <body class="dre-empresa-app">
 
@@ -273,11 +273,15 @@
         <div class="desvios-header-left">
           <span class="desvios-icon">∑</span>
           <div>
-            <h2 id="tituloTabelaAcumulado" style="color: #CB9727 !important; font-weight: 800;">Detalhe da Margem — Acumulado até Agosto (Jan–Ago)</h2>
-            <span class="desvios-subtitle" id="subtituloTabelaAcumulado">Valores acumulados de Janeiro até o mês selecionado</span>
+            <h2 id="tituloTabelaAcumulado" style="color: #CB9727 !important; font-weight: 800;">Detalhe da Margem — Mensal (Setembro)</h2>
+            <span class="desvios-subtitle" id="subtituloTabelaAcumulado">Demonstrativo sintético com visão executiva da Margem</span>
           </div>
         </div>
         <div class="card-header-right" style="display: flex; align-items: center; gap: 8px;">
+          <div class="modo-topo-toggle" style="display:inline-flex; background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.12); border-radius:6px; padding:2px; gap:3px;">
+            <button id="btnModoMensalTopo" class="btn-toggle-modo active" onclick="setModoTabelaTopo('mensal')" style="padding:4px 9px; font-size:11px; font-weight:700; border:none; border-radius:4px; cursor:pointer; background:var(--brand-secondary-dourado); color:#000;">MÊS</button>
+            <button id="btnModoAcumTopo" class="btn-toggle-modo" onclick="setModoTabelaTopo('acumulado')" style="padding:4px 9px; font-size:11px; font-weight:700; border:none; border-radius:4px; cursor:pointer; background:transparent; color:#9ca3af;">ACUMULADO (YTD)</button>
+          </div>
           <button class="btn-reset-linha" id="btnToggleFullscreenAcumulado" onclick="toggleFullscreenAcumulado()" title="Alternar tela cheia" style="display: inline-flex; align-items: center; justify-content: center; padding: 4px 7px;">
             <span class="material-symbols-outlined" id="iconFullscreenAcumulado" style="font-size: 14px; vertical-align: middle;">open_in_full</span>
           </button>
@@ -291,12 +295,14 @@
               <th class="col-desvio-bloco">ITEM</th>
               <th class="col-num">ORÇADO</th>
               <th class="col-num">REALIZADO</th>
+              <th class="col-pct">% s/ VB ORÇ.</th>
+              <th class="col-pct">% s/ VB REAL.</th>
               <th class="col-num">DESVIO (R$)</th>
-              <th class="col-ro">DESVIO (%)</th>
+              <th class="col-ro">R/O</th>
             </tr>
           </thead>
           <tbody id="tabelaAcumuladoBody">
-            <tr><td colspan="5" class="loading-row"><div class="spinner"></div> Carregando acumulado…</td></tr>
+            <tr><td colspan="7" class="loading-row"><div class="spinner"></div> Carregando…</td></tr>
           </tbody>
         </table>
       </div>
@@ -474,6 +480,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20261011_v2"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20261016_audit_final"></script>
 </body>
 </html>

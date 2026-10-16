@@ -132,7 +132,7 @@ def extrair_mes(ano, mes, emp_map, caddre, conn):
             ano, mes, trimestre(mes), semestre(mes),
             emp_nome, codcencus, "",
             info["bloco"], info["titulo"], str(codnat),
-            orc * fator, real * fator, 0.0, 0.0
+            orc, real * fator, 0.0, 0.0  # orçado (AD_ORCAMENTO) já vem com sinal: NÃO aplica fator
         ))
         
     log(f"  Inserindo {len(batch)} registros em dre_data...")

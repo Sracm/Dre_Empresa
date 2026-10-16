@@ -265,7 +265,7 @@ html, body {
 }
 
 .dre-table,
-.desvios-table {
+#desviosTable {
   width: 100% !important;
   min-width: 780px !important;
   table-layout: auto !important;
@@ -274,8 +274,8 @@ html, body {
 /* Coluna de Descrição da Conta com Sticky Left */
 .dre-table th.col-descr,
 .dre-table td.col-descr,
-.desvios-table th.col-desvio-tit,
-.desvios-table td.col-desvio-tit {
+#desviosTable th.col-desvio-tit,
+#desviosTable td.col-desvio-tit {
   position: sticky !important;
   left: 0 !important;
   z-index: 5 !important;
@@ -286,15 +286,15 @@ html, body {
 }
 
 .dre-table thead th.col-descr,
-.desvios-table thead th.col-desvio-tit {
+#desviosTable thead th.col-desvio-tit {
   z-index: 10 !important;
   background-color: #141414 !important;
 }
 
 .dre-table th.col-num,
 .dre-table td.col-num,
-.desvios-table th.col-num,
-.desvios-table td.col-num {
+#desviosTable th.col-num,
+#desviosTable td.col-num {
   min-width: 90px !important;
   font-size: clamp(11px, 0.85vw, 13px) !important;
 }

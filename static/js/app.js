@@ -7,7 +7,7 @@
 // ── Estado global ────────────────────────────────────────────────────────
 const state = {
   anos: [2026],
-  meses: [8],
+  meses: [9],
   emps: [],   // [] ou todas = ALL
   cenc: [],   // [] ou todas = ALL
   anosLista: [],
@@ -15,7 +15,7 @@ const state = {
   empresasLista: [],
   centrosLista: [],
   get ano() { return this.anos && this.anos.length ? this.anos[0] : 2026; },
-  get mes() { return this.meses && this.meses.length ? this.meses[this.meses.length - 1] : 8; },
+  get mes() { return this.meses && this.meses.length ? this.meses[this.meses.length - 1] : 9; },
   get emp() { return (!this.emps || !this.emps.length || this.emps.length === this.empresasLista.length) ? 'ALL' : this.emps.join(','); },
   dre: [],
   bonifTotal: 0,
@@ -30,6 +30,7 @@ const state = {
   desviosSortCol: 'diff',
   desviosSortAsc: true,
   tabelaAcumuladoData: null,
+  modoTabelaTopo: 'mensal', // 'mensal' ou 'acumulado'
   acumuladoExpandAll: false,
   margemAcumuladaAberta: true,
   blocosAcumuladoAbertos: new Set(),
@@ -49,11 +50,11 @@ const fmtBRL = v => {
     minimumFractionDigits: 0, maximumFractionDigits: 0
   });
 };
-const fmtPct = v => v == null ? '—' : Number(v).toFixed(1) + '%';
+const fmtPct = v => v == null ? '—' : Number(v).toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
 const fmtRO  = v => {
-  if (v == null) return '—';
+  if (v == null || isNaN(v)) return '—';
   const n = Number(v);
-  return (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+  return (n >= 0 ? '+' : '') + n.toLocaleString('pt-BR', {minimumFractionDigits: 2, maximumFractionDigits: 2}) + '%';
 };
 
 // Formatação em valor completo sem decimais (ex: 3.450.800)
@@ -763,11 +764,17 @@ function onMensalLoaded(data, somenteDoisMeses = false, mesAnt = null, mesAtual 
   try { ReportProgressBar?.notifyPartDone?.('mensal'); } catch (_) {}
 }
 
-// ── Tabela Acumulada YTD (Margem de Contribuição e MARGEM) ─────────────────
+// ── Tabela Acumulada / Mensal da Margem (Margem de Contribuição e MARGEM) ──
+function setModoTabelaTopo(modo) {
+  state.modoTabelaTopo = modo;
+  carregarTabelaAcumulado();
+}
+window.setModoTabelaTopo = setModoTabelaTopo;
+
 async function carregarTabelaAcumulado() {
   const tbody = document.getElementById('tabelaAcumuladoBody');
   if (tbody) {
-    tbody.innerHTML = '<tr><td colspan="5" class="loading-row"><div class="spinner"></div> Atualizando acumulado…</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading-row"><div class="spinner"></div> Atualizando demonstrativo…</td></tr>';
   }
   try {
     const p = new URLSearchParams({
@@ -775,6 +782,7 @@ async function carregarTabelaAcumulado() {
       mes: getMesParam(),
       emp: getEmpParam(),
       cenc: getCencParam(),
+      modo: state.modoTabelaTopo || 'mensal',
     });
     const res = await fetch('/api/dre/tabela-acumulado?' + p);
     const data = await res.json();
@@ -782,7 +790,7 @@ async function carregarTabelaAcumulado() {
     renderizarTabelaAcumulado(data);
   } catch (e) {
     if (tbody) {
-      tbody.innerHTML = `<tr><td colspan="5" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar acumulado: ${e.message}</td></tr>`;
+      tbody.innerHTML = `<tr><td colspan="7" class="loading-row" style="color:var(--danger)">⚠ Erro ao carregar demonstrativo: ${e.message}</td></tr>`;
     }
   } finally {
     try { ReportProgressBar?.notifyPartDone?.('acumulado'); } catch (_) {}
@@ -804,7 +812,7 @@ function fmtAcumDec(v) {
 function fmtAcumPct(v) {
   if (v == null || isNaN(v)) return '—';
   const n = Number(v);
-  if (Math.abs(n) > 999) return '—'; // Proteção contra bases irrisórias como -152044%
+  if (Math.abs(n) > 999) return '—'; // Proteção contra bases irrisórias
   return n.toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + '%';
 }
 
@@ -812,7 +820,7 @@ function renderizarTabelaAcumulado(data) {
   const tbody = document.getElementById('tabelaAcumuladoBody');
   if (!tbody) return;
   if (!data || !data.margem) {
-    tbody.innerHTML = '<tr><td colspan="5" class="loading-row">Nenhum dado acumulado disponível.</td></tr>';
+    tbody.innerHTML = '<tr><td colspan="7" class="loading-row">Nenhum dado disponível.</td></tr>';
     return;
   }
 
@@ -832,8 +840,10 @@ function renderizarTabelaAcumulado(data) {
       </td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.orcado)}</strong></td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(mc.realizado)}</strong></td>
+      <td class="col-pct"><strong style="color:#94a3b8;">${fmtPct(mc.pct_orc)}</strong></td>
+      <td class="col-pct"><strong style="color:#94a3b8;">${fmtPct(mc.pct_real)}</strong></td>
       <td class="col-num ${mcDifClass}"><strong>${fmtAcumDec(mc.dif)}</strong></td>
-      <td class="col-ro ${mcDifClass}"><strong>${fmtAcumPct(mc.pct)}</strong></td>
+      <td class="col-ro ${mcDifClass}"><strong>${fmtRO(mc.pct)}</strong></td>
     </tr>
   `;
 
@@ -849,8 +859,10 @@ function renderizarTabelaAcumulado(data) {
       </td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.orcado)}</strong></td>
       <td class="col-num"><strong style="color:#ffffff;">${fmtAcumInt(margem.realizado)}</strong></td>
+      <td class="col-pct"><strong style="color:#94a3b8;">${fmtPct(margem.pct_orc)}</strong></td>
+      <td class="col-pct"><strong style="color:#94a3b8;">${fmtPct(margem.pct_real)}</strong></td>
       <td class="col-num ${margemDifClass}"><strong>${fmtAcumDec(margem.dif)}</strong></td>
-      <td class="col-ro ${margemDifClass}"><strong>${fmtAcumPct(margem.pct)}</strong></td>
+      <td class="col-ro ${margemDifClass}"><strong>${fmtRO(margem.pct)}</strong></td>
     </tr>
   `;
 
@@ -862,7 +874,7 @@ function renderizarTabelaAcumulado(data) {
       const blocoIcon = isBlocoAberto ? '−' : '+';
       const bLower = (b.bloco || '').toLowerCase();
       const isReceita = bLower.includes('venda') && !bLower.includes('despesa');
-      const bDifClass = isReceita ? ((b.dif || 0) >= 0 ? 'val-pos' : 'val-neg') : ((b.dif || 0) >= 0 ? 'val-pos' : 'val-neg');
+      const bDifClass = (b.dif || 0) >= 0 ? 'val-pos' : 'val-neg';
 
       html += `
         <tr class="row-bloco row-desvio" onclick="toggleBlocoAcumulado('${bKey.replace(/'/g, "\\'")}')" title="Clique para expandir títulos">
@@ -872,8 +884,10 @@ function renderizarTabelaAcumulado(data) {
           </td>
           <td class="col-num">${fmtAcumInt(b.orcado)}</td>
           <td class="col-num">${fmtAcumInt(b.realizado)}</td>
+          <td class="col-pct" style="color:#94a3b8;">${fmtPct(b.pct_orc)}</td>
+          <td class="col-pct" style="color:#94a3b8;">${fmtPct(b.pct_real)}</td>
           <td class="col-num ${bDifClass}">${fmtAcumDec(b.dif)}</td>
-          <td class="col-ro ${bDifClass}">${fmtAcumPct(b.pct)}</td>
+          <td class="col-ro ${bDifClass}">${fmtRO(b.pct)}</td>
         </tr>
       `;
 
@@ -889,8 +903,10 @@ function renderizarTabelaAcumulado(data) {
               </td>
               <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.orcado)}</td>
               <td class="col-num" style="opacity:0.85;">${fmtAcumInt(t.realizado)}</td>
+              <td class="col-pct" style="color:#94a3b8; opacity:0.85;">${fmtPct(t.pct_orc)}</td>
+              <td class="col-pct" style="color:#94a3b8; opacity:0.85;">${fmtPct(t.pct_real)}</td>
               <td class="col-num ${tDifClass}">${fmtAcumDec(t.dif)}</td>
-              <td class="col-ro ${tDifClass}" style="opacity:0.9;">${fmtAcumPct(t.pct)}</td>
+              <td class="col-ro ${tDifClass}" style="opacity:0.9;">${fmtRO(t.pct)}</td>
             </tr>
           `;
         });
@@ -900,20 +916,44 @@ function renderizarTabelaAcumulado(data) {
 
   tbody.innerHTML = html;
 
-  // Atualiza título dinâmico com período acumulado
+  // Atualiza título dinâmico com período
+  const isMensal = (data.modo || state.modoTabelaTopo || 'mensal') === 'mensal';
   const tit = document.getElementById('tituloTabelaAcumulado');
   const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
   const MES_ABREV = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'];
-  const mNum = Number(data.mes || state.mes || 8);
-  const mNome = NOMES_MES[mNum - 1] || 'Agosto';
-  const mAbrev = MES_ABREV[mNum - 1] || 'Ago';
+  const mNum = Number(data.mes || state.mes || 9);
+  const mNome = NOMES_MES[mNum - 1] || 'Setembro';
+  const mAbrev = MES_ABREV[mNum - 1] || 'Set';
+
+  const btnM = document.getElementById('btnModoMensalTopo');
+  const btnA = document.getElementById('btnModoAcumTopo');
+  if (btnM && btnA) {
+    btnM.textContent = `MÊS (${mAbrev.toUpperCase()})`;
+    btnA.textContent = `ACUMULADO (JAN–${mAbrev.toUpperCase()})`;
+    if (isMensal) {
+      btnM.style.background = 'var(--brand-secondary-dourado)';
+      btnM.style.color = '#000';
+      btnA.style.background = 'transparent';
+      btnA.style.color = '#9ca3af';
+    } else {
+      btnA.style.background = 'var(--brand-secondary-dourado)';
+      btnA.style.color = '#000';
+      btnM.style.background = 'transparent';
+      btnM.style.color = '#9ca3af';
+    }
+  }
+
   if (tit) {
-    tit.textContent = `Detalhe da Margem — Acumulado até ${mNome} (Jan–${mAbrev})`;
+    tit.textContent = isMensal 
+      ? `Detalhe da Margem — Mensal (${mNome})`
+      : `Detalhe da Margem — Acumulado até ${mNome} (Jan–${mAbrev})`;
   }
 
   const sub = document.getElementById('subtituloTabelaAcumulado');
   if (sub) {
-    sub.textContent = `Valores acumulados de Janeiro até ${mNome} de ${data.ano || 2026}`;
+    sub.textContent = isMensal
+      ? `Demonstrativo contábil mensal oficial (100% alinhado com Power BI e Qlik)`
+      : `Valores acumulados de Janeiro até ${mNome} de ${data.ano || 2026}`;
   }
 }
 

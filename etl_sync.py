@@ -33,13 +33,13 @@ EXCLUDED_CODEMP    = 9
 # Cortes de data para a view VMQ_DREQLIK no Oracle
 _CORTES = [
     ("AND CAB.DTENTSAI>=TO_DATE('01/01/2024','DD/MM/YYYY')",
-     "AND CAB.DTENTSAI>=TO_DATE('01/01/2024','DD/MM/YYYY') AND CAB.DTENTSAI>=:dt_ini AND CAB.DTENTSAI<:dt_fim"),
+     "AND CAB.DTENTSAI>=:dt_ini AND CAB.DTENTSAI<:dt_fim"),
     ("AND fin.dtneg>=TO_DATE('01/01/2024','DD/MM/YYYY')",
-     "AND fin.dtneg>=TO_DATE('01/01/2024','DD/MM/YYYY') AND fin.dtneg>=:dt_ini AND fin.dtneg<ADD_MONTHS(:dt_fim,1)"),
+     "AND fin.dtneg>=:dt_ini AND fin.dtneg<ADD_MONTHS(:dt_fim,1)"),
     ("AND FIN.DHBAIXA>=TO_DATE('01/01/2024','DD/MM/YYYY')",
-     "AND FIN.DHBAIXA>=TO_DATE('01/01/2024','DD/MM/YYYY') AND FIN.DHBAIXA>=:dt_ini AND FIN.DHBAIXA<ADD_MONTHS(:dt_fim,1)"),
+     "AND FIN.DHBAIXA>=:dt_ini AND FIN.DHBAIXA<ADD_MONTHS(:dt_fim,1)"),
     ("WHERE DTNEG>=TO_DATE('01/01/2024','DD/MM/YYYY')",
-     "WHERE DTNEG>=TO_DATE('01/01/2024','DD/MM/YYYY') AND DTNEG>=:dt_ini AND DTNEG<:dt_fim"),
+     "WHERE DTNEG>=:dt_ini AND DTNEG<:dt_fim"),
     ("FROM AD_ORCAMENTO\r\nWHERE CODCENCUS NOT IN (21010000)",
      "FROM AD_ORCAMENTO\r\nWHERE CODCENCUS NOT IN (21010000) AND DTREF>=:dt_ini AND DTREF<:dt_fim"),
 ]
@@ -183,7 +183,7 @@ def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map):
             ano, mes, trimestre(mes), semestre(mes),
             emp_nome, codcencus, "",
             info["bloco"], info["titulo"], descr_natureza,
-            orc * fator, real * fator, 0.0, 0.0
+            orc, real * fator, 0.0, 0.0  # orçado (AD_ORCAMENTO) já vem com sinal: NÃO aplica fator
         ))
 
     with conn.cursor() as cur:

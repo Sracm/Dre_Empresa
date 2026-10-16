@@ -125,12 +125,12 @@ def filtros():
             # Anos disponíveis (apenas anos reais <= ano corrente + 1)
             cur.execute("""
                 SELECT DISTINCT ano FROM dre_filtros_anos 
-                WHERE ano >= 2023 AND ano <= 2027 
+                WHERE ano >= 2022 AND ano <= 2027 
                 ORDER BY ano DESC
             """)
             anos = [int(r["ano"]) for r in cur.fetchall()]
             if not anos:
-                anos = [2026, 2025, 2024, 2023]
+                anos = [2026, 2025, 2024, 2023, 2022]
 
             # Empresas disponíveis (conforme modelo oficial DRE Gestores)
             placeholders = ",".join(["%s"] * len(ALLOWED_COMPANIES))
@@ -246,7 +246,7 @@ def get_dre_tree_data(ano_raw="2026", mes_raw="8", emp_raw="ALL", cenc_raw="ALL"
             SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS realizado,
             SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_meses}) THEN orcado ELSE 0 END) AS orcado,
             SUM(CASE WHEN ano = %s AND mes = %s THEN realizado ELSE 0 END) AS real_mom,
-            SUM(CASE WHEN ano = %s AND mes = %s THEN orcado ELSE 0 END) AS real_mom,
+            SUM(CASE WHEN ano = %s AND mes = %s THEN orcado ELSE 0 END) AS orc_mom,
             SUM(CASE WHEN ano = %s AND mes IN ({ph_meses}) THEN realizado ELSE 0 END) AS real_yoy,
             SUM(CASE WHEN ano IN ({ph_anos}) AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd,
             SUM(CASE WHEN ano = %s AND mes IN ({ph_ytd}) THEN realizado ELSE 0 END) AS real_ytd_ant
@@ -479,25 +479,41 @@ def dre_por_empresa():
 def dre_tabela_acumulado():
     try:
         ano_raw = request.args.get("ano", "2026")
-        mes_raw = request.args.get("mes", "8")
+        mes_raw = request.args.get("mes", "9")
         emp_raw = request.args.get("emp", "ALL")
         cenc_raw = request.args.get("cenc", "ALL")
+        modo = request.args.get("modo", "mensal").lower()
 
-        key = f"tabela_acum_{ano_raw}_{mes_raw}_{emp_raw}_{cenc_raw}"
+        key = f"tabela_acum_{modo}_{ano_raw}_{mes_raw}_{emp_raw}_{cenc_raw}"
         cached = cache_get(key)
         if cached:
             return jsonify(cached)
 
         anos = parse_int_list(ano_raw, [2026])
-        meses = parse_int_list(mes_raw, [8])
+        meses = parse_int_list(mes_raw, [9])
         ano_val = anos[0] if anos else 2026
-        mes_val = max(meses) if meses else 8
+        mes_val = max(meses) if meses else 9
 
         emps = parse_str_list(emp_raw)
         cenc_list = parse_cenc_param(cenc_raw)
 
-        where = ["ano = %s", "mes <= %s", "codcencus != %s"]
-        params = [ano_val, mes_val, EXCLUDED_CODCENCUS]
+        where = ["ano = %s"]
+        params = [ano_val]
+
+        if modo == "acumulado":
+            where.append("mes <= %s")
+            params.append(mes_val)
+        else:
+            if len(meses) == 1:
+                where.append("mes = %s")
+                params.append(meses[0])
+            else:
+                ph_m = ",".join(["%s"] * len(meses))
+                where.append(f"mes IN ({ph_m})")
+                params.extend(meses)
+
+        where.append("codcencus != %s")
+        params.append(EXCLUDED_CODCENCUS)
 
         if emps:
             ph_emp = ",".join(["%s"] * len(emps))
@@ -536,6 +552,24 @@ def dre_tabela_acumulado():
             cur.execute(sql, params)
             rows = [dict(r) for r in cur.fetchall()]
 
+        # Venda Bruta para cálculo do % s/ VB
+        vb_orc = 0.0
+        vb_real = 0.0
+        for r in rows:
+            if r.get("titulo") == "1.Venda Bruta":
+                vb_orc += float(r.get("orcado") or 0.0)
+                vb_real += float(r.get("realizado") or 0.0)
+
+        def pct_vb(val, vb):
+            if not vb or abs(vb) < 1.0 or val is None:
+                return 0.0
+            return round((val / vb) * 100, 2)
+
+        def calc_ro(r, o):
+            if not o or abs(o) < 0.001:
+                return None
+            return round(((r - o) / o) * 100, 2)
+
         # Agrupa por bloco e títulos
         blocos_dict = OrderedDict()
         bloco_ordem = [
@@ -561,18 +595,18 @@ def dre_tabela_acumulado():
             blocos_dict[b]["orcado"] += orc
             blocos_dict[b]["realizado"] += real
             dif = real - orc
-            # Proteção contra bases irrisórias ou cruzamento de sinais que geram aberrações (% desproporcionais)
-            if abs(orc) < 500 or (orc < 0 and real > 0) or (orc > 0 and real < 0):
-                pct = None
-            else:
-                pct = (real / orc * 100) if abs(orc) > 0.001 else None
+            ro_val = calc_ro(real, orc)
+            p_orc = pct_vb(orc, vb_orc)
+            p_real = pct_vb(real, vb_real)
 
             blocos_dict[b]["titulos"].append({
                 "titulo": r.get("titulo") or "Sem Título",
                 "orcado": orc,
                 "realizado": real,
                 "dif": dif,
-                "pct": pct
+                "pct": ro_val,
+                "pct_orc": p_orc,
+                "pct_real": p_real
             })
 
         # Calcula totais
@@ -582,13 +616,17 @@ def dre_tabela_acumulado():
         mc_orc = vl["orcado"] + cmv["orcado"]
         mc_real = vl["realizado"] + cmv["realizado"]
         mc_dif = mc_real - mc_orc
-        mc_pct = (mc_real / mc_orc * 100) if abs(mc_orc) > 500 else None
+        mc_ro = calc_ro(mc_real, mc_orc)
+        mc_pct_orc = pct_vb(mc_orc, vb_orc)
+        mc_pct_real = pct_vb(mc_real, vb_real)
 
         # 2. MARGEM = Soma de todos os blocos
         margem_orc = sum(b["orcado"] for b in blocos_dict.values())
         margem_real = sum(b["realizado"] for b in blocos_dict.values())
         margem_dif = margem_real - margem_orc
-        margem_pct = (margem_real / margem_orc * 100) if abs(margem_orc) > 500 else None
+        margem_ro = calc_ro(margem_real, margem_orc)
+        margem_pct_orc = pct_vb(margem_orc, vb_orc)
+        margem_pct_real = pct_vb(margem_real, vb_real)
 
         # Lista formatada de blocos
         blocos_list = []
@@ -598,36 +636,44 @@ def dre_tabela_acumulado():
                 b_orc = b_info["orcado"]
                 b_real = b_info["realizado"]
                 b_dif = b_real - b_orc
-                if abs(b_orc) < 500 or (b_orc < 0 and b_real > 0) or (b_orc > 0 and b_real < 0):
-                    b_pct = None
-                else:
-                    b_pct = (b_real / b_orc * 100) if abs(b_orc) > 0.001 else None
+                b_ro = calc_ro(b_real, b_orc)
+                b_pct_orc = pct_vb(b_orc, vb_orc)
+                b_pct_real = pct_vb(b_real, vb_real)
 
                 blocos_list.append({
                     "bloco": b_nome,
                     "orcado": b_orc,
                     "realizado": b_real,
                     "dif": b_dif,
-                    "pct": b_pct,
+                    "pct": b_ro,
+                    "pct_orc": b_pct_orc,
+                    "pct_real": b_pct_real,
                     "titulos": b_info["titulos"]
                 })
 
         result = {
             "ano": ano_val,
             "mes": mes_val,
+            "modo": modo,
+            "vb_orc": vb_orc,
+            "vb_real": vb_real,
             "margem_contribuicao": {
                 "nome": "Margem de Contribuição",
                 "orcado": mc_orc,
                 "realizado": mc_real,
                 "dif": mc_dif,
-                "pct": mc_pct
+                "pct": mc_ro,
+                "pct_orc": mc_pct_orc,
+                "pct_real": mc_pct_real
             },
             "margem": {
                 "nome": "MARGEM",
                 "orcado": margem_orc,
                 "realizado": margem_real,
                 "dif": margem_dif,
-                "pct": margem_pct,
+                "pct": margem_ro,
+                "pct_orc": margem_pct_orc,
+                "pct_real": margem_pct_real,
                 "blocos": blocos_list
             }
         }
@@ -915,19 +961,19 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
     def pct(n, d):
         if d is None or abs(d) < 1.0 or n is None:
             return None
-        return round((n / d) * 100, 1)
+        return round((n / d) * 100, 2)
 
     # DAX formula oficial do Power BI: DIVIDE(Realizado - Orçado, Orçado, 0)
     def ro(r, o):
         if not o or abs(o) < 0.001:
             return None
-        return round(((r - o) / o) * 100, 1)
+        return round(((r - o) / o) * 100, 2)
 
     # Variação MoM, YoY e YTD YoY: (Realizado - Base) / ABS(Base) * 100
     def calc_var(r, b):
         if b is None or abs(b) < 0.001:
             return None
-        return round(((r - b) / abs(b)) * 100, 1)
+        return round(((r - b) / abs(b)) * 100, 2)
 
     result = []
     is_multi_mes = bool(meses and len(meses) > 1)
@@ -966,48 +1012,18 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
             margem_operacional_real += bd2.get("realizado", 0.0)
             margem_operacional_orc += bd2.get("orcado", 0.0)
 
-        # MARGEM = linha "Total" do PBI (linha 3 do Gabarito_PBI.xlsx) — valores fixos por mês
-        MARGEM_PBI = {
-            1:  {"orc": 415881,  "real": 841641},
-            2:  {"orc": 308856,  "real": 762289},
-            3:  {"orc": 300600,  "real": 1977033},
-            4:  {"orc": 509467,  "real": 1637665},
-            5:  {"orc": 888787,  "real": 2104824},
-            6:  {"orc": 608585,  "real": 1641686},
-            7:  {"orc": 897581,  "real": 1636587},
-            8:  {"orc": 989240,  "real": 1691184},
-        }
-
-        if is_multi_mes:
-            margem2_real = margem_operacional_real
-            margem2_orc  = margem_operacional_orc
-        elif mes_primario in MARGEM_PBI:
-            _mp = MARGEM_PBI.get(mes_primario, {})
-            margem2_real = float(_mp.get("real", margem_operacional_real))
-            margem2_orc  = float(_mp.get("orc",  margem_operacional_orc))
-        else:
-            margem2_real = margem_operacional_real
-            margem2_orc  = margem_operacional_orc
-
-        # YTD = soma acumulada dos meses Janeiro até mes_primario
-        margem2_ytd = sum(
-            MARGEM_PBI[m]["real"]
-            for m in range(1, mes_primario + 1)
-            if m in MARGEM_PBI
-        )
-        if margem2_ytd == 0 or is_multi_mes:
-            margem2_ytd = margem2_real
-
-        # MoM do MARGEM: utiliza mês anterior do Gabarito PBI para consistência exata
-        mes_mom = mes_primario - 1 if mes_primario > 1 else 12
-        _mp_mom = MARGEM_PBI.get(mes_mom, {})
-        if _mp_mom and "real" in _mp_mom:
-            margem2_real_mom = float(_mp_mom["real"])
-        else:
-            margem2_real_mom = margem_real_mom
-            for db_key in desp_blocos:
-                bd2 = blocos_dict.get(db_key, {})
-                margem2_real_mom += bd2.get("real_mom", 0.0)
+        # MARGEM = Margem de Contribuição + blocos 3..7, SEMPRE calculada a partir das linhas do banco
+        # (sem valores fixos: o total precisa fechar com a soma das linhas exibidas, igual Qlik/Power BI ao vivo).
+        margem2_real = margem_operacional_real
+        margem2_orc  = margem_operacional_orc
+        margem2_ytd  = margem_real_ytd
+        margem2_real_mom = margem_real_mom
+        margem2_orc_mom  = margem_orc_mom
+        for db_key in desp_blocos:
+            bd2 = blocos_dict.get(db_key, {})
+            margem2_ytd      += bd2.get("real_ytd", 0.0)
+            margem2_real_mom += bd2.get("real_mom", 0.0)
+            margem2_orc_mom  += bd2.get("orc_mom", 0.0)
 
         margem2_yoy      = margem_yoy
         margem2_ytd_ant  = margem_real_ytd_ant
@@ -1022,7 +1038,7 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
             "realizado": margem2_real,
             "orcado": margem2_orc,
             "real_mom": margem2_real_mom,
-            "orc_mom": margem2_orc,
+            "orc_mom": margem2_orc_mom,
             "real_ytd": margem2_ytd,
             "mom": calc_var(margem2_real, margem2_real_mom) if not is_multi_mes else None,
             "yoy": calc_var(margem2_real, margem2_yoy),
