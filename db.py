@@ -74,9 +74,9 @@ def get_db_connection():
             port=int(os.getenv("MARIADB_PORT", 3306)),
             database=os.getenv("MARIADB_DB", "dre_empresa"),
             cursorclass=pymysql.cursors.DictCursor,
-            connect_timeout=2,
-            read_timeout=3,
-            write_timeout=3
+            connect_timeout=10,
+            read_timeout=60,
+            write_timeout=60
         )
         return conn
     except Exception:

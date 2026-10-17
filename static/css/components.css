@@ -453,15 +453,16 @@
 .metric-card-header {
   display: flex;
   align-items: center;
-  gap: var(--spacing-2);
+  gap: 6px;
+  min-width: 0;
 }
 
 .metric-card-icon-box {
-  width: 36px;
-  height: 36px;
+  width: 22px;
+  height: 22px;
   background: #0f1218;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: var(--radius-md);
+  border-radius: 5px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -470,7 +471,7 @@
 }
 
 .metric-card-icon-box .metric-card-icon-symbol {
-  font-size: 19px;
+  font-size: 14px;
   color: #cb9727;
   line-height: 1;
   display: flex;
@@ -482,37 +483,44 @@
 .metric-kpi-card:hover .metric-card-icon-box {
   border-color: #f59e0b;
   background: rgba(203, 151, 39, 0.12);
-  box-shadow: 0 0 14px rgba(245, 158, 11, 0.25);
+  box-shadow: 0 0 10px rgba(245, 158, 11, 0.25);
 }
 
 .metric-kpi-card:hover .metric-card-icon-symbol {
-  transform: scale(1.14);
+  transform: scale(1.1);
   color: #fbbf24;
 }
 
 .metric-card-icon-box img {
-  width: 18px;
-  height: 18px;
+  width: 14px;
+  height: 14px;
 }
 
 .metric-card-title {
-  font-size: 11px;
+  font-size: 9.2px;
   font-weight: 700;
   text-transform: uppercase;
   color: #CB9727 !important;
-  letter-spacing: 0.5px;
+  letter-spacing: 0px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+  flex: 1;
 }
 
 .metric-main-value {
-  font-size: 24px;
+  font-size: 16.5px;
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   color: #f4f7fb;
-  letter-spacing: -0.5px;
-  margin-top: 4px;
+  letter-spacing: -0.4px;
+  margin-top: 3px;
+  margin-bottom: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.15;
 }
 
 .metric-variations-row {

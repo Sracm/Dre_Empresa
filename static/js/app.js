@@ -2932,4 +2932,86 @@ document.addEventListener('DOMContentLoaded', () => {
   input.addEventListener('keypress', (e) => {
     if(e.key === 'Enter') sendMessage();
   });
+
+  // ── Inicialização do Modo Tela Cheia ────────────────────────────────────
+  initFullscreenToggle();
 });
+
+// ── Gerenciador de Modo Tela Cheia Universal (F11 / Tecla F / Botão) ──────
+function initFullscreenToggle() {
+  const btnFs = document.getElementById('btnFullscreen');
+  if (!btnFs) return;
+  const fsIcon = document.getElementById('fsIcon');
+  const fsText = document.getElementById('fsText');
+
+  function isCurrentlyFullscreen() {
+    return !!(
+      document.fullscreenElement ||
+      document.webkitFullscreenElement ||
+      document.mozFullScreenElement ||
+      document.msFullscreenElement
+    );
+  }
+
+  function updateFsUI() {
+    const isFs = isCurrentlyFullscreen();
+    if (fsIcon) {
+      fsIcon.textContent = isFs ? 'fullscreen_exit' : 'fullscreen';
+    }
+    if (fsText) {
+      fsText.textContent = isFs ? 'Sair Tela Cheia' : 'Modo Tela Cheia';
+    }
+    btnFs.classList.toggle('active', isFs);
+    btnFs.title = isFs
+      ? 'Sair do Modo Tela Cheia (Esc ou F11)'
+      : 'Ativar Modo Tela Cheia (F11 ou tecla F)';
+    document.body.classList.toggle('is-fullscreen-mode', isFs);
+
+    // Disparar resize nos gráficos do Chart.js para readaptação imediata
+    window.dispatchEvent(new Event('resize'));
+  }
+
+  btnFs.addEventListener('click', async () => {
+    try {
+      if (!isCurrentlyFullscreen()) {
+        const docEl = document.documentElement;
+        if (docEl.requestFullscreen) {
+          await docEl.requestFullscreen();
+        } else if (docEl.webkitRequestFullscreen) {
+          await docEl.webkitRequestFullscreen();
+        } else if (docEl.mozRequestFullScreen) {
+          await docEl.mozRequestFullScreen();
+        } else if (docEl.msRequestFullscreen) {
+          await docEl.msRequestFullscreen();
+        }
+      } else {
+        if (document.exitFullscreen) {
+          await document.exitFullscreen();
+        } else if (document.webkitExitFullscreen) {
+          await document.webkitExitFullscreen();
+        } else if (document.mozCancelFullScreen) {
+          await document.mozCancelFullScreen();
+        } else if (document.msExitFullscreen) {
+          await document.msExitFullscreen();
+        }
+      }
+    } catch (err) {
+      console.warn('Fullscreen request failed:', err);
+    }
+  });
+
+  document.addEventListener('fullscreenchange', updateFsUI);
+  document.addEventListener('webkitfullscreenchange', updateFsUI);
+  document.addEventListener('mozfullscreenchange', updateFsUI);
+  document.addEventListener('MSFullscreenChange', updateFsUI);
+
+  // Tecla 'f' ou 'F' ativa/desativa tela cheia se não estiver em formulário
+  document.addEventListener('keydown', (e) => {
+    const tag = (e.target.tagName || '').toLowerCase();
+    if (tag === 'input' || tag === 'textarea' || tag === 'select' || e.target.isContentEditable) return;
+    if (e.key === 'f' || e.key === 'F') {
+      e.preventDefault();
+      btnFs.click();
+    }
+  });
+}

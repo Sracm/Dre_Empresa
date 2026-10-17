@@ -149,6 +149,52 @@ input, select, textarea {
   box-shadow: var(--shadow-gold);
 }
 
+/* Botão de Modo Tela Cheia */
+.btn-fullscreen-header {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: rgba(203, 151, 39, 0.08);
+  border: 1px solid var(--brand-secondary-dourado, #CB9727);
+  border-radius: var(--radius-md, 8px);
+  color: var(--status-warning-600, #CB9727);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  white-space: nowrap;
+  user-select: none;
+}
+
+.btn-fullscreen-header:hover {
+  background: var(--brand-secondary-dourado, #CB9727);
+  color: #000;
+  box-shadow: 0 0 16px rgba(203, 151, 39, 0.45);
+  transform: translateY(-1px);
+}
+
+.btn-fullscreen-header:active {
+  transform: translateY(0);
+}
+
+.btn-fullscreen-header.active {
+  background: var(--brand-secondary-dourado, #CB9727);
+  color: #000;
+  box-shadow: 0 0 16px rgba(203, 151, 39, 0.5);
+}
+
+/* Modo Tela Cheia no Body */
+body.is-fullscreen-mode {
+  padding-bottom: 20px;
+}
+
+body.is-fullscreen-mode .app-header {
+  padding-top: 6px !important;
+  padding-bottom: 6px !important;
+}
+
 /* Header Separator */
 .header-divider {
   width: 1px;

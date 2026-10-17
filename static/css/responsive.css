@@ -80,6 +80,7 @@ html, body {
 }
 
 .btn-admin-header,
+.btn-fullscreen-header,
 .btn-export {
   white-space: nowrap !important;
   font-size: clamp(11px, 0.85vw, 13px) !important;
@@ -151,38 +152,64 @@ html, body {
 /* ── Grid de KPIs Fluido e Responsivo ── */
 .kpi-section {
   display: grid !important;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)) !important;
-  gap: clamp(8px, 1vw, 12px) !important;
-  margin: 0 clamp(10px, 1.8vw, 24px) 20px clamp(10px, 1.8vw, 24px) !important;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 160px), 1fr)) !important;
+  gap: clamp(6px, 0.75vw, 10px) !important;
+  margin: 0 clamp(10px, 1.8vw, 24px) 16px clamp(10px, 1.8vw, 24px) !important;
   padding: 0 !important;
   width: auto !important;
 }
 
 .metric-kpi-card {
-  padding: clamp(10px, 1vw, 14px) clamp(10px, 1.2vw, 16px) !important;
+  padding: 7px 8px 7px 8px !important;
   min-width: 0 !important;
   display: flex !important;
   flex-direction: column !important;
   justify-content: space-between !important;
+  box-sizing: border-box !important;
+}
+
+.metric-card-header {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  min-width: 0 !important;
+}
+
+.metric-card-icon-box {
+  width: 22px !important;
+  height: 22px !important;
+  flex-shrink: 0 !important;
+  border-radius: 5px !important;
+}
+
+.metric-card-icon-symbol {
+  font-size: 14px !important;
 }
 
 .metric-card-title {
-  font-size: clamp(10px, 0.75vw, 12px) !important;
+  font-size: clamp(8px, 0.52vw, 9.2px) !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  letter-spacing: 0px !important;
+  min-width: 0 !important;
+  flex: 1 !important;
 }
 
 .metric-main-value {
-  font-size: clamp(16px, 1.35vw, 22px) !important;
-  letter-spacing: -0.3px !important;
+  font-size: clamp(13px, 0.95vw, 16.5px) !important;
+  letter-spacing: -0.4px !important;
   white-space: nowrap !important;
   overflow: hidden !important;
   text-overflow: ellipsis !important;
+  font-variant-numeric: tabular-nums !important;
+  line-height: 1.15 !important;
+  margin-top: 3px !important;
+  margin-bottom: 2px !important;
 }
 
 .kpi-sub-line {
-  font-size: clamp(10px, 0.7vw, 11.5px) !important;
+  font-size: clamp(8px, 0.58vw, 9.5px) !important;
 }
 
 /* ── Abas de Modo Fluido (Árvore vs Desvios) ── */
@@ -322,31 +349,34 @@ html, body {
    BREAKPOINTS ESPECÍFICOS PARA DISPOSITIVOS E ZOOM
    ========================================================================== */
 
-/* ── 1. Monitores Grandes (>= 1600px) ── */
-@media (min-width: 1600px) {
+/* ── 1. Monitores Grandes, 4K e Smart TVs (>= 1450px) ── */
+@media (min-width: 1450px) {
   .kpi-section {
-    grid-template-columns: repeat(8, 1fr) !important;
+    grid-template-columns: repeat(8, minmax(0, 1fr)) !important;
+    gap: clamp(6px, 0.75vw, 10px) !important;
   }
 }
 
-/* ── 2. Laptops Padrão e Zoom 125% (1200px a 1599px) ── */
-@media (max-width: 1599px) and (min-width: 1200px) {
+/* ── 2. Laptops Padrão e Zoom 125% (1000px a 1449px) ── */
+@media (max-width: 1449px) and (min-width: 1000px) {
   .kpi-section {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 10px !important;
   }
   .charts-grid,
   .charts-grid-row {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
   }
 }
 
-/* ── 3. Laptops Médios / Telas Menores (992px a 1199px) ── */
-@media (max-width: 1199px) {
+/* ── 3. Laptops Compactos / Tablets Paisagem (768px a 999px) ── */
+@media (max-width: 999px) and (min-width: 768px) {
   .app-header {
     padding: 8px 16px !important;
   }
   .kpi-section {
-    grid-template-columns: repeat(4, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
   .charts-grid,
   .charts-grid-row {
@@ -358,13 +388,20 @@ html, body {
   }
 }
 
-/* ── 4. Tablets e Telas Compactas (768px a 991px) ── */
-@media (max-width: 991px) {
+/* ── 4. Tablets e Telas Compactas (580px a 767px) ── */
+@media (max-width: 767px) and (min-width: 580px) {
   .header-subtitle {
     display: none !important;
   }
+  #fsText {
+    display: none !important;
+  }
+  .btn-fullscreen-header {
+    padding: 6px 8px !important;
+  }
   .kpi-section {
-    grid-template-columns: repeat(2, 1fr) !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
   .filtros-bar {
     padding: 10px 14px !important;
@@ -384,8 +421,8 @@ html, body {
   }
 }
 
-/* ── 5. Smartphones e Telas Estreitas (< 768px) ── */
-@media (max-width: 767px) {
+/* ── 5. Smartphones e Telas Estreitas (< 580px) ── */
+@media (max-width: 579px) {
   .app-header {
     flex-direction: column !important;
     align-items: stretch !important;
@@ -399,6 +436,12 @@ html, body {
     width: 100% !important;
     justify-content: space-between !important;
     margin-left: 0 !important;
+  }
+  #fsText {
+    display: none !important;
+  }
+  .btn-fullscreen-header {
+    padding: 6px 8px !important;
   }
   .kpi-section {
     grid-template-columns: 1fr !important;
@@ -422,4 +465,24 @@ html, body {
     padding: 8px 10px !important;
     font-size: 11px !important;
   }
+}
+
+/* ── 6. Otimizações para Modo Tela Cheia e Apresentações ── */
+body.is-fullscreen-mode {
+  padding-bottom: 24px !important;
+  overflow-y: auto !important;
+}
+
+body.is-fullscreen-mode .app-header {
+  padding: 6px 20px !important;
+  min-height: 48px !important;
+}
+
+body.is-fullscreen-mode .filtros-bar {
+  margin: 8px clamp(10px, 1.8vw, 24px) !important;
+  padding: 8px 16px !important;
+}
+
+body.is-fullscreen-mode .kpi-section {
+  margin-bottom: 12px !important;
 }
