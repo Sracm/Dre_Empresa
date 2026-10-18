@@ -2937,7 +2937,7 @@ document.addEventListener('DOMContentLoaded', () => {
   initFullscreenToggle();
 });
 
-// ── Gerenciador de Modo Tela Cheia Universal (F11 / Tecla F / Botão) ──────
+// ── Gerenciador de Modo Tela Cheia Universal (F11 / Tecla F / Botão / Iframe Intranet) ──────
 function initFullscreenToggle() {
   const btnFs = document.getElementById('btnFullscreen');
   if (!btnFs) return;
@@ -2973,7 +2973,7 @@ function initFullscreenToggle() {
 
   btnFs.addEventListener('click', async () => {
     try {
-      if (!isCurrentlyFullscreen()) {
+      if (!isCurrentlyFullscreen() && !document.body.classList.contains('is-fullscreen-mode')) {
         const docEl = document.documentElement;
         if (docEl.requestFullscreen) {
           await docEl.requestFullscreen();
@@ -2983,6 +2983,9 @@ function initFullscreenToggle() {
           await docEl.mozRequestFullScreen();
         } else if (docEl.msRequestFullscreen) {
           await docEl.msRequestFullscreen();
+        } else {
+          // Navegador sem API de fullscreen nativo
+          throw new Error('Native Fullscreen API not supported');
         }
       } else {
         if (document.exitFullscreen) {
@@ -2993,10 +2996,19 @@ function initFullscreenToggle() {
           await document.mozCancelFullScreen();
         } else if (document.msExitFullscreen) {
           await document.msExitFullscreen();
+        } else {
+          throw new Error('Native Exit Fullscreen not supported');
         }
       }
     } catch (err) {
-      console.warn('Fullscreen request failed:', err);
+      console.warn('Fullscreen native request failed, toggling CSS fullscreen:', err);
+      // Fallback robusto para ambientes incorporados/iframes
+      const isFs = !document.body.classList.contains('is-fullscreen-mode');
+      document.body.classList.toggle('is-fullscreen-mode', isFs);
+      if (fsIcon) fsIcon.textContent = isFs ? 'fullscreen_exit' : 'fullscreen';
+      if (fsText) fsText.textContent = isFs ? 'Sair Tela Cheia' : 'Modo Tela Cheia';
+      btnFs.classList.toggle('active', isFs);
+      window.dispatchEvent(new Event('resize'));
     }
   });
 
@@ -3005,6 +3017,18 @@ function initFullscreenToggle() {
   document.addEventListener('mozfullscreenchange', updateFsUI);
   document.addEventListener('MSFullscreenChange', updateFsUI);
 
+  // Escutar evento de tela cheia disparado pela Intranet caso incorporado em iframe
+  window.addEventListener('message', (event) => {
+    if (event.data && (event.data.type === 'MQ_FULLSCREEN_CHANGE' || event.data.type === 'FULLSCREEN_STATE')) {
+      const isFs = Boolean(event.data.isFullscreen);
+      document.body.classList.toggle('is-fullscreen-mode', isFs);
+      if (fsIcon) fsIcon.textContent = isFs ? 'fullscreen_exit' : 'fullscreen';
+      if (fsText) fsText.textContent = isFs ? 'Sair Tela Cheia' : 'Modo Tela Cheia';
+      btnFs.classList.toggle('active', isFs);
+      window.dispatchEvent(new Event('resize'));
+    }
+  });
+
   // Tecla 'f' ou 'F' ativa/desativa tela cheia se não estiver em formulário
   document.addEventListener('keydown', (e) => {
     const tag = (e.target.tagName || '').toLowerCase();
@@ -3012,6 +3036,14 @@ function initFullscreenToggle() {
     if (e.key === 'f' || e.key === 'F') {
       e.preventDefault();
       btnFs.click();
+    }
+    // Suporte a tecla Esc no modo CSS fullscreen
+    if (e.key === 'Escape' && document.body.classList.contains('is-fullscreen-mode') && !isCurrentlyFullscreen()) {
+      document.body.classList.remove('is-fullscreen-mode');
+      if (fsIcon) fsIcon.textContent = 'fullscreen';
+      if (fsText) fsText.textContent = 'Modo Tela Cheia';
+      btnFs.classList.remove('active');
+      window.dispatchEvent(new Event('resize'));
     }
   });
 }
