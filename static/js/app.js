@@ -65,22 +65,22 @@ const fmtCompact = v => {
 };
 
 // ── Helper para Subtítulo dos KPI Cards (Orçado, R/O, MoM, YoY, YTD YoY, % VB Orç., % VB Real.)
-function renderKpiSub(orc, roPct, momPct, yoyPct, ytdYoyPct, pctOrc, pctReal) {
+function renderKpiSub(orc, roPct, momPct, yoyPct, ytdYoyPct, pctOrc, pctReal, isDespesa = false) {
   // R/O
   const roStr = roPct != null ? (roPct >= 0 ? '+' : '') + Number(roPct).toFixed(1) + '%' : '—';
   const roClass = (roPct || 0) >= 0 ? 'up' : 'down';
 
   // MoM
   const momStr = momPct != null ? (momPct > 0 ? `▲ +${Number(momPct).toFixed(1)}%` : momPct < 0 ? `▼ ${Number(momPct).toFixed(1)}%` : '0.0%') : '—';
-  const momClass = momPct == null ? 'zero' : ((momPct || 0) >= 0 ? 'up' : 'down');
+  const momClass = momPct == null ? 'zero' : (isDespesa ? (momPct > 0 ? 'down' : momPct < 0 ? 'up' : 'zero') : (momPct >= 0 ? 'up' : 'down'));
 
   // YoY
   const yoyStr = yoyPct != null ? (yoyPct > 0 ? `▲ +${Number(yoyPct).toFixed(1)}%` : yoyPct < 0 ? `▼ ${Number(yoyPct).toFixed(1)}%` : '0.0%') : '—';
-  const yoyClass = yoyPct == null ? 'zero' : ((yoyPct || 0) >= 0 ? 'up' : 'down');
+  const yoyClass = yoyPct == null ? 'zero' : (isDespesa ? (yoyPct > 0 ? 'down' : yoyPct < 0 ? 'up' : 'zero') : (yoyPct >= 0 ? 'up' : 'down'));
 
   // YTD YoY
   const ytdStr = ytdYoyPct != null ? (ytdYoyPct > 0 ? `▲ +${Number(ytdYoyPct).toFixed(1)}%` : ytdYoyPct < 0 ? `▼ ${Number(ytdYoyPct).toFixed(1)}%` : '0.0%') : '—';
-  const ytdClass = ytdYoyPct == null ? 'zero' : ((ytdYoyPct || 0) >= 0 ? 'up' : 'down');
+  const ytdClass = ytdYoyPct == null ? 'zero' : (isDespesa ? (ytdYoyPct > 0 ? 'down' : ytdYoyPct < 0 ? 'up' : 'zero') : (ytdYoyPct >= 0 ? 'up' : 'down'));
 
   // % VB Orç. e % VB Real.
   const pctOrcStr = pctOrc != null ? `${Number(pctOrc).toFixed(1)}%` : '—';
@@ -122,14 +122,19 @@ const fmtEvol = v => {
   if (n < 0) return `▼ ${n.toFixed(1)}%`;
   return '0.0%';
 };
-function evolClass(v) {
+function evolClass(v, isDespesa = false) {
   if (v == null) return 'val-zero';
   const n = Number(v);
-  return n < 0 ? 'val-neg' : n > 0 ? 'val-pos' : 'val-zero';
+  if (n === 0) return 'val-zero';
+  if (isDespesa) {
+    return n > 0 ? 'val-neg' : 'val-pos';
+  } else {
+    return n > 0 ? 'val-pos' : 'val-neg';
+  }
 }
 
 function renderYtdCell(v) {
-  return `<td class="col-var ${evolClass(v)}">${fmtEvol(v)}</td>`;
+  return `<td class="col-num">${fmtBRL(v)}</td>`;
 }
 
 // ── Toast ────────────────────────────────────────────────────────────────
@@ -658,7 +663,7 @@ function carregarTudo(somenteDoisMeses = false, isUserClick = false) {
     state.mensalData = [];
   }
 
-  const mesAtual = state.mes || 8;
+  const mesAtual = state.mes || 9;
   const mesAnt = mesAtual > 1 ? mesAtual - 1 : 12;
 
   const p = new URLSearchParams({
@@ -1162,8 +1167,8 @@ function renderizarTabelaMensalOrcReal(data) {
   // Atualiza título dinâmico com período mensal
   const tit = document.getElementById('tituloTabelaMensalOrcReal');
   const NOMES_MES = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const mNum = Number(data.mes || state.mes || 8);
-  const mNome = NOMES_MES[mNum - 1] || 'Agosto';
+  const mNum = Number(data.mes || state.mes || 9);
+  const mNome = NOMES_MES[mNum - 1] || 'Setembro';
   if (tit) {
     tit.textContent = `Centros de Resultados — Mês de ${mNome}`;
   }
@@ -1422,9 +1427,8 @@ function renderizarDRE() {
           <td class="col-num ${numClass(bloco.realizado)}">${fmtBRL(bloco.realizado)}</td>
           <td class="col-pct">${pctBadge(bloco.pct_orc)}</td>
           <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
-          <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
-          <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-          <td class="col-var ${evolClass(bloco.ytd_yoy)}">${fmtEvol(bloco.ytd_yoy)}</td>
+          <td class="col-var ${evolClass(bloco.mom, bloco.is_despesa)}">${fmtEvol(bloco.mom)}</td>
+          <td class="col-var ${evolClass(bloco.yoy, bloco.is_despesa)}">${fmtEvol(bloco.yoy)}</td>
           <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
         </tr>`);
       return;
@@ -1445,9 +1449,8 @@ function renderizarDRE() {
         <td class="col-num ${numClass(bloco.realizado)}">${fmtBRL(bloco.realizado)}</td>
         <td class="col-pct">${pctBadge(bloco.pct_orc)}</td>
         <td class="col-pct">${pctBadge(bloco.pct_real)}</td>
-        <td class="col-var ${evolClass(bloco.mom)}">${fmtEvol(bloco.mom)}</td>
-        <td class="col-var ${evolClass(bloco.yoy)}">${fmtEvol(bloco.yoy)}</td>
-        <td class="col-var ${evolClass(bloco.ytd_yoy)}">${fmtEvol(bloco.ytd_yoy)}</td>
+        <td class="col-var ${evolClass(bloco.mom, bloco.is_despesa)}">${fmtEvol(bloco.mom)}</td>
+        <td class="col-var ${evolClass(bloco.yoy, bloco.is_despesa)}">${fmtEvol(bloco.yoy)}</td>
         <td class="col-ro ${roClass(bloco.ro)}">${fmtRO(bloco.ro)}</td>
       </tr>`);
 
@@ -1468,9 +1471,8 @@ function renderizarDRE() {
           <td class="col-num ${numClass(titulo.realizado)}">${fmtBRL(titulo.realizado)}</td>
           <td class="col-pct">${pctBadge(titulo.pct_orc)}</td>
           <td class="col-pct">${pctBadge(titulo.pct_real)}</td>
-          <td class="col-var ${evolClass(titulo.mom)}">${fmtEvol(titulo.mom)}</td>
-          <td class="col-var ${evolClass(titulo.yoy)}">${fmtEvol(titulo.yoy)}</td>
-          <td class="col-var ${evolClass(titulo.ytd_yoy)}">${fmtEvol(titulo.ytd_yoy)}</td>
+          <td class="col-var ${evolClass(titulo.mom, titulo.is_despesa)}">${fmtEvol(titulo.mom)}</td>
+          <td class="col-var ${evolClass(titulo.yoy, titulo.is_despesa)}">${fmtEvol(titulo.yoy)}</td>
           <td class="col-ro ${roClass(titulo.ro)}">${fmtRO(titulo.ro)}</td>
         </tr>`);
 
@@ -1486,9 +1488,8 @@ function renderizarDRE() {
             <td class="col-num ${numClass(ln.realizado)}">${fmtBRL(ln.realizado)}</td>
             <td class="col-pct">${pctBadge(ln.pct_orc)}</td>
             <td class="col-pct">${pctBadge(ln.pct_real)}</td>
-            <td class="col-var ${evolClass(ln.mom)}">${fmtEvol(ln.mom)}</td>
-            <td class="col-var ${evolClass(ln.yoy)}">${fmtEvol(ln.yoy)}</td>
-            <td class="col-var ${evolClass(ln.ytd_yoy)}">${fmtEvol(ln.ytd_yoy)}</td>
+            <td class="col-var ${evolClass(ln.mom, ln.is_despesa)}">${fmtEvol(ln.mom)}</td>
+            <td class="col-var ${evolClass(ln.yoy, ln.is_despesa)}">${fmtEvol(ln.yoy)}</td>
             <td class="col-ro ${roClass(ln.ro)}">${fmtRO(ln.ro)}</td>
           </tr>`);
       });
@@ -1496,7 +1497,7 @@ function renderizarDRE() {
   });
 
   if (rows.length === 0) {
-    tbody.innerHTML = `<tr><td colspan="9" class="loading-row" style="color:var(--text-muted)">
+    tbody.innerHTML = `<tr><td colspan="8" class="loading-row" style="color:var(--text-muted)">
       Nenhum dado encontrado para o período selecionado.
     </td></tr>`;
   } else {
@@ -1700,21 +1701,21 @@ function atualizarKPIs() {
   const elVLVal = document.getElementById('kpiVLVal');
   const elVLSub = document.getElementById('kpiVLSub');
   if (elVLVal) elVLVal.textContent = fmtBRL(vl.realizado);
-  if (elVLSub) elVLSub.innerHTML = renderKpiSub(vl.orcado, vl.ro, vl.mom, vl.yoy, vl.ytd_yoy, vl.pct_orc, vl.pct_real);
+  if (elVLSub) elVLSub.innerHTML = renderKpiSub(vl.orcado, vl.ro, vl.mom, vl.yoy, vl.ytd_yoy, vl.pct_orc, vl.pct_real, false);
 
   // 1. Venda Bruta
   const vb = allTitulos.find(t => t.titulo?.toLowerCase().includes('venda bruta')) || {};
   const elVBVal = document.getElementById('kpiVBVal');
   const elVBSub = document.getElementById('kpiVBSub');
   if (elVBVal) elVBVal.textContent = fmtBRL(vb.realizado);
-  if (elVBSub) elVBSub.innerHTML = renderKpiSub(vb.orcado, vb.ro, vb.mom, vb.yoy, vb.ytd_yoy, vb.pct_orc, vb.pct_real);
+  if (elVBSub) elVBSub.innerHTML = renderKpiSub(vb.orcado, vb.ro, vb.mom, vb.yoy, vb.ytd_yoy, vb.pct_orc, vb.pct_real, false);
 
   // 2. Margem de Contribuição
   const margem = dre.find(b => b.is_total) || {};
   const elMVal = document.getElementById('kpiMargemVal');
   const elMSub = document.getElementById('kpiMargemSub');
   if (elMVal) elMVal.textContent = fmtBRL(margem.realizado);
-  if (elMSub) elMSub.innerHTML = renderKpiSub(margem.orcado, margem.ro, margem.mom, margem.yoy, margem.ytd_yoy, margem.pct_orc, margem.pct_real);
+  if (elMSub) elMSub.innerHTML = renderKpiSub(margem.orcado, margem.ro, margem.mom, margem.yoy, margem.ytd_yoy, margem.pct_orc, margem.pct_real, false);
 
   // 3. Bonificação (Bonificação Clientes)
   const bonif = allTitulos.find(t => {
@@ -1724,7 +1725,7 @@ function atualizarKPIs() {
   const elBVal = document.getElementById('kpiBonifVal');
   const elBSub = document.getElementById('kpiBonifSub');
   if (elBVal) elBVal.textContent = fmtBRL(bonif.realizado);
-  if (elBSub) elBSub.innerHTML = renderKpiSub(bonif.orcado, bonif.ro, bonif.mom, bonif.yoy, bonif.ytd_yoy, bonif.pct_orc, bonif.pct_real);
+  if (elBSub) elBSub.innerHTML = renderKpiSub(bonif.orcado, bonif.ro, bonif.mom, bonif.yoy, bonif.ytd_yoy, bonif.pct_orc, bonif.pct_real, true);
 
   // 4. Comissão (Comissões)
   const despVendas = dre.find(b => (b.bloco || '').toLowerCase().includes('despesas com vendas')) || {};
@@ -1733,21 +1734,21 @@ function atualizarKPIs() {
   const elCVal = document.getElementById('kpiComissaoVal');
   const elCSub = document.getElementById('kpiComissaoSub');
   if (elCVal) elCVal.textContent = fmtBRL(comissao.realizado);
-  if (elCSub) elCSub.innerHTML = renderKpiSub(comissao.orcado, comissao.ro, comissao.mom, comissao.yoy, comissao.ytd_yoy, comissao.pct_orc, comissao.pct_real);
+  if (elCSub) elCSub.innerHTML = renderKpiSub(comissao.orcado, comissao.ro, comissao.mom, comissao.yoy, comissao.ytd_yoy, comissao.pct_orc, comissao.pct_real, true);
 
   // 5. Guelta
   const guelta = allTitulos.find(t => (t.titulo || '').toLowerCase().includes('guelta')) || {};
   const elGVal = document.getElementById('kpiGueltaVal');
   const elGSub = document.getElementById('kpiGueltaSub');
   if (elGVal) elGVal.textContent = fmtBRL(guelta.realizado);
-  if (elGSub) elGSub.innerHTML = renderKpiSub(guelta.orcado, guelta.ro, guelta.mom, guelta.yoy, guelta.ytd_yoy, guelta.pct_orc, guelta.pct_real);
+  if (elGSub) elGSub.innerHTML = renderKpiSub(guelta.orcado, guelta.ro, guelta.mom, guelta.yoy, guelta.ytd_yoy, guelta.pct_orc, guelta.pct_real, true);
 
   // 6. Despesa Comercial Operacional
   const despCom = dre.find(b => (b.bloco || '').toLowerCase().includes('comercial operacional')) || {};
   const elDVal = document.getElementById('kpiDespComercialVal');
   const elDSub = document.getElementById('kpiDespComercialSub');
   if (elDVal) elDVal.textContent = fmtBRL(despCom.realizado);
-  if (elDSub) elDSub.innerHTML = renderKpiSub(despCom.orcado, despCom.ro, despCom.mom, despCom.yoy, despCom.ytd_yoy, despCom.pct_orc, despCom.pct_real);
+  if (elDSub) elDSub.innerHTML = renderKpiSub(despCom.orcado, despCom.ro, despCom.mom, despCom.yoy, despCom.ytd_yoy, despCom.pct_orc, despCom.pct_real, true);
 
   // 7. Folha de Pagamento e Benefícios
   const folha = allTitulos.find(t => (t.titulo || '').toLowerCase().includes('folha') && !(t.titulo || '').toLowerCase().includes('comercial'))
@@ -1755,7 +1756,7 @@ function atualizarKPIs() {
   const elFVal = document.getElementById('kpiFolhaVal');
   const elFSub = document.getElementById('kpiFolhaSub');
   if (elFVal) elFVal.textContent = fmtBRL(folha.realizado);
-  if (elFSub) elFSub.innerHTML = renderKpiSub(folha.orcado, folha.ro, folha.mom, folha.yoy, folha.ytd_yoy, folha.pct_orc, folha.pct_real);
+  if (elFSub) elFSub.innerHTML = renderKpiSub(folha.orcado, folha.ro, folha.mom, folha.yoy, folha.ytd_yoy, folha.pct_orc, folha.pct_real, true);
 
   // Variantes semânticas dos cards conforme valores orçados vs realizados:
   // Para despesas: se orçado >= realizado, positivo (economia); se realizado > orçado, negativo (estouro).
@@ -2247,16 +2248,16 @@ function atualizarTimestamp(dataRef = null) {
 // ── Export CSV ───────────────────────────────────────────────────────────
 function exportarCSV() {
   if (!state.dre?.length) { showToast('Sem dados para exportar', 'error'); return; }
-  const linhas = [['Bloco','Título','Descrição','Orçado (R$)','Realizado (R$)','MoM','YoY','YTD Real.','% VB Orç.','% VB Real.','R/O']];
+  const linhas = [['Bloco','Título','Descrição','Orçado (R$)','Realizado (R$)','MoM','YoY','% VB Orç.','% VB Real.','R/O']];
   state.dre.forEach(bloco => {
     if (bloco.is_total) {
-      linhas.push([bloco.bloco,'','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.real_ytd,bloco.pct_orc,bloco.pct_real,bloco.ro]);
+      linhas.push([bloco.bloco,'','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.pct_orc,bloco.pct_real,bloco.ro]);
     } else {
-      linhas.push([bloco.bloco,'Subtotal','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.real_ytd,bloco.pct_orc,bloco.pct_real,bloco.ro]);
+      linhas.push([bloco.bloco,'Subtotal','',bloco.orcado,bloco.realizado,bloco.mom,bloco.yoy,bloco.pct_orc,bloco.pct_real,bloco.ro]);
       (bloco.titulos||[]).forEach(t => {
-        linhas.push([bloco.bloco,t.titulo,'',t.orcado,t.realizado,t.mom,t.yoy,t.real_ytd,t.pct_orc,t.pct_real,t.ro]);
+        linhas.push([bloco.bloco,t.titulo,'',t.orcado,t.realizado,t.mom,t.yoy,t.pct_orc,t.pct_real,t.ro]);
         (t.linhas||[]).forEach(ln => {
-          linhas.push([bloco.bloco,t.titulo,ln.descr,ln.orcado,ln.realizado,ln.mom,ln.yoy,ln.real_ytd,ln.pct_orc,ln.pct_real,ln.ro]);
+          linhas.push([bloco.bloco,t.titulo,ln.descr,ln.orcado,ln.realizado,ln.mom,ln.yoy,ln.pct_orc,ln.pct_real,ln.ro]);
         });
       });
     }
@@ -2761,10 +2762,10 @@ document.addEventListener('DOMContentLoaded', () => {
       usuario: obterNomeUsuario(),
       saudacao: obterSaudacaoPeriodo(),
       filtros: { 
-        ano: typeof state !== 'undefined' ? state.ano : '2026', 
-        mes: typeof state !== 'undefined' ? state.mes : '8', 
-        empresa: typeof state !== 'undefined' ? state.empresa : 'ALL', 
-        centroCusto: typeof state !== 'undefined' ? state.centroCusto : 'ALL' 
+        ano: (typeof state !== 'undefined' && state.ano) ? state.ano : 2026, 
+        mes: (typeof state !== 'undefined' && state.mes) ? state.mes : 9, 
+        empresa: (typeof state !== 'undefined' && state.emp) ? state.emp : 'ALL', 
+        centroCusto: (typeof state !== 'undefined' && Array.isArray(state.cenc) && state.cenc.length) ? state.cenc.join(',') : 'ALL' 
       },
       margem: document.getElementById('kpiMargemVal')?.textContent || '',
       vendaBruta: document.getElementById('kpiVBVal')?.textContent || ''

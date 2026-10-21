@@ -1,6 +1,7 @@
 """
 agent_ia.py — Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior (MQ Hair Company)
-Integrado diretamente ao banco de dados Oracle / DRE oficial (dre_cache.db).
+Integrado diretamente ao banco de dados MariaDB corporativo oficial (dre_empresa).
+Alimentado pelo modelo LLM GPT-4.5 mini (via OpenRouter).
 Atende a demandas analíticas de Diretores Executivos (CEO, CFO, CCO/Comercial, COO e Controladoria/Contábil)
 com foco em Demonstração do Resultado do Exercício (DRE), aderência orçamentária e rentabilidade.
 Garante precisão contábil e matemática de 100% sobre Orçado, Realizado e Desvios.
@@ -10,14 +11,12 @@ import os
 from datetime import datetime
 from db import get_db_connection
 import time
-import sqlite3
 import requests
 import json
 import traceback
 import re
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
 
 DEFAULT_OPENROUTER_KEY = "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"
 DEFAULT_OPENAI_KEY = "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"
@@ -49,9 +48,10 @@ if not OPENAI_API_KEY or len(OPENAI_API_KEY) < 15:
 if not MISTRAL_API_KEY or len(MISTRAL_API_KEY) < 15:
     MISTRAL_API_KEY = DEFAULT_MISTRAL_KEY
 
-OPENROUTER_MODELS = ["openai/gpt-4o-mini", "google/gemini-2.0-flash-001", "meta-llama/llama-3.3-70b-instruct"]
+# Modelo Oficial do Agente: GPT-4.5 mini (openai/gpt-4o-mini / openai/gpt-4.1-mini via OpenRouter)
+OPENROUTER_MODELS = ["openai/gpt-4o-mini", "openai/gpt-4.1-mini"]
 OPENAI_MODELS = ["gpt-4o-mini", "gpt-4o"]
-MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest", "open-mistral-7b"]
+MISTRAL_MODELS = ["open-mistral-nemo", "codestral-latest"]
 
 # Sessões HTTP persistentes para eliminar latência de handshake TLS/TCP
 _OPENROUTER_SESSION = requests.Session()
@@ -160,7 +160,7 @@ def _detectar_alucinacao(texto_llm, dados_oficiais):
 
     return False
 
-def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=8):
+def extrair_periodo_do_prompt(prompt, ano_padrao=2026, mes_padrao=9):
     """
     Identifica com precisão o mês e ano mencionados pelo usuário no prompt,
     suportando nomes completos, abreviações e termos relativos ('mês passado').
@@ -547,7 +547,7 @@ def obter_maiores_custos_despesas(ano=2026, mes=8, empresa=None, tipo="operacion
     - 3.Despesas com Vendas
     - 4.Despesas Comercial Operacional
     - 5.Despesas Administrativa Operacional
-    Garante valores 100% fiéis ao banco de dados SQLite oficial.
+    Garante valores 100% fiéis ao banco de dados MariaDB oficial.
     """
     conn = get_db_connection()
     cur = conn.cursor()
@@ -897,7 +897,7 @@ def identificar_centro_custo_ou_empresa(prompt):
 
     return None, None
 
-def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
+def obter_dre_centro_custo(centro_custo, ano=2026, mes=9, empresa=None):
     """
     Calcula com precisão contábil e matemática exata o DRE Completo e as Margens de um Centro de Custo.
     Calcula: Venda Bruta, Venda Líquida, CPV, Margem de Contribuição (R$ e %), Despesas de Vendas,
@@ -910,7 +910,7 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
         ano = int(ano)
         mes = int(mes)
     except Exception:
-        ano, mes = 2026, 8
+        ano, mes = 2026, 9
 
     where = ["ano = %s", "mes = %s", "codcencus != 21010000"]
     params = [ano, mes]
@@ -994,6 +994,27 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
     """, params)
     titulos = {r["titulo"]: {"orc": round(r["orc"] or 0.0, 2), "real": round(r["real"] or 0.0, 2)} for r in cur.fetchall()}
 
+    # Tratamento Inteligente e Proativo: se não há lançamentos para o centro neste período
+    aviso_proativo = None
+    if abs(vb_real) < 0.01 and abs(vl_real) < 0.01 and len(titulos) == 0:
+        cur.execute("""
+            SELECT COUNT(DISTINCT descrcencus) as cenc_dist
+            FROM dre_data
+            WHERE ano = %s AND mes = %s
+              AND descrcencus IS NOT NULL
+              AND descrcencus != ''
+              AND descrcencus != 'GERAL'
+        """, [ano, mes])
+        row_chk = cur.fetchone()
+        dist_count = (row_chk["cenc_dist"] if row_chk and row_chk.get("cenc_dist") else 0)
+        if dist_count <= 1:
+            aviso_proativo = (
+                "Os dados analíticos por Centro de Custo para este mês ainda estão aguardando o fechamento detalhado do ERP; "
+                "os números atualmente disponíveis estão apenas no consolidado GERAL."
+            )
+        else:
+            aviso_proativo = f"O Centro de Custo '{centro_custo}' não possui movimentações contábeis registradas para o período {mes:02d}/{ano}."
+
     conn.close()
 
     return {
@@ -1001,6 +1022,7 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
         "centro_custo": centro_custo,
         "periodo": f"{mes:02d}/{ano}",
         "empresa": empresa or "Consolidado",
+        "aviso_proativo": aviso_proativo,
         "venda_bruta": _calc_dif(vb_orc, vb_real),
         "venda_liquida": _calc_dif(vl_orc, vl_real),
         "cmv_cpv": _calc_dif(cmv_orc, cmv_real),
@@ -1025,7 +1047,7 @@ def obter_dre_centro_custo(centro_custo, ano=2026, mes=8, empresa=None):
         "detalhe_titulos": titulos
     }
 
-def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None):
+def consultar_por_centro_custo(centro_custo, ano=2026, mes=9, filtro_conta=None):
     """
     Consulta os valores realizados e orçados de um centro de resultado específico.
     Exemplos de centro_custo: 'DISTRIBUICAO', 'VAREJO - SP', 'MERCADO LIVRE', 'LOGISTICA - SC'.
@@ -1037,7 +1059,7 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
         ano = int(ano)
         mes = int(mes)
     except Exception:
-        ano, mes = 2026, 8
+        ano, mes = 2026, 9
 
     c_lower = str(centro_custo).strip().lower()
     is_conta = any(k in c_lower for k in ["comiss", "bonif", "guelta", "frete", "aluguel", "folha", "salario"])
@@ -1070,6 +1092,28 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
 
     cur.execute(f"SELECT SUM(orcado) as tot_orc, SUM(realizado) as tot_real FROM dre_data WHERE {' AND '.join(where)}", params)
     tot = cur.fetchone() or {"tot_orc": 0.0, "tot_real": 0.0}
+
+    # Tratamento Inteligente e Proativo: se não há linhas para o centro neste período
+    aviso_proativo = None
+    if len(rows) == 0:
+        cur.execute("""
+            SELECT COUNT(DISTINCT descrcencus) as cenc_dist
+            FROM dre_data
+            WHERE ano = %s AND mes = %s
+              AND descrcencus IS NOT NULL
+              AND descrcencus != ''
+              AND descrcencus != 'GERAL'
+        """, [ano, mes])
+        row_chk = cur.fetchone()
+        dist_count = (row_chk["cenc_dist"] if row_chk and row_chk.get("cenc_dist") else 0)
+        if dist_count <= 1:
+            aviso_proativo = (
+                "Os dados analíticos por Centro de Custo para este mês ainda estão aguardando o fechamento detalhado do ERP; "
+                "os números atualmente disponíveis estão apenas no consolidado GERAL."
+            )
+        else:
+            aviso_proativo = f"O Centro de Custo '{centro_custo}' não possui lançamentos contábeis registrados para o período {mes:02d}/{ano}."
+
     conn.close()
 
     detalhes = []
@@ -1090,6 +1134,7 @@ def consultar_por_centro_custo(centro_custo, ano=2026, mes=8, filtro_conta=None)
         "centro_custo": centro_custo,
         "ano": ano,
         "mes": mes,
+        "aviso_proativo": aviso_proativo,
         "total_orcado": round(tot_orc, 2),
         "total_realizado": round(tot_real, 2),
         "desvio_total": round(tot_real - tot_orc, 2),
@@ -1343,7 +1388,7 @@ def validar_e_higienizar_bloco_grafico(texto, prompt="", dados_ferramenta=None):
 
 def consultar_sql(query):
     """
-    Executa consulta SELECT SQL livre no banco SQLite (tabela dre_data).
+    Executa consulta SELECT SQL livre no banco MariaDB oficial (tabela dre_data).
     """
     query_clean = query.strip()
     if not query_clean.upper().startswith("SELECT"):
@@ -1744,18 +1789,17 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "4. GERAÇÃO OBRIGATÓRIA DE GRÁFICOS: Se o usuário solicitar qualquer visualização em gráfico (pizza, rosca, barras, linhas, evolução temporal, custos), você DEVE OBRIGATORIAMENTE incluir ao final da sua resposta o bloco ```chart {...}``` com o JSON válido do Chart.js. No array `data`, use SEMPRE números puros positivos (ex: 204179.50) para custos e despesas em gráficos de pizza/rosca.\n\n"
         "---\n\n"
         "# Papel e Identidade\n"
-        "Você é um Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior, integrado diretamente ao banco de dados Oracle.\n"
+        "Você é um Agente de Inteligência Executiva e Controladoria Corporativa de Nível Sênior, integrado diretamente ao banco de dados MariaDB corporativo oficial (dre_empresa), alimentado pelo modelo GPT-4.5 mini (OpenRouter).\n"
         "Seu objetivo é atender a demandas analíticas de Diretores Executivos (CEO, CFO, CCO/Comercial, COO e Controladoria/Contábil) com foco em Demonstração do Resultado do Exercício (DRE), aderência orçamentária e rentabilidade.\n\n"
         f"EXERCÍCIO FISCAL EM ANÁLISE: {ano_ctx} | {periodo_ref_desc}.\n\n"
         "---\n\n"
         "# Fluxo Obrigatório de Raciocínio (Interno)\n\n"
         "Antes de gerar qualquer resposta ao executivo, execute estritamente este ciclo de 3 etapas:\n\n"
-        "### 1. Query (Formulação Técnica no Oracle)\n"
+        "### 1. Query (Formulação Técnica no MariaDB Oficial)\n"
         "- Identifique a métrica financeira exigida: Receita Bruta/Líquida, CMV/CPV, Margem Bruta, Margem de Contribuição, EBITDA/LAIDA, Resultado Financeiro, Lucro Líquido, Margem Líquida ou Variação Orçado vs. Realizado.\n"
-        "- Formule a consulta SQL com sintaxe estrita de Oracle Database:\n"
-        "  - Limite de linhas com `FETCH FIRST N ROWS ONLY` ou `ROWNUM <= N` (nunca use LIMIT).\n"
-        "  - Truncamento e formatação de datas via `TRUNC(data_coluna)`, `TO_DATE` e `TO_CHAR(data, 'YYYY-MM')`.\n"
-        "  - Tratamento de nulos com `NVL` ou `COALESCE`.\n"
+        "- Formule a consulta SQL com sintaxe de MariaDB/MySQL sobre a tabela `dre_data`:\n"
+        "  - Limite de linhas com `LIMIT N`.\n"
+        "  - Tratamento de nulos com `IFNULL` ou `COALESCE`.\n"
         "  - Evite duplicidade de rateios/lançamentos conferindo chaves e status de validação contábil.\n\n"
         "### 2. Validação (Checagem Técnica e Contábil)\n"
         "Antes de rodar a query, valide os seguintes critérios:\n"
@@ -1764,7 +1808,7 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "- **Hierarquia da DRE:** Garanta que deduções de receita, custos diretos e despesas operacionais (OpEx / SG&A) estejam nas linhas e naturezas de contas corretas do plano de contas.\n"
         "- **Granularidade:** Certifique-se de que agrupamentos por Centro de Custos, Canal, Unidade de Negócio ou Período não estejam duplicando somatórios.\n\n"
         "### 3. Execução & Síntese Executiva\n"
-        "- Execute a query no Oracle em modo somente leitura (SELECT).\n"
+        "- Execute a query no MariaDB em modo somente leitura (SELECT).\n"
         "- Se os dados retornados divergirem da lógica financeira básica, refine a query antes de emitir o relatório.\n"
         "- Formate a resposta final no formato executivo estabelecido abaixo.\n\n"
         "---\n\n"
@@ -1833,6 +1877,8 @@ def obter_system_prompt_persona(ano_ctx, mes_ctx, periodo_ref_desc, nome_usuario
         "- No array `data`, use SEMPRE números puros (float/int), positivos para custos/despesas (ex: 204179.50 em vez de -204.179,50), sem símbolos de moeda dentro do JSON.\n"
         "- NUNCA escreva apenas 'gerando gráfico...' sem colocar o bloco ```chart {...}```. O bloco ```chart``` é a instrução direta que faz o gráfico Chart.js renderizar na tela.\n"
         "- **Proibição Absoluta de Alucinação:** Utilize estritamente os dados oficiais contábeis fornecidos no contexto ou retornados pelas ferramentas. NUNCA invente números.\n"
+        "- **Aviso Proativo de Centro de Custo:** Se os dados de um centro de custo consultado contiverem 'aviso_proativo' (ou seja, período que ainda não possui rateio por centro no ERP ou sem movimentação), você DEVE informar o usuário proativamente de forma transparente, citando textualmente a situação contábil:\n"
+        "  'Os dados analíticos por Centro de Custo para este mês ainda estão aguardando o fechamento detalhado do ERP; os números atualmente disponíveis estão apenas no consolidado GERAL.'\n"
         "- **Responder as Saudações:** Sempre responda adequadamente a saudações do usuário.\n"
         "- **Restrição Rigorosa de Escopo:** NUNCA RESPONDA ALGO FORA DO CONTEXTO DE ARQUITETURA. Exemplo de resposta para bloqueio: NÃO POSSO RESPONDER ESSA PERGUNTA PORQUE ESTA FORA DO MEU CONTEXTO DE ANALISE."
 
@@ -1934,7 +1980,7 @@ def processar_pergunta(prompt, contexto=None):
                 def fmt_val(v):
                     return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
                 return (
-                    f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
+                    f"Consultei diretamente os dados oficiais do DRE no MariaDB corporativo oficial:\n\n"
                     f"**Resultado Executivo ({resumo.get('periodo', periodo_label_info)} - {resumo.get('empresa', 'Consolidado')}):**\n"
                     f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
                     f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"
@@ -2112,7 +2158,7 @@ def stream_processar_pergunta(prompt, contexto=None):
         yield {"tipo": "fim", "resposta_completa": resposta_folha}
         return
 
-    # 2. Roteamento de Pré-busca Indexada SQLite (< 10ms)
+    # 2. Roteamento de Pré-busca no MariaDB oficial (< 25ms via pool)
     if any(k in p_lower for k in ["estour", "desvio", "orçamento", "orcamento", "estouro"]):
         status_msg = "Digitando..."
         yield {"tipo": "status", "texto": status_msg}
@@ -2317,7 +2363,7 @@ def stream_processar_pergunta(prompt, contexto=None):
                     per = dados_pre.get("periodo", periodo_label_info)
                     vb = dados_pre.get("venda_bruta", {})
                     fb_card = (
-                        f"Consultei os dados oficiais do DRE na base local:\n\n"
+                        f"Consultei os dados oficiais do DRE no MariaDB corporativo oficial:\n\n"
                         f"**{nome_ind} ({per} - {emp_ctx}):**\n"
                         f"- **Realizado:** **{fmt_val(kpi.get('realizado', 0))}**\n"
                         f"- **Orçado:** **{fmt_val(kpi.get('orcado', 0))}**\n"
@@ -2368,7 +2414,7 @@ def stream_processar_pergunta(prompt, contexto=None):
             def fmt_val(v):
                 return f"R$ {v:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
             fallback_text = (
-                f"Consultei diretamente os dados oficiais do DRE na base local:\n\n"
+                f"Consultei diretamente os dados oficiais do DRE no MariaDB corporativo oficial:\n\n"
                 f"**Resumo Executivo ({mes_ctx:02d}/{ano_ctx} - {resumo.get('empresa', 'Consolidado')}):**\n"
                 f"- **Venda Bruta:** Realizado **{fmt_val(vb.get('realizado', 0))}** | Orçado **{fmt_val(vb.get('orcado', 0))}** ({vb.get('desvio_pct', 0):+.1f}%)\n"
                 f"- **Venda Líquida:** Realizado **{fmt_val(vl.get('realizado', 0))}** | Orçado **{fmt_val(vl.get('orcado', 0))}** ({vl.get('desvio_pct', 0):+.1f}%)\n"

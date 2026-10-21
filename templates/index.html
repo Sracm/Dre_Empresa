@@ -76,7 +76,7 @@
     <label class="filter-label" style="color: #ffffff !important; font-weight: 700;">Mês</label>
     <div class="multi-select" id="multiSelectMes">
       <div class="multi-select-btn" id="mesBtn" tabindex="0" title="Clique para selecionar um ou mais Meses">
-        <span class="multi-select-text" id="mesBtnText">Agosto</span>
+        <span class="multi-select-text" id="mesBtnText">Setembro</span>
         <span class="multi-select-arrow">▾</span>
       </div>
       <div class="multi-select-dropdown" id="mesDropdown" style="display: none;">
@@ -398,19 +398,18 @@
       <table class="dre-table deviation-table" id="dreTable">
         <thead>
           <tr>
-            <th class="col-descr" style="width: 32%;">Descrição da Conta / Classificação</th>
+            <th class="col-descr" style="width: 38%;">Descrição da Conta / Classificação</th>
             <th class="col-num" style="width: 10%;">Orçado (R$)</th>
             <th class="col-num" style="width: 10%;">Realizado (R$)</th>
             <th class="col-pct" style="width: 8%;">% VB Orç.</th>
             <th class="col-pct" style="width: 8%;">% VB Real.</th>
-            <th class="col-var" style="width: 8%;" title="Month over Month — Evolução vs Mês Anterior">MoM</th>
-            <th class="col-var" style="width: 8%;" title="Year over Year — Evolução vs Mesmo Mês do Ano Anterior">YoY</th>
-            <th class="col-var" style="width: 8%;" title="Year to Date — Evolução Acumulada no Ano vs Ano Anterior">YTD Real.</th>
+            <th class="col-var" style="width: 9%;" title="Month over Month — Evolução vs Mês Anterior">MoM</th>
+            <th class="col-var" style="width: 9%;" title="Year over Year — Evolução vs Mesmo Mês do Ano Anterior">YoY</th>
             <th class="col-ro" style="width: 8%;">R/O</th>
           </tr>
         </thead>
         <tbody id="dreBody">
-          <tr><td colspan="9" class="loading-row">
+          <tr><td colspan="8" class="loading-row">
             <div class="spinner"></div> Carregando DRE…
           </td></tr>
         </tbody>
@@ -488,6 +487,6 @@
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-<script src="{{ url_for('static', filename='js/app.js') }}?v=20261017_adaptive_cards_v2"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}?v=20261019_no_ytd"></script>
 </body>
 </html>

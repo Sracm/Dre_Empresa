@@ -1,7 +1,6 @@
 import os
 from db import get_db_connection
 import sys
-import sqlite3
 import traceback
 import threading
 import time
@@ -18,7 +17,6 @@ from openpyxl.utils import get_column_letter
 app = Flask(__name__)
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
-DB_PATH = os.path.join(BASE_DIR, "dre_cache.db")
 
 def get_db():
     conn = get_db_connection()
@@ -969,10 +967,26 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
             return None
         return round(((r - o) / o) * 100, 2)
 
-    # Variação MoM, YoY e YTD YoY: (Realizado - Base) / ABS(Base) * 100
-    def calc_var(r, b):
+    def is_cost_or_expense(bloco, titulo=None):
+        b = (bloco or "").lower()
+        t = (titulo or "").lower() if titulo else ""
+        if "custo" in b or "despesa" in b:
+            return True
+        if any(k in t for k in ["devolução", "devolucao", "imposto", "irpj", "csll", "desc financeiro", "cpv", "frete"]):
+            return True
+        return False
+
+    # Variação MoM, YoY e YTD YoY:
+    # Para receitas e margem: (Realizado - Base) / ABS(Base) * 100
+    # Para despesas/custos (valores negativos no banco): (ABS(Realizado) - ABS(Base)) / ABS(Base) * 100
+    # Desta forma, se um custo aumenta (ex: de -284k para -566k), a variação é +99.5% (seta ▲)
+    # Se um custo diminui (ex: de -204k para -104k), a variação é -49.1% (seta ▼)
+    def calc_var(r, b, is_despesa=False):
         if b is None or abs(b) < 0.001:
             return None
+        if is_despesa:
+            diff = abs(r) - abs(b)
+            return round((diff / abs(b)) * 100, 2)
         return round(((r - b) / abs(b)) * 100, 2)
 
     result = []
@@ -983,14 +997,15 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
         result.append({
             "bloco": "MARGEM DE CONTRIBUIÇÃO",
             "is_total": True,
+            "is_despesa": False,
             "realizado": margem_real,
             "orcado": margem_orc,
             "real_mom": margem_real_mom,
             "orc_mom": margem_orc_mom,
             "real_ytd": margem_real_ytd,
-            "mom": calc_var(margem_real, margem_real_mom) if not is_multi_mes else None,
-            "yoy": calc_var(margem_real, margem_yoy),
-            "ytd_yoy": calc_var(margem_real_ytd, margem_real_ytd_ant),
+            "mom": calc_var(margem_real, margem_real_mom, False) if not is_multi_mes else None,
+            "yoy": calc_var(margem_real, margem_yoy, False),
+            "ytd_yoy": calc_var(margem_real_ytd, margem_real_ytd_ant, False),
             "pct_real": pct(margem_real, vb_real),
             "pct_orc": pct(margem_orc, vb_orc),
             "ro": ro(margem_real, margem_orc),
@@ -1035,14 +1050,15 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
         result.append({
             "bloco": "MARGEM",
             "is_total": True,
+            "is_despesa": False,
             "realizado": margem2_real,
             "orcado": margem2_orc,
             "real_mom": margem2_real_mom,
             "orc_mom": margem2_orc_mom,
             "real_ytd": margem2_ytd,
-            "mom": calc_var(margem2_real, margem2_real_mom) if not is_multi_mes else None,
-            "yoy": calc_var(margem2_real, margem2_yoy),
-            "ytd_yoy": calc_var(margem2_ytd, margem2_ytd_ant),
+            "mom": calc_var(margem2_real, margem2_real_mom, False) if not is_multi_mes else None,
+            "yoy": calc_var(margem2_real, margem2_yoy, False),
+            "ytd_yoy": calc_var(margem2_ytd, margem2_ytd_ant, False),
             "pct_real": pct(margem2_real, vb_real),
             "pct_orc": pct(margem2_orc, vb_orc),
             "ro": ro(margem2_real, margem2_orc),
@@ -1052,7 +1068,9 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
     # 2. Blocos, Títulos e Detalhes
     for bloco, bd in blocos_dict.items():
         titulos_out = []
+        is_desp_bloco = is_cost_or_expense(bloco)
         for titulo, td in bd["titulos"].items():
+            is_desp_tit = is_cost_or_expense(bloco, titulo)
             linhas_out = [
                 {
                     "descr": ln["descr"],
@@ -1061,9 +1079,10 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
                     "real_mom": ln["real_mom"],
                     "orc_mom": ln["orc_mom"],
                     "real_ytd": ln["real_ytd"],
-                    "mom": calc_var(ln["realizado"], ln["real_mom"]) if not is_multi_mes else None,
-                    "yoy": calc_var(ln["realizado"], ln["real_yoy"]),
-                    "ytd_yoy": calc_var(ln["real_ytd"], ln["real_ytd_ant"]),
+                    "is_despesa": is_desp_tit,
+                    "mom": calc_var(ln["realizado"], ln["real_mom"], is_desp_tit) if not is_multi_mes else None,
+                    "yoy": calc_var(ln["realizado"], ln["real_yoy"], is_desp_tit),
+                    "ytd_yoy": calc_var(ln["real_ytd"], ln["real_ytd_ant"], is_desp_tit),
                     "pct_real": pct(ln["realizado"], vb_real),
                     "pct_orc": pct(ln["orcado"], vb_orc),
                     "ro": ro(ln["realizado"], ln["orcado"]),
@@ -1077,9 +1096,10 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
                 "real_mom": td["real_mom"],
                 "orc_mom": td["orc_mom"],
                 "real_ytd": td["real_ytd"],
-                "mom": calc_var(td["realizado"], td["real_mom"]) if not is_multi_mes else None,
-                "yoy": calc_var(td["realizado"], td["real_yoy"]),
-                "ytd_yoy": calc_var(td["real_ytd"], td["real_ytd_ant"]),
+                "is_despesa": is_desp_tit,
+                "mom": calc_var(td["realizado"], td["real_mom"], is_desp_tit) if not is_multi_mes else None,
+                "yoy": calc_var(td["realizado"], td["real_yoy"], is_desp_tit),
+                "ytd_yoy": calc_var(td["real_ytd"], td["real_ytd_ant"], is_desp_tit),
                 "pct_real": pct(td["realizado"], vb_real),
                 "pct_orc": pct(td["orcado"], vb_orc),
                 "ro": ro(td["realizado"], td["orcado"]),
@@ -1093,9 +1113,10 @@ def _build_dre_tree(detalhe, bonif_total, mes_primario=8, meses=None):
             "real_mom": bd["real_mom"],
             "orc_mom": bd["orc_mom"],
             "real_ytd": bd["real_ytd"],
-            "mom": calc_var(bd["realizado"], bd["real_mom"]) if not is_multi_mes else None,
-            "yoy": calc_var(bd["realizado"], bd["real_yoy"]),
-            "ytd_yoy": calc_var(bd["real_ytd"], bd["real_ytd_ant"]),
+            "is_despesa": is_desp_bloco,
+            "mom": calc_var(bd["realizado"], bd["real_mom"], is_desp_bloco) if not is_multi_mes else None,
+            "yoy": calc_var(bd["realizado"], bd["real_yoy"], is_desp_bloco),
+            "ytd_yoy": calc_var(bd["real_ytd"], bd["real_ytd_ant"], is_desp_bloco),
             "pct_real": pct(bd["realizado"], vb_real),
             "pct_orc": pct(bd["orcado"], vb_orc),
             "ro": ro(bd["realizado"], bd["orcado"]),
@@ -1136,7 +1157,6 @@ def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_l
         '% VB Real.',
         'MoM',
         'YoY',
-        'YTD Real.',
         'R/O'
     ]
 
@@ -1147,7 +1167,7 @@ def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_l
         c.font = header_font
         c.alignment = align_left if col_idx == 1 else align_right
 
-    col_widths = {1: 44, 2: 16, 3: 16, 4: 13, 5: 13, 6: 12, 7: 12, 8: 13, 9: 12}
+    col_widths = {1: 44, 2: 16, 3: 16, 4: 13, 5: 13, 6: 12, 7: 12, 8: 12}
     for col_idx, width in col_widths.items():
         ws.column_dimensions[get_column_letter(col_idx)].width = width
 
@@ -1168,7 +1188,6 @@ def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_l
         pct_r = item.get('pct_real')
         mom = item.get('mom')
         yoy = item.get('yoy')
-        ytd = item.get('ytd_yoy')
         ro = item.get('ro')
 
         # Orçado
@@ -1207,8 +1226,8 @@ def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_l
         if fill_style:
             c_pct_r.fill = fill_style
 
-        # MoM, YoY, YTD, R/O
-        for col_i, val in enumerate([mom, yoy, ytd, ro], 6):
+        # MoM (col 6) e YoY (col 7)
+        for col_i, val in [(6, mom), (7, yoy)]:
             c = ws.cell(row=row_idx, column=col_i)
             c.font = font_style
             c.border = cell_border
@@ -1221,6 +1240,20 @@ def generate_hierarchical_dre_excel(dre_tree, ano=2026, mes=8, emps=None, cenc_l
                 c.value = float(val) / 100.0
                 c.alignment = align_right
                 c.number_format = '+0.0%;-0.0%;"0.0%"'
+
+        # R/O (col 8)
+        c_ro = ws.cell(row=row_idx, column=8)
+        c_ro.font = font_style
+        c_ro.border = cell_border
+        if fill_style:
+            c_ro.fill = fill_style
+        if ro is None:
+            c_ro.value = "—"
+            c_ro.alignment = align_center
+        else:
+            c_ro.value = float(ro) / 100.0
+            c_ro.alignment = align_right
+            c_ro.number_format = '+0.0%;-0.0%;"0.0%"'
 
     # 1. Total Rows on Top (MARGEM DE CONTRIBUIÇÃO e MARGEM)
     margens = [b for b in dre_tree if b.get('is_total')]

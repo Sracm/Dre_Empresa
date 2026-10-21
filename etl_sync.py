@@ -118,6 +118,9 @@ def carregar_dimensoes(cur):
     cur.execute("SELECT CODNAT, DESCRNAT FROM SANKHYA.TGFNAT")
     nat_map = {int(r[0]): str(r[1]).strip() for r in cur.fetchall() if r[0] is not None and r[1]}
 
+    cur.execute("SELECT CODCENCUS, DESCRCENCUS FROM SANKHYA.VMQ_TSICUS WHERE CODCENCUS IS NOT NULL")
+    cen_map = {int(r[0]): str(r[1]).strip() for r in cur.fetchall() if r[0] is not None and r[1]}
+
     cur.arraysize = 10000
     cur.execute("SELECT BLOCO, TITULO, CODNAT, CODCENCUS, FATOR, REF FROM SANKHYA.VMQ_CADDRE")
     caddre = {}
@@ -130,7 +133,7 @@ def carregar_dimensoes(cur):
             "fator": float(fator) if fator else 1.0,
             "ref": ref_val
         }
-    return emp_map, caddre, nat_map
+    return emp_map, caddre, nat_map, cen_map
 
 def extrair_mes(cur, view_texto_cortado, ano, mes):
     """Extrai um mês agregando por empresa, centro, natureza e ref com os filtros oficiais."""
@@ -154,10 +157,11 @@ def extrair_mes(cur, view_texto_cortado, ano, mes):
     cur.execute(sql, dt_ini=dt_ini, dt_fim=dt_fim, cenc_excl=EXCLUDED_CODCENCUS, emp_excl=EXCLUDED_CODEMP)
     return cur.fetchall()
 
-def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map):
+def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map, cen_map=None):
     """Mapeia e salva os registros de um mês em dre_data e dre_resumo_mensal no MariaDB."""
     permitidas = set(ALLOWED_COMPANIES)
     batch = []
+    cen_map = cen_map or {}
 
     for codemp, codcencus, codnat, ref_raw, realizado, orcado in rows:
         emp_nome = emp_map.get(codemp, f"EMP-{codemp}")
@@ -179,9 +183,10 @@ def salvar_mes_mariadb(conn, ano, mes, rows, emp_map, caddre, nat_map):
             
         fator = info["fator"]
         descr_natureza = nat_map.get(int(codnat), str(codnat)) if codnat else ""
+        cen_nome = cen_map.get(int(codcencus), "GERAL") if codcencus else "GERAL"
         batch.append((
             ano, mes, trimestre(mes), semestre(mes),
-            emp_nome, codcencus, "",
+            emp_nome, codcencus, cen_nome,
             info["bloco"], info["titulo"], descr_natureza,
             orc, real * fator, 0.0, 0.0  # orçado (AD_ORCAMENTO) já vem com sinal: NÃO aplica fator
         ))
@@ -223,8 +228,8 @@ def _executar_sincronizacao(meses_para_sincronizar, motivo="sincronização DRE 
         oc = conectar_oracle()
         cur = oc.cursor()
 
-        _set_status("running", 15, "Carregando plano de contas e empresas...", "Lendo CADDRE e mapeamento de empresas.")
-        emp_map, caddre, nat_map = carregar_dimensoes(cur)
+        _set_status("running", 15, "Carregando plano de contas e empresas...", "Lendo CADDRE, centros de custo e mapeamento de empresas.")
+        emp_map, caddre, nat_map, cen_map = carregar_dimensoes(cur)
 
         _set_status("running", 25, "Preparando consulta otimizada da view VMQ_DREQLIK...", "Injetando cortes temporais nos índices de data.")
         cur.execute("SELECT text FROM all_views WHERE owner = 'SANKHYA' AND view_name = 'VMQ_DREQLIK'")
@@ -245,7 +250,7 @@ def _executar_sincronizacao(meses_para_sincronizar, motivo="sincronização DRE 
             rows = extrair_mes(cur, texto_norm, ano_s, mes_s)
             
             _set_status("running", pct_atual + (passo // 2), f"Gravando {ano_s}/{mes_s:02d} no MariaDB...", f"{len(rows)} linhas lidas do Oracle.")
-            linhas_mes = salvar_mes_mariadb(conn_db, ano_s, mes_s, rows, emp_map, caddre, nat_map)
+            linhas_mes = salvar_mes_mariadb(conn_db, ano_s, mes_s, rows, emp_map, caddre, nat_map, cen_map)
             total_linhas += linhas_mes
 
         conn_db.close()
