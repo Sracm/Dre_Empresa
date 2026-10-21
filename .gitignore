@@ -13,3 +13,4 @@ venv/
 *.png
 *.log
 data_sync_status.json
+data_sync_status.json
