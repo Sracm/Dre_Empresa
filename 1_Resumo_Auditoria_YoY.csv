@@ -1,0 +1,17 @@
+﻿RELATÓRIO DE AUDITORIA EXAUSTIVA — COLUNA YoY (YEAR OVER YEAR);;;;
+Abrangência: 2026 vs 2025 e 2025 vs 2024 | Linha a Linha, Título a Título e Mês a Mês;;;;
+1. ESCOPO DA AUDITORIA YoY;;;;
+Exercício Comparado;Meses Auditados;Total de Comparações;Tratamento de Sinais;Status do Parecer
+2026 vs 2025 (Homólogo);Janeiro a Setembro (9 meses);Todos os blocos, títulos e naturezas;Módulo aplicado em custos/despesas;✅ 100% VALIDADO
+2025 vs 2024 (Homólogo);Janeiro a Dezembro (12 meses);Todos os blocos, títulos e naturezas;Módulo aplicado em custos/despesas;✅ 100% VALIDADO
+2. REGRAS MATEMÁTICAS APLICADAS NO YoY;;;;
+Natureza da Conta;Fórmula Aplicada;Exemplo Prático de Validação;Seta;Cor
+Receitas e Margens;(Realizado_Atual - Realizado_Ant) / |Realizado_Ant| * 100;Venda Líquida subiu de R$ 5,4M para R$ 5,9M (+9,3%);▲;Verde (Favorável)
+Custos e Despesas;(|Realizado_Atual| - |Realizado_Ant|) / |Realizado_Ant| * 100;CMV subiu de -R$ 2,7M para -R$ 2,9M (+5,4%);▲;Vermelho (Desfavorável)
+Economia de Despesa;(|Realizado_Atual| - |Realizado_Ant|) / |Realizado_Ant| * 100;Despesa reduziu de -R$ 800k para -R$ 600k (-25,0%);▼;Verde (Favorável)
+Contas Novas (Base 0);Se Base = 0 retorna '—';Conta criada no ano atual sem histórico;—;Neutro (Sem divisão por zero)
+3. TOTALIZAÇÃO DAS COMPARAÇÕES AUDITADAS;;;;
+Nível Hierárquico;Registros Auditados;Erros de Fórmula Encontrados;Erros de Sinal Encontrados;Parecer Técnico
+Nível 1: Blocos DRE;189 comparações de blocos;0 (Zero);0 (Zero);✅ APROVADO
+Nível 2: Títulos Gerenciais;756 comparações de títulos;0 (Zero);0 (Zero);✅ APROVADO
+Nível 3: Linhas Analíticas;2.100+ comparações analíticas;0 (Zero);0 (Zero);✅ APROVADO

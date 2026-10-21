@@ -34,6 +34,7 @@ def _create_mariadb_connection():
             port=port,
             database=database,
             cursorclass=pymysql.cursors.DictCursor,
+            charset="utf8mb4",
             connect_timeout=8,
             read_timeout=90,
             write_timeout=90,

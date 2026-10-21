@@ -1,0 +1,331 @@
+﻿Mês;Nome Mês;Bloco;Título;Natureza;Realizado 2025 (R$);Realizado 2026 (R$);Diferença Nominal (R$);YoY Calculado (%);Seta;Cor;Status de Auditoria
+1;Janeiro;1.Venda Liquida;1.Venda Bruta;Receita;4363585.4712;6337039.162199998;1973453.690999999;0.4523;▲ +45.2%;Verde;OK - Validado
+1;Janeiro;1.Venda Liquida;2.Devolução;Despesa/Custo;-49660.89;-143565.1178;-93904.22780000001;1.8909;▲ +189.1%;Vermelho;OK - Validado
+1;Janeiro;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-31146.05;-19157.66;11988.39;-0.3849;▼ -38.5%;Verde;OK - Validado
+1;Janeiro;1.Venda Liquida;4.Imposto;Despesa/Custo;-346203.8700000001;-458311.8199999999;-112107.9499999999;0.3238;▲ +32.4%;Vermelho;OK - Validado
+1;Janeiro;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-122450.547912;-192292.464208;-69841.91629599998;0.5704;▲ +57.0%;Vermelho;OK - Validado
+1;Janeiro;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-2214175.507378;-2970656.87697;-756481.3695920003;0.3417;▲ +34.2%;Vermelho;OK - Validado
+1;Janeiro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-6811.44;-29729.52;-22918.08;3.3646;▲ +336.5%;Vermelho;OK - Validado
+1;Janeiro;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;23564.6187;66283.0303;42718.4116;1.8128;▲ +181.3%;Vermelho;OK - Validado
+1;Janeiro;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-6942.5597;-7345.3902;-402.8305;0.058;▲ +5.8%;Vermelho;OK - Validado
+1;Janeiro;3.Despesas com Vendas;1.Frete;Despesa/Custo;-186404.04;-234252.7456;-47848.70560000002;0.2567;▲ +25.7%;Vermelho;OK - Validado
+1;Janeiro;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-159.1962;-210.3474;-51.15119999999999;0.3213;▲ +32.1%;Vermelho;OK - Validado
+1;Janeiro;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-174417.065642;-144182.815552;30234.25009000002;-0.1733;▼ -17.3%;Verde;OK - Validado
+1;Janeiro;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-9839.890000000001;-19089.99;-9250.099999999997;0.9401;▲ +94.0%;Vermelho;OK - Validado
+1;Janeiro;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-180952.3099777519;-172943.6858226016;8008.624155150319;-0.0443;▼ -4.4%;Verde;OK - Validado
+1;Janeiro;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-11000;-19000;-8000;0.7273000000000001;▲ +72.7%;Vermelho;OK - Validado
+1;Janeiro;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-6313.84;-5561.68;752.1599999999999;-0.1191;▼ -11.9%;Verde;OK - Validado
+1;Janeiro;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1935.4;-1935.4;—;—;Neutro;Conta Nova (Base Zero)
+1;Janeiro;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-42473.98779710248;-15463.05;27010.93779710248;-0.6359;▼ -63.6%;Verde;OK - Validado
+1;Janeiro;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-488499.5083070229;-495873.5832816875;-7374.074974664545;0.0151;▲ +1.5%;Vermelho;OK - Validado
+1;Janeiro;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-35442.39999999999;-35442.39999999999;—;—;Neutro;Conta Nova (Base Zero)
+1;Janeiro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-237626.6463186767;-172814.3397537663;64812.3065649104;-0.2727;▼ -27.3%;Verde;OK - Validado
+1;Janeiro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-313333.612084983;-367088.1738318946;-53754.56174691161;0.1716;▲ +17.2%;Vermelho;OK - Validado
+1;Janeiro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-42898.06002148089;-37657.794383832;5240.265637648896;-0.1222;▼ -12.2%;Verde;OK - Validado
+1;Janeiro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-386522.3236900844;-327237.9102811552;59284.41340892925;-0.1534;▼ -15.3%;Verde;OK - Validado
+1;Janeiro;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-27.3762;-754.025;-726.6487999999999;26.5431;▲ +2654.3%;Vermelho;OK - Validado
+1;Janeiro;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;0.11;139.55;139.44;1267.6364;▲ +126763.6%;Vermelho;OK - Validado
+1;Janeiro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;29745.93169386721;3106.110369777601;-26639.82132408961;-0.8956000000000001;▼ -89.6%;Verde;OK - Validado
+1;Janeiro;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;-9913.099999999999;-18261.92;-8348.82;0.8422;▲ +84.2%;Vermelho;OK - Validado
+1;Janeiro;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;3534.14;984.7899999999998;-2549.35;-0.7212999999999999;▼ -72.1%;Verde;OK - Validado
+1;Janeiro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-22708.1;-1242.87;21465.23;-0.9453;▼ -94.5%;Verde;OK - Validado
+1;Janeiro;7.Vendas IC;1.Vendas Bruta IC;Receita;1501768.71;2335689.13;833920.4199999999;0.5553;▲ +55.5%;Verde;OK - Validado
+1;Janeiro;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;0;-535825.08;-535825.08;—;—;Neutro;Conta Nova (Base Zero)
+1;Janeiro;7.Vendas IC;3.CPV IC;Despesa/Custo;-942032.508062;-943439.373664;-1406.865601999918;0.0015;▲ +0.1%;Vermelho;OK - Validado
+1;Janeiro;7.Vendas IC;4.Impostos IC;Despesa/Custo;-326446.74;-447237.14;-120790.4;0.37;▲ +37.0%;Vermelho;OK - Validado
+1;Janeiro;7.Vendas IC;5.IR e CS - IC;Receita;-46254.476268;-60835.40488999999;-14580.92862199999;-0.3152;▼ -31.5%;Vermelho;OK - Validado
+1;Janeiro;7.Vendas IC;6.Frete IC;Despesa/Custo;-9915.59;-24191.81;-14276.22;1.4398;▲ +144.0%;Vermelho;OK - Validado
+2;Fevereiro;1.Venda Liquida;1.Venda Bruta;Receita;5180112.073799999;5921046.924;740934.8502000002;0.143;▲ +14.3%;Verde;OK - Validado
+2;Fevereiro;1.Venda Liquida;2.Devolução;Despesa/Custo;-169265.56;-242267.3;-73001.74000000002;0.4313;▲ +43.1%;Vermelho;OK - Validado
+2;Fevereiro;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-45072.68799999999;-45678.488;-605.8000000000029;0.0134;▲ +1.3%;Vermelho;OK - Validado
+2;Fevereiro;1.Venda Liquida;4.Imposto;Despesa/Custo;-399778.82;-425913.1199999999;-26134.29999999993;0.0654;▲ +6.5%;Vermelho;OK - Validado
+2;Fevereiro;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-130375.967876;-171182.057358;-40806.08948199998;0.313;▲ +31.3%;Vermelho;OK - Validado
+2;Fevereiro;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-2570590.015158;-2695970.651152;-125380.6359939999;0.0488;▲ +4.9%;Vermelho;OK - Validado
+2;Fevereiro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-19854.6252;-25043.2;-5188.574800000002;0.2613;▲ +26.1%;Vermelho;OK - Validado
+2;Fevereiro;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;87251.35439600001;122054.5277;34803.173304;0.3989;▲ +39.9%;Vermelho;OK - Validado
+2;Fevereiro;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-8231.3275;-5798.9449;2432.382599999999;-0.2955;▼ -29.6%;Verde;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;1.Frete;Despesa/Custo;-175238.96;-244197.674;-68958.71399999995;0.3935;▲ +39.4%;Vermelho;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-151.2048;-207.948;-56.7432;0.3753;▲ +37.5%;Vermelho;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-165912.770604;-146819.581135;19093.18946899995;-0.1151;▼ -11.5%;Verde;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-19313.71;-10831.47;8482.240000000002;-0.4392;▼ -43.9%;Verde;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-157276.0800188496;-177982.5179816014;-20706.43796275178;0.1317;▲ +13.2%;Vermelho;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-20624;-20100;524;-0.0254;▼ -2.5%;Verde;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-18177.57;-15010.26;3167.310000000001;-0.1742;▼ -17.4%;Verde;OK - Validado
+2;Fevereiro;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1553.68;-1553.68;—;—;Neutro;Conta Nova (Base Zero)
+2;Fevereiro;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-34109.97602544678;-15644.84;18465.13602544678;-0.5413;▼ -54.1%;Verde;OK - Validado
+2;Fevereiro;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-362764.2724992572;-482189.4039508617;-119425.1314516044;0.3292;▲ +32.9%;Vermelho;OK - Validado
+2;Fevereiro;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-71510.92;-71510.92;—;—;Neutro;Conta Nova (Base Zero)
+2;Fevereiro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-238455.83754255;-176394.5325031968;62061.30503935317;-0.2603;▼ -26.0%;Verde;OK - Validado
+2;Fevereiro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-342555.118010286;-321370.8920734733;21184.22593681264;-0.06179999999999999;▼ -6.2%;Verde;OK - Validado
+2;Fevereiro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-46363.2960793791;-59352.027117858;-12988.7310384789;0.2802;▲ +28.0%;Vermelho;OK - Validado
+2;Fevereiro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-350404.8024496784;-318596.7374968032;31808.06495287525;-0.0908;▼ -9.1%;Verde;OK - Validado
+2;Fevereiro;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-26.3547;-3236.624;-3210.2693;121.8101;▲ +12181.0%;Vermelho;OK - Validado
+2;Fevereiro;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;5.74;181.87;176.13;30.6847;▲ +3068.5%;Vermelho;OK - Validado
+2;Fevereiro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;11884.8104748896;-11999.78954713439;-23884.60002202399;0.0097;▲ +1.0%;Vermelho;OK - Validado
+2;Fevereiro;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;-24072.89;43938.91;68011.8;0.8251999999999999;▲ +82.5%;Vermelho;OK - Validado
+2;Fevereiro;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;2134.46;2022.62;-111.8399999999999;-0.0524;▼ -5.2%;Verde;OK - Validado
+2;Fevereiro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-124.87;-42.72;82.14999999999999;-0.6579;▼ -65.8%;Verde;OK - Validado
+2;Fevereiro;7.Vendas IC;1.Vendas Bruta IC;Receita;1321503.46;1947432.86;625929.3999999999;0.4736;▲ +47.4%;Verde;OK - Validado
+2;Fevereiro;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-3636.79;-107393.57;-103756.78;28.5298;▲ +2853.0%;Vermelho;OK - Validado
+2;Fevereiro;7.Vendas IC;3.CPV IC;Despesa/Custo;-730468.775248;-912509.9879060001;-182041.2126580001;0.2492;▲ +24.9%;Vermelho;OK - Validado
+2;Fevereiro;7.Vendas IC;4.Impostos IC;Despesa/Custo;-294925.59;-486774.15;-191848.5600000001;0.6505;▲ +65.0%;Vermelho;OK - Validado
+2;Fevereiro;7.Vendas IC;5.IR e CS - IC;Receita;-40590.293436;-62184.423392;-21594.129956;-0.532;▼ -53.2%;Vermelho;OK - Validado
+2;Fevereiro;7.Vendas IC;6.Frete IC;Despesa/Custo;-17900.05;-16631.04;1269.009999999998;-0.0709;▼ -7.1%;Verde;OK - Validado
+2;Fevereiro;7.Vendas IC;8.COMISSÃO SOBRE COMPRAS -PARLUX;Receita;-106000;0;106000;1;▲ +100.0%;Verde;OK - Validado
+3;Março;1.Venda Liquida;1.Venda Bruta;Receita;4339973.424300001;8926747.212;4586773.787699998;1.0569;▲ +105.7%;Verde;OK - Validado
+3;Março;1.Venda Liquida;2.Devolução;Despesa/Custo;-52812.9;-103576.378;-50763.478;0.9612;▲ +96.1%;Vermelho;OK - Validado
+3;Março;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-92872.06;-90980.52270678346;1891.537293216534;-0.0204;▼ -2.0%;Verde;OK - Validado
+3;Março;1.Venda Liquida;4.Imposto;Despesa/Custo;-300876.96;-710263.4400000002;-409386.4800000002;1.3606;▲ +136.1%;Vermelho;OK - Validado
+3;Março;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-118639.66422;-250322.995364;-131683.331144;1.1099;▲ +111.0%;Vermelho;OK - Validado
+3;Março;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-2153640.654689;-3701535.226969999;-1547894.572280998;0.7187;▲ +71.9%;Vermelho;OK - Validado
+3;Março;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-99823.3504;-257740.57612;-157917.22572;1.582;▲ +158.2%;Vermelho;OK - Validado
+3;Março;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;27918.5009;49943.33389999999;22024.83299999999;0.7889;▲ +78.9%;Vermelho;OK - Validado
+3;Março;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-11649.1809;-7841.0787;3808.102199999999;-0.3269;▼ -32.7%;Verde;OK - Validado
+3;Março;3.Despesas com Vendas;1.Frete;Despesa/Custo;-188278.59;-300809.8488;-112531.2588000001;0.5977;▲ +59.8%;Vermelho;OK - Validado
+3;Março;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;0;-206.3484;-206.3484;—;—;Neutro;Conta Nova (Base Zero)
+3;Março;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-283106.0283770001;-144282.165028;138823.8633490001;-0.4904;▼ -49.0%;Verde;OK - Validado
+3;Março;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-28045.49;-13431.28;14614.21;-0.5211;▼ -52.1%;Verde;OK - Validado
+3;Março;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-192478.4000316334;-291665.3802664253;-99186.98023479187;0.5153;▲ +51.5%;Vermelho;OK - Validado
+3;Março;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-27668.67;-45432.0001108382;-17763.3301108382;0.642;▲ +64.2%;Vermelho;OK - Validado
+3;Março;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-12764.74;-8370.130000000001;4394.609999999999;-0.3443;▼ -34.4%;Verde;OK - Validado
+3;Março;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1601.55;-1601.55;—;—;Neutro;Conta Nova (Base Zero)
+3;Março;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-32011.89791303969;-20089.64;11922.25791303969;-0.3724;▼ -37.2%;Verde;OK - Validado
+3;Março;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-402602.044802227;-426470.8212274022;-23868.77642517519;0.0593;▲ +5.9%;Vermelho;OK - Validado
+3;Março;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-8044.340000000003;-8044.340000000003;—;—;Neutro;Conta Nova (Base Zero)
+3;Março;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-257404.3370503754;-179527.9103836908;77876.42666668462;-0.3025;▼ -30.2%;Verde;OK - Validado
+3;Março;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-351630.5463010792;-321196.477995692;30434.06830538716;-0.0866;▼ -8.7%;Verde;OK - Validado
+3;Março;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-65200.0365739261;-71310.4368705977;-6110.400296671593;0.09369999999999999;▲ +9.4%;Vermelho;OK - Validado
+3;Março;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-346537.5529407592;-367479.9296310092;-20942.37669025001;0.0604;▲ +6.0%;Vermelho;OK - Validado
+3;Março;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-769.8334;-33705.379931;-32935.546531;42.78270000000001;▲ +4278.3%;Vermelho;OK - Validado
+3;Março;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;26.61;180.69;154.08;5.790299999999999;▲ +579.0%;Vermelho;OK - Validado
+3;Março;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;19604.1413778192;20632.8602347647;1028.718856945496;0.0525;▲ +5.2%;Vermelho;OK - Validado
+3;Março;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;-8624.04;36401.57;45025.61;3.2209;▲ +322.1%;Vermelho;OK - Validado
+3;Março;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;4445.61;3517.849999999999;-927.7600000000002;-0.2087;▼ -20.9%;Verde;OK - Validado
+3;Março;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-527.3199999999999;-228.86;298.4599999999999;-0.5660000000000001;▼ -56.6%;Verde;OK - Validado
+3;Março;7.Vendas IC;1.Vendas Bruta IC;Receita;1133030.96;2347960.73;1214929.77;1.0723;▲ +107.2%;Verde;OK - Validado
+3;Março;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;0;-142329.84;-142329.84;—;—;Neutro;Conta Nova (Base Zero)
+3;Março;7.Vendas IC;3.CPV IC;Despesa/Custo;-603733.5613249999;-1237102.13205;-633368.570725;1.0491;▲ +104.9%;Vermelho;OK - Validado
+3;Março;7.Vendas IC;4.Impostos IC;Despesa/Custo;-232795.13;-571075.1900000001;-338280.0600000001;1.4531;▲ +145.3%;Vermelho;OK - Validado
+3;Março;7.Vendas IC;5.IR e CS - IC;Receita;-34897.353568;-74550.32408199999;-39652.97051399999;-1.1363;▼ -113.6%;Vermelho;OK - Validado
+3;Março;7.Vendas IC;6.Frete IC;Despesa/Custo;-11005.88;-27181.45;-16175.57;1.4697;▲ +147.0%;Vermelho;OK - Validado
+4;Abril;1.Venda Liquida;1.Venda Bruta;Receita;5708513.632500001;7845563.1652;2137049.532699998;0.3744;▲ +37.4%;Verde;OK - Validado
+4;Abril;1.Venda Liquida;2.Devolução;Despesa/Custo;-84851.06999999999;-97689.922;-12838.85200000001;0.1513;▲ +15.1%;Vermelho;OK - Validado
+4;Abril;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-22925.01;-17299.8112;5625.198800000002;-0.2454;▼ -24.5%;Verde;OK - Validado
+4;Abril;1.Venda Liquida;4.Imposto;Despesa/Custo;-512351.6899999999;-618285.79;-105934.1000000001;0.2068;▲ +20.7%;Vermelho;OK - Validado
+4;Abril;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-145152.864164;-229685.566786;-84532.70262200001;0.5824;▲ +58.2%;Vermelho;OK - Validado
+4;Abril;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-2676786.870292;-3521353.701189999;-844566.830897999;0.3155;▲ +31.6%;Vermelho;OK - Validado
+4;Abril;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-112016.683078;-66004.996488;46011.68659;-0.4108;▼ -41.1%;Verde;OK - Validado
+4;Abril;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;39837.771308;44736.6001;4898.828792;0.123;▲ +12.3%;Vermelho;OK - Validado
+4;Abril;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-6926.4098;-9184.7066;-2258.296799999999;0.326;▲ +32.6%;Vermelho;OK - Validado
+4;Abril;3.Despesas com Vendas;1.Frete;Despesa/Custo;-215069.12;-275700.9408;-60631.82080000002;0.2819;▲ +28.2%;Vermelho;OK - Validado
+4;Abril;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-233.5416;-199.1502;34.39139999999998;-0.1473;▼ -14.7%;Verde;OK - Validado
+4;Abril;3.Despesas com Vendas;12.Baixa de estoque em garantia;Despesa/Custo;-177.2027;0;177.2027;-1;▼ -100.0%;Verde;OK - Validado
+4;Abril;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-173801.392966;-102948.368639;70853.02432699996;-0.4077;▼ -40.8%;Verde;OK - Validado
+4;Abril;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-16616.3;-25976.42;-9360.119999999999;0.5633;▲ +56.3%;Vermelho;OK - Validado
+4;Abril;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-162604.9399863601;-408384.132071281;-245779.1920849209;1.5115;▲ +151.2%;Vermelho;OK - Validado
+4;Abril;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-35326;-25600;9726;-0.2753;▼ -27.5%;Verde;OK - Validado
+4;Abril;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-11659.6;-10796.28;863.3200000000015;-0.07400000000000001;▼ -7.4%;Verde;OK - Validado
+4;Abril;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-2109.17;-2109.17;—;—;Neutro;Conta Nova (Base Zero)
+4;Abril;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-20381.233617712;-14351.21227957236;6030.021338139639;-0.2959;▼ -29.6%;Verde;OK - Validado
+4;Abril;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-490400.9626893114;-484155.8307461313;6245.131943180109;-0.0127;▼ -1.3%;Verde;OK - Validado
+4;Abril;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;1016.876199999999;1016.876199999999;—;—;Neutro;Conta Nova (Base Zero)
+4;Abril;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-233920.0018117098;-186501.4997171173;47418.50209459249;-0.2027;▼ -20.3%;Verde;OK - Validado
+4;Abril;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-294661.3530397608;-316370.991168426;-21709.63812866522;0.0737;▲ +7.4%;Vermelho;OK - Validado
+4;Abril;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-88857.3604406253;-72598.6297141615;16258.73072646379;-0.183;▼ -18.3%;Verde;OK - Validado
+4;Abril;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-351957.7582345575;-325248.0302828827;26709.72795167478;-0.0759;▼ -7.6%;Verde;OK - Validado
+4;Abril;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-19534.57999;-127.1394;19407.44059;-0.9934999999999999;▼ -99.3%;Verde;OK - Validado
+4;Abril;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;139.11;622.91;483.8;3.4778;▲ +347.8%;Vermelho;OK - Validado
+4;Abril;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;18655.01167177759;11056.69951820482;-7598.312153572773;-0.4073;▼ -40.7%;Verde;OK - Validado
+4;Abril;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;41390.86;190189.76;148798.9;3.595;▲ +359.5%;Vermelho;OK - Validado
+4;Abril;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;961.29;1638.49;677.2;0.7045;▲ +70.5%;Vermelho;OK - Validado
+4;Abril;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-2324.11;-32.22;2291.89;-0.9861;▼ -98.6%;Verde;OK - Validado
+4;Abril;7.Vendas IC;1.Vendas Bruta IC;Receita;1218504.29;1993264.7;774760.4099999999;0.6358;▲ +63.6%;Verde;OK - Validado
+4;Abril;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-18755.42;-4931.110000000001;13824.31;-0.7371;▼ -73.7%;Verde;OK - Validado
+4;Abril;7.Vendas IC;3.CPV IC;Despesa/Custo;-591754.4140610001;-1001991.156698;-410236.7426369998;0.6933;▲ +69.3%;Vermelho;OK - Validado
+4;Abril;7.Vendas IC;4.Impostos IC;Despesa/Custo;-283752.06;-528000.66;-244248.6;0.8608;▲ +86.1%;Vermelho;OK - Validado
+4;Abril;7.Vendas IC;5.IR e CS - IC;Receita;-36952.265196;-64857.25041;-27904.985214;-0.7552;▼ -75.5%;Vermelho;OK - Validado
+4;Abril;7.Vendas IC;6.Frete IC;Despesa/Custo;-5483.599999999999;-40039.10000000001;-34555.50000000001;6.3016;▲ +630.2%;Vermelho;OK - Validado
+4;Abril;7.Vendas IC;8.COMISSÃO SOBRE COMPRAS -PARLUX;Receita;-75750;0;75750;1;▲ +100.0%;Verde;OK - Validado
+5;Maio;1.Venda Liquida;1.Venda Bruta;Receita;7670872.619700002;8735165.8192;1064293.199499998;0.1387;▲ +13.9%;Verde;OK - Validado
+5;Maio;1.Venda Liquida;2.Devolução;Despesa/Custo;-182083.39;-372039.762;-189956.3720000001;1.0432;▲ +104.3%;Vermelho;OK - Validado
+5;Maio;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-88327.56;-18271.2888;70056.2712;-0.7931;▼ -79.3%;Verde;OK - Validado
+5;Maio;1.Venda Liquida;4.Imposto;Despesa/Custo;-582975.1299999999;-632415.3500000001;-49440.2200000002;0.0848;▲ +8.5%;Vermelho;OK - Validado
+5;Maio;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-199493.692552;-223679.708668;-24186.01611600004;0.1212;▲ +12.1%;Vermelho;OK - Validado
+5;Maio;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-3607722.840214001;-3571348.554137999;36374.28607600136;-0.0101;▼ -1.0%;Verde;OK - Validado
+5;Maio;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-89269.72623999999;-265768.15274;-176498.4265;1.9771;▲ +197.7%;Vermelho;OK - Validado
+5;Maio;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;90400.06810000002;134665.1591;44265.09099999997;0.4897;▲ +49.0%;Vermelho;OK - Validado
+5;Maio;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-12246.4402;-7667.609899999999;4578.8303;-0.3739;▼ -37.4%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;1.Frete;Despesa/Custo;-247595.21;-264516.6296;-16921.41960000008;0.0683;▲ +6.8%;Vermelho;OK - Validado
+5;Maio;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-227.5431;-201.5496;25.99350000000001;-0.1142;▼ -11.4%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-235959.613458;-147739.472562;88220.14089600003;-0.3739;▼ -37.4%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-23784.75;-16453.61;7331.139999999999;-0.3082;▼ -30.8%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-276284.8599900473;-241314.8791611791;34969.9808288682;-0.1266;▼ -12.7%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-23060.0000388141;-24400;-1339.999961185902;0.0581;▲ +5.8%;Vermelho;OK - Validado
+5;Maio;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-11170.86;-5551.5700051812;5619.289994818801;-0.503;▼ -50.3%;Verde;OK - Validado
+5;Maio;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1500;-1500;—;—;Neutro;Conta Nova (Base Zero)
+5;Maio;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-25461.65408700864;-20434.91;5026.744087008639;-0.1974;▼ -19.7%;Verde;OK - Validado
+5;Maio;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-514327.0451290417;-417735.4748666903;96591.5702623513;-0.1878;▼ -18.8%;Verde;OK - Validado
+5;Maio;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-7715.579999999998;-7715.579999999998;—;—;Neutro;Conta Nova (Base Zero)
+5;Maio;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-225611.0743461765;-192096.6007301405;33514.473616036;-0.1485;▼ -14.8%;Verde;OK - Validado
+5;Maio;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-296524.6425602831;-324038.0254575714;-27513.38289728836;0.0928;▲ +9.3%;Vermelho;OK - Validado
+5;Maio;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-114823.2895979009;-55880.04121571459;58943.24838218631;-0.5133;▼ -51.3%;Verde;OK - Validado
+5;Maio;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-349160.9556417365;-319666.7490788406;29494.20656289591;-0.08449999999999999;▼ -8.4%;Verde;OK - Validado
+5;Maio;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;0;-1053.8112;-1053.8112;—;—;Neutro;Conta Nova (Base Zero)
+5;Maio;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;0.73;1070.17;1069.44;1464.9863;▲ +146498.6%;Vermelho;OK - Validado
+5;Maio;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;42400.56201014722;10863.710416551;-31536.85159359621;-0.7437999999999999;▼ -74.4%;Verde;OK - Validado
+5;Maio;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;48613.79;107108.52;58494.73;1.2033;▲ +120.3%;Vermelho;OK - Validado
+5;Maio;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;1077.543751876368;1773.29;695.7462481236323;0.6456999999999999;▲ +64.6%;Vermelho;OK - Validado
+5;Maio;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-281.79;-877.9;-596.1099999999999;2.1154;▲ +211.5%;Vermelho;OK - Validado
+5;Maio;7.Vendas IC;1.Vendas Bruta IC;Receita;1959590.05;1563628.12;-395961.9299999999;-0.2021;▼ -20.2%;Vermelho;OK - Validado
+5;Maio;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-2733.1;-6333.38;-3600.28;1.3173;▲ +131.7%;Vermelho;OK - Validado
+5;Maio;7.Vendas IC;3.CPV IC;Despesa/Custo;-1009861.175212;-790397.1009610001;219464.074251;-0.2173;▼ -21.7%;Verde;OK - Validado
+5;Maio;7.Vendas IC;4.Impostos IC;Despesa/Custo;-501396.75;-410051.04;91345.71000000002;-0.1822;▼ -18.2%;Verde;OK - Validado
+5;Maio;7.Vendas IC;5.IR e CS - IC;Receita;-60271.19405999999;-52850.630456;7420.563603999995;0.1231;▲ +12.3%;Verde;OK - Validado
+5;Maio;7.Vendas IC;6.Frete IC;Despesa/Custo;-20038.69;-57451.52;-37412.82999999999;1.867;▲ +186.7%;Vermelho;OK - Validado
+6;Junho;1.Venda Liquida;1.Venda Bruta;Receita;6148167.968499999;8660051.159;2511883.190500001;0.4086;▲ +40.9%;Verde;OK - Validado
+6;Junho;1.Venda Liquida;2.Devolução;Despesa/Custo;-91569.98999999999;-280231.024;-188661.034;2.0603;▲ +206.0%;Vermelho;OK - Validado
+6;Junho;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-8268.01;-108419.32;-100151.31;12.1131;▲ +1211.3%;Vermelho;OK - Validado
+6;Junho;1.Venda Liquida;4.Imposto;Despesa/Custo;-474574.3499999997;-597624.51;-123050.1600000003;0.2593;▲ +25.9%;Vermelho;OK - Validado
+6;Junho;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-169628.785788;-238100.130528;-68471.34473999997;0.4036999999999999;▲ +40.4%;Vermelho;OK - Validado
+6;Junho;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-3103463.824454;-3535047.341517;-431583.5170630002;0.1391;▲ +13.9%;Vermelho;OK - Validado
+6;Junho;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-35102.11;-161687.50956;-126585.39956;3.6062;▲ +360.6%;Vermelho;OK - Validado
+6;Junho;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;49171.3634;146484.9735;97313.61009999999;1.9791;▲ +197.9%;Vermelho;OK - Validado
+6;Junho;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-6845.9528;-17342.2447;-10496.2919;1.5332;▲ +153.3%;Vermelho;OK - Validado
+6;Junho;3.Despesas com Vendas;1.Frete;Despesa/Custo;-261814.9600000001;-347031.1235999999;-85216.16359999988;0.3255;▲ +32.5%;Vermelho;OK - Validado
+6;Junho;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-220.3449;-208.7478;11.59709999999998;-0.0526;▼ -5.3%;Verde;OK - Validado
+6;Junho;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-168551.120253;-150983.904879;17567.21537400002;-0.1042;▼ -10.4%;Verde;OK - Validado
+6;Junho;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-17045.91;-24822;-7776.090000000004;0.4562;▲ +45.6%;Vermelho;OK - Validado
+6;Junho;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-259362.3700477613;-348578.92708835;-89216.5570405887;0.344;▲ +34.4%;Vermelho;OK - Validado
+6;Junho;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-25000;-33900.000008225;-8900.000008225004;0.356;▲ +35.6%;Vermelho;OK - Validado
+6;Junho;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-5272.28;-4160.670038968699;1111.6099610313;-0.2108;▼ -21.1%;Verde;OK - Validado
+6;Junho;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1835.75;-1835.75;—;—;Neutro;Conta Nova (Base Zero)
+6;Junho;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-15997.81461913852;-15160.58;837.2346191385204;-0.05230000000000001;▼ -5.2%;Verde;OK - Validado
+6;Junho;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-562951.7775672835;-409164.5536366736;153787.2239306099;-0.2732;▼ -27.3%;Verde;OK - Validado
+6;Junho;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;-347.91;-12583.65;-12235.74;35.1693;▲ +3516.9%;Vermelho;OK - Validado
+6;Junho;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-241050.5398275153;-188820.4029051795;52230.13692233583;-0.2167;▼ -21.7%;Verde;OK - Validado
+6;Junho;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-286415.0862806433;-1266073.093243127;-979658.0069624833;3.4204;▲ +342.0%;Vermelho;OK - Validado
+6;Junho;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-59841.2539973039;-63171.0917046488;-3329.837707344901;0.0556;▲ +5.6%;Vermelho;OK - Validado
+6;Junho;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-394434.8201794922;-634496.8871535336;-240062.0669740414;0.6086;▲ +60.9%;Vermelho;OK - Validado
+6;Junho;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-717.6391;-929.3881999999999;-211.7490999999999;0.2951;▲ +29.5%;Vermelho;OK - Validado
+6;Junho;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;445.61;0;-445.61;-1;▼ -100.0%;Verde;OK - Validado
+6;Junho;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;-3861.758276990398;980.7101861660087;4842.468463156407;-0.746;▼ -74.6%;Verde;OK - Validado
+6;Junho;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;61555.06;22984.37;-38570.69;-0.6265999999999999;▼ -62.7%;Verde;OK - Validado
+6;Junho;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;1442.17;1386.19;-55.98000000000025;-0.0388;▼ -3.9%;Verde;OK - Validado
+6;Junho;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-54.51;-45682.07;-45627.56;837.0492999999999;▲ +83704.9%;Vermelho;OK - Validado
+6;Junho;7.Vendas IC;1.Vendas Bruta IC;Receita;1676115.04;1866207.93;190092.8899999999;0.1134;▲ +11.3%;Verde;OK - Validado
+6;Junho;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-6471.47;0;6471.47;-1;▼ -100.0%;Verde;OK - Validado
+6;Junho;7.Vendas IC;3.CPV IC;Despesa/Custo;-755860.195534;-962632.8041899999;-206772.6086559999;0.2736;▲ +27.4%;Vermelho;OK - Validado
+6;Junho;7.Vendas IC;4.Impostos IC;Despesa/Custo;-413638.21;-490905.96;-77267.75;0.1868;▲ +18.7%;Vermelho;OK - Validado
+6;Junho;7.Vendas IC;5.IR e CS - IC;Receita;-51425.021956;-63077.828034;-11652.806078;-0.2266;▼ -22.7%;Vermelho;OK - Validado
+6;Junho;7.Vendas IC;6.Frete IC;Despesa/Custo;-11628.18;-69608.5;-57980.32;4.9862;▲ +498.6%;Vermelho;OK - Validado
+6;Junho;7.Vendas IC;8.COMISSÃO SOBRE COMPRAS -PARLUX;Receita;-121250;0;121250;1;▲ +100.0%;Verde;OK - Validado
+7;Julho;1.Venda Liquida;1.Venda Bruta;Receita;6217345.7782;7709769.0472;1492423.269;0.24;▲ +24.0%;Verde;OK - Validado
+7;Julho;1.Venda Liquida;2.Devolução;Despesa/Custo;-134906.7803;-170094.348;-35187.56770000001;0.2608;▲ +26.1%;Vermelho;OK - Validado
+7;Julho;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-3115.56;-9386.7104;-6271.1504;2.0128;▲ +201.3%;Vermelho;OK - Validado
+7;Julho;1.Venda Liquida;4.Imposto;Despesa/Custo;-517459.5500000001;-356267.3199999998;161192.2300000003;-0.3115;▼ -31.1%;Verde;OK - Validado
+7;Julho;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-167645.931992;-205616.530678;-37970.59868599998;0.2265;▲ +22.6%;Vermelho;OK - Validado
+7;Julho;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-3045718.922042;-3184064.206186;-138345.2841440002;0.0454;▲ +4.5%;Vermelho;OK - Validado
+7;Julho;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-51076.1875;-196288.06044;-145211.87294;2.843;▲ +284.3%;Vermelho;OK - Validado
+7;Julho;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;71779.17770000001;74306.979215;2527.801514999985;0.0352;▲ +3.5%;Vermelho;OK - Validado
+7;Julho;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-7955.9929;-7424.4348;531.5581000000002;-0.0668;▼ -6.7%;Verde;OK - Validado
+7;Julho;3.Despesas com Vendas;1.Frete;Despesa/Custo;-340341.4464;-292862.866;47478.58040000004;-0.1395;▼ -13.9%;Verde;OK - Validado
+7;Julho;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-440.2899;-203.1492;237.1407;-0.5386;▼ -53.9%;Verde;OK - Validado
+7;Julho;3.Despesas com Vendas;12.Baixa de estoque em garantia;Despesa/Custo;0;-2028.5091;-2028.5091;—;—;Neutro;Conta Nova (Base Zero)
+7;Julho;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-139105.834172;-148732.29397;-9626.459797999996;0.0692;▲ +6.9%;Vermelho;OK - Validado
+7;Julho;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-17006.22;-19372.60999999999;-2366.389999999992;0.1391;▲ +13.9%;Vermelho;OK - Validado
+7;Julho;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-361587.2544913758;-259419.0596511957;102168.1948401801;-0.2826;▼ -28.3%;Verde;OK - Validado
+7;Julho;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-20000;-22800.00000108;-2800.000001079999;0.14;▲ +14.0%;Vermelho;OK - Validado
+7;Julho;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-22465.4;-8252;14213.4;-0.6327;▼ -63.3%;Verde;OK - Validado
+7;Julho;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1651.04;-1651.04;—;—;Neutro;Conta Nova (Base Zero)
+7;Julho;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-21479.59232895618;-12704.56;8775.03232895618;-0.4085;▼ -40.9%;Verde;OK - Validado
+7;Julho;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-489642.9304860256;-447041.8931611261;42601.03732489946;-0.087;▼ -8.7%;Verde;OK - Validado
+7;Julho;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-42751.09;-42751.09;—;—;Neutro;Conta Nova (Base Zero)
+7;Julho;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-46556.18089670549;-199688.6900274552;-153132.5091307497;3.2892;▲ +328.9%;Vermelho;OK - Validado
+7;Julho;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-299602.4772818752;-341660.473720637;-42057.99643876182;0.1404;▲ +14.0%;Vermelho;OK - Validado
+7;Julho;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-57306.2196481916;-50798.5053449017;6507.714303289904;-0.1136;▼ -11.4%;Verde;OK - Validado
+7;Julho;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-250274.2890958264;-312260.7995084447;-61986.51041261826;0.2477;▲ +24.8%;Vermelho;OK - Validado
+7;Julho;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-2175.0439;-12418.9492;-10243.9053;4.709700000000001;▲ +471.0%;Vermelho;OK - Validado
+7;Julho;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;0.99;1029.37;1028.38;1038.7677;▲ +103876.8%;Vermelho;OK - Validado
+7;Julho;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;-6503.519322175996;48993.98975268603;55497.50907486203;6.5335;▲ +653.4%;Vermelho;OK - Validado
+7;Julho;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;28471.23;-51483.9;-79955.13;0.8083;▲ +80.8%;Vermelho;OK - Validado
+7;Julho;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;2213.6;1436.98;-776.6199999999999;-0.3508;▼ -35.1%;Verde;OK - Validado
+7;Julho;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-54.15;-203.16;-149.01;2.7518;▲ +275.2%;Vermelho;OK - Validado
+7;Julho;7.Vendas IC;1.Vendas Bruta IC;Receita;1986187.29;3150029.53;1163842.24;0.586;▲ +58.6%;Verde;OK - Validado
+7;Julho;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-21701.37;-1198138.26;-1176436.89;54.2103;▲ +5421.0%;Vermelho;OK - Validado
+7;Julho;7.Vendas IC;3.CPV IC;Despesa/Custo;-985415.349044;-1255845.417349;-270430.068305;0.2744;▲ +27.4%;Vermelho;OK - Validado
+7;Julho;7.Vendas IC;4.Impostos IC;Despesa/Custo;-452356.51;-457092.7799999999;-4736.269999999902;0.0105;▲ +1.1%;Vermelho;OK - Validado
+7;Julho;7.Vendas IC;5.IR e CS - IC;Receita;-60506.166336;-65933.210798;-5427.044461999998;-0.0897;▼ -9.0%;Vermelho;OK - Validado
+7;Julho;7.Vendas IC;6.Frete IC;Despesa/Custo;-20858.64;-46293.32999999999;-25434.69;1.2194;▲ +121.9%;Vermelho;OK - Validado
+8;Agosto;1.Venda Liquida;1.Venda Bruta;Receita;6746651.823;7834166.264;1087514.441;0.1612;▲ +16.1%;Verde;OK - Validado
+8;Agosto;1.Venda Liquida;2.Devolução;Despesa/Custo;-331180.1914;-189120.026;142060.1654;-0.429;▼ -42.9%;Verde;OK - Validado
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-4453.25;-89092.9286;-84639.6786;19.0063;▲ +1900.6%;Vermelho;OK - Validado
+8;Agosto;1.Venda Liquida;4.Imposto;Despesa/Custo;-567759.77;-662252.1699999999;-94492.3999999999;0.1664;▲ +16.6%;Vermelho;OK - Validado
+8;Agosto;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-170681.757708;-214219.8268599999;-43538.06915199998;0.2551;▲ +25.5%;Vermelho;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-3173498.03597;-3184995.512815999;-11497.47684599925;0.0036;▲ +0.4%;Vermelho;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-112981.6398;-177676.77696;-64695.13716000001;0.5726;▲ +57.3%;Vermelho;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;186853.492152;68879.3378;-117974.154352;-0.6314;▼ -63.1%;Verde;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-9359.621;-7167.734;2191.886999999999;-0.2342;▼ -23.4%;Verde;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;Despesa/Custo;-241489.3383999999;-284011.8304;-42522.49200000011;0.1761;▲ +17.6%;Vermelho;OK - Validado
+8;Agosto;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-216.7458;-405.2314;-188.4856;0.8695999999999999;▲ +87.0%;Vermelho;OK - Validado
+8;Agosto;3.Despesas com Vendas;12.Baixa de estoque em garantia;Despesa/Custo;-1234.3503;0;1234.3503;-1;▼ -100.0%;Verde;OK - Validado
+8;Agosto;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-175539.445844;-204179.49995;-28640.05410599997;0.1632;▲ +16.3%;Vermelho;OK - Validado
+8;Agosto;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-17082.12;-49922.64000000001;-32840.52;1.9225;▲ +192.2%;Vermelho;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-237064.6000397704;-202645.0920495375;34419.50799023293;-0.1452;▼ -14.5%;Verde;OK - Validado
+8;Agosto;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-11000;-19350.000018128;-8350.000018128001;0.7591;▲ +75.9%;Vermelho;OK - Validado
+8;Agosto;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-15055.02;-572.94;14482.08;-0.9619;▼ -96.2%;Verde;OK - Validado
+8;Agosto;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1149.04;-1149.04;—;—;Neutro;Conta Nova (Base Zero)
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-18343.25704519419;-21779.09999999999;-3435.842954805801;0.1873;▲ +18.7%;Vermelho;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-459511.8313876018;-353888.6683959985;105623.1629916033;-0.2299;▼ -23.0%;Verde;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-9756.919999999998;-9756.919999999998;—;—;Neutro;Conta Nova (Base Zero)
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-170977.8003829329;-182756.4200061988;-11778.61962326587;0.0689;▲ +6.9%;Vermelho;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-288888.0833043903;-354363.1041586953;-65475.02085430501;0.2266;▲ +22.7%;Vermelho;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-81731.56386640242;-38900.6026254488;42830.96124095361;-0.524;▼ -52.4%;Verde;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-427543.3796189016;-311191.2404236962;116352.1391952054;-0.2721;▼ -27.2%;Verde;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-1252.3001;-32987.56463893394;-31735.26453893394;25.3416;▲ +2534.2%;Vermelho;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;0.51;62.66;62.15000000000001;121.8627;▲ +12186.3%;Vermelho;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;-8916.189334182385;27861.6272930148;36777.81662719719;2.1248;▲ +212.5%;Vermelho;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;63520.67;-12087.82;-75608.49;-0.8097;▼ -81.0%;Verde;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;1907.72;2296.47;388.75;0.2038;▲ +20.4%;Vermelho;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;-4143.200000000001;-1.09;4142.110000000001;-0.9997;▼ -100.0%;Verde;OK - Validado
+8;Agosto;7.Vendas IC;1.Vendas Bruta IC;Receita;1892817.87;1862807.95;-30009.92000000016;-0.0159;▼ -1.6%;Vermelho;OK - Validado
+8;Agosto;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-30086.28;-403017.25;-372930.97;12.3954;▲ +1239.5%;Vermelho;OK - Validado
+8;Agosto;7.Vendas IC;3.CPV IC;Despesa/Custo;-909270.7993940001;-628419.1583489999;280851.6410450002;-0.3089;▼ -30.9%;Verde;OK - Validado
+8;Agosto;7.Vendas IC;4.Impostos IC;Despesa/Custo;-413949.04;-410952.08;2996.960000000079;-0.0072;▼ -0.7%;Verde;OK - Validado
+8;Agosto;7.Vendas IC;5.IR e CS - IC;Receita;-58079.443576;-49476.129716;8603.313859999995;0.1481;▲ +14.8%;Verde;OK - Validado
+8;Agosto;7.Vendas IC;6.Frete IC;Despesa/Custo;-21671.02;-38042.53;-16371.51;0.7555;▲ +75.5%;Vermelho;OK - Validado
+9;Setembro;1.Venda Liquida;1.Venda Bruta;Receita;6311424.717100001;8198504.674;1887079.956899999;0.299;▲ +29.9%;Verde;OK - Validado
+9;Setembro;1.Venda Liquida;2.Devolução;Despesa/Custo;-309316.7447;-213711.154;95605.59069999997;-0.3091;▼ -30.9%;Verde;OK - Validado
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;Despesa/Custo;-7523.68;-62398.57259999999;-54874.89259999999;7.293600000000001;▲ +729.4%;Vermelho;OK - Validado
+9;Setembro;1.Venda Liquida;4.Imposto;Despesa/Custo;-527555.6900000002;-727052.4199999999;-199496.7299999997;0.3782;▲ +37.8%;Vermelho;OK - Validado
+9;Setembro;1.Venda Liquida;5.IRPJ e CSLL;Despesa/Custo;-157408.315988;-229501.943216;-72093.62722799997;0.458;▲ +45.8%;Vermelho;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;1.CPV;Despesa/Custo;-2884356.459579;-3338406.37834;-454049.9187609996;0.1574;▲ +15.7%;Vermelho;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;Despesa/Custo;-67712.25336;-185970.18688;-118257.93352;1.7465;▲ +174.7%;Vermelho;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;3.CPV Devolução;Despesa/Custo;146171.5705;87378.9964;-58792.5741;-0.4022;▼ -40.2%;Verde;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;4.CPV Garantia;Despesa/Custo;-6286.7106;-10472.1478;-4185.4372;0.6658;▲ +66.6%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;Despesa/Custo;-268490.0608999999;-566495.0225999999;-298004.9617;1.1099;▲ +111.0%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;10.Outras Desp. FCC;Despesa/Custo;-138.2602;-10037.021;-9898.7608;71.5952;▲ +7159.5%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;2.Bonificação Clientes;Despesa/Custo;-158598.607987;-103957.693265;54640.91472200003;-0.3445;▼ -34.5%;Verde;OK - Validado
+9;Setembro;3.Despesas com Vendas;3.Impostos s/ bonificações;Despesa/Custo;-15561.09;-21072.14;-5511.049999999996;0.3542;▲ +35.4%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;Despesa/Custo;-276051.6500003707;-297171.4032284492;-21119.75322807854;0.0765;▲ +7.7%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;5.Bonificação Gerente;Despesa/Custo;-19592;-34700;-15108;0.7711;▲ +77.1%;Vermelho;OK - Validado
+9;Setembro;3.Despesas com Vendas;6.Guelta;Despesa/Custo;-16565.1;-5300;11265.1;-0.6801;▼ -68.0%;Verde;OK - Validado
+9;Setembro;3.Despesas com Vendas;7.Anti Fraude VTEX;Despesa/Custo;0;-1297.47;-1297.47;—;—;Neutro;Conta Nova (Base Zero)
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;Despesa/Custo;-20201.35226304273;-13025.76;7175.592263042732;-0.3552;▼ -35.5%;Verde;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;Despesa/Custo;-605262.2930821227;-287395.0071932515;317867.2858888712;-0.5252;▼ -52.5%;Verde;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;Despesa/Custo;0;-43175.89000071061;-43175.89000071061;—;—;Neutro;Conta Nova (Base Zero)
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;Despesa/Custo;-222067.6378455092;-188317.9970219679;33749.64082354133;-0.152;▼ -15.2%;Verde;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;Despesa/Custo;-317698.2786432777;-348019.2339055646;-30320.95526228688;0.09539999999999998;▲ +9.5%;Vermelho;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;Despesa/Custo;-44788.9189717294;-46499.4608085949;-1710.541836865501;0.0382;▲ +3.8%;Vermelho;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;Despesa/Custo;-288008.6621569907;-312787.7729063088;-24779.11074931803;0.086;▲ +8.6%;Vermelho;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;Despesa/Custo;-743.9281;-14471.3244;-13727.3963;18.4526;▲ +1845.3%;Vermelho;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;5.Descontos - Despesas;Despesa/Custo;0.22;0;-0.22;-1;▼ -100.0%;Verde;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;Despesa/Custo;14713.00385568521;55882.5107092641;41169.50685357889;2.7982;▲ +279.8%;Vermelho;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;2.Variação Cambial;Despesa/Custo;38452;-2125.45;-40577.45;-0.9447;▼ -94.5%;Verde;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;Despesa/Custo;1563.12;1218.27;-344.8499999999999;-0.2206;▼ -22.1%;Verde;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;Despesa/Custo;1335.09;-0.1;-1335.19;-0.9998999999999999;▼ -100.0%;Verde;OK - Validado
+9;Setembro;7.Vendas IC;1.Vendas Bruta IC;Receita;1811155.24;2192534.36;381379.1200000003;0.2106;▲ +21.1%;Verde;OK - Validado
+9;Setembro;7.Vendas IC;2.Devolução Venda Bruta IC;Despesa/Custo;-65894.27;-22910.4;42983.87;-0.6523;▼ -65.2%;Verde;OK - Validado
+9;Setembro;7.Vendas IC;3.CPV IC;Despesa/Custo;-851018.155672;-1007154.99719;-156136.8415179999;0.1835;▲ +18.4%;Vermelho;OK - Validado
+9;Setembro;7.Vendas IC;4.Impostos IC;Despesa/Custo;-394314.77;-587304.3;-192989.53;0.4894;▲ +48.9%;Vermelho;OK - Validado
+9;Setembro;7.Vendas IC;5.IR e CS - IC;Receita;-53580.609236;-73333.28984799999;-19752.68061199999;-0.3687;▼ -36.9%;Vermelho;OK - Validado
+9;Setembro;7.Vendas IC;6.Frete IC;Despesa/Custo;-14596.86;-17606.87;-3010.009999999997;0.2062;▲ +20.6%;Vermelho;OK - Validado

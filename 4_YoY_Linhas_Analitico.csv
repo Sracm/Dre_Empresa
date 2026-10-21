@@ -1,0 +1,494 @@
+﻿Mês;Nome Mês;Bloco;Título;Natureza (Descrição);Realizado 2025;Realizado 2026;Diferença (R$);YoY (%);Seta;Status de Validação
+8;Agosto;1.Venda Liquida;1.Venda Bruta;REC FCC COMERCIAL - AMAZON;140855.903;88592.50399999999;-52263.399;-0.371;▼ -37.1%;OK - Validado
+8;Agosto;1.Venda Liquida;1.Venda Bruta;REC FCC COMERCIAL - CH;107902.74;247814.04;139911.3;1.2966;▲ +129.7%;OK - Validado
+8;Agosto;1.Venda Liquida;1.Venda Bruta;REVENDA DE MERCADORIA;6497893.18;7497759.72;999866.54;0.1539;▲ +15.4%;OK - Validado
+8;Agosto;1.Venda Liquida;2.Devolução;DEVOLUCOES DE VENDAS;-331180.1914;-189120.026;142060.1654;-0.429;▼ -42.9%;OK - Validado
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;AMAZON - ACORDO INVENTÁRIO;0;-1705.65;-1705.65;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS AVARIA 0,3%;0;-1858.74;-1858.74;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS COMERCIAIS 3%;0;-26934.61;-26934.61;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS COMERCIAIS 8%;0;-61950.84;-61950.84;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;AMAZON - OUTROS ACORDOS COMERCIAS;0;4786.86;4786.86;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;DESCONTOS CONCEDIDOS;0;-63.5586;-63.5586;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;3.Desc Financeiros;REVENDA DE MERCADORIA;-4453.25;-1366.39;3086.86;-0.6931999999999999;▼ -69.3%;OK - Validado
+8;Agosto;1.Venda Liquida;4.Imposto;CRÉDITO PRESUMIDO TTD 409 E 478;221309.21;294725.38;73416.17000000001;0.3317;▲ +33.2%;OK - Validado
+8;Agosto;1.Venda Liquida;4.Imposto;DEVOLUCOES DE VENDAS;19172.45;39425.18;20252.73;1.0563;▲ +105.6%;OK - Validado
+8;Agosto;1.Venda Liquida;4.Imposto;ISS ( S/ VENDA);0;-12000;-12000;—;—;Conta Nova em 2026
+8;Agosto;1.Venda Liquida;4.Imposto;REMESSA DE PRODUTO GARANTIA/CONSERTO;-4302.8;-2145.49;2157.31;-0.5014;▼ -50.1%;OK - Validado
+8;Agosto;1.Venda Liquida;4.Imposto;REVENDA DE MERCADORIA;-803938.63;-982257.2399999999;-178318.6099999999;0.2218;▲ +22.2%;OK - Validado
+8;Agosto;1.Venda Liquida;5.IRPJ e CSLL;IRPJ MENSAL;-170681.757708;-214219.8268599999;-43538.06915199998;0.2551;▲ +25.5%;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;1.CPV;REVENDA DE MERCADORIA;-3173498.03597;-3184995.512815999;-11497.47684599925;0.0036;▲ +0.4%;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;2.CPV  FCC COML;REC FCC COMERCIAL - AMAZON;-54419.88;-30106.16;24313.72;-0.4468;▼ -44.7%;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;2.CPV  FCC COML;REC FCC COMERCIAL - CH;-58561.7598;-147570.61696;-89008.85716000001;1.5199;▲ +152.0%;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;3.CPV Devolução;DEVOLUCOES DE VENDAS;186853.492152;68879.3378;-117974.154352;-0.6314;▼ -63.1%;OK - Validado
+8;Agosto;2.Custo Mercadoria Vendida;4.CPV Garantia;REMESSA DE PRODUTO GARANTIA/CONSERTO;-9359.621;-7167.734;2191.886999999999;-0.2342;▼ -23.4%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;COMPLEMENTO DE FRETE;-1719.17;0;1719.17;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;FRETE CORREIO ECOMMERCE;-34615.23;-22456.64;12158.59;-0.3512;▼ -35.1%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;FRETE SOBRE COMPRA;-1500;-3880;-2380;1.5867;▲ +158.7%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;FRETES SOBRE DEVOLUÇÕES;-2400;0;2400;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;FRETES SOBRE VENDAS;-202504.1399999999;-258643.1804;-56139.04040000009;0.2772;▲ +27.7%;OK - Validado
+8;Agosto;3.Despesas com Vendas;1.Frete;REEMBOLSO DE PERDAS E EXTRAVIOS;1249.2016;967.99;-281.2116000000001;-0.2251;▼ -22.5%;OK - Validado
+8;Agosto;3.Despesas com Vendas;10.Outras Desp. FCC;DESP FCC COMERCIAL;-216.7458;-405.2314;-188.4856;0.8695999999999999;▲ +87.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;12.Baixa de estoque em garantia;BAIXA DE ESTOQUE PARA PERDA GARANTIA;-1234.3503;0;1234.3503;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;2.Bonificação Clientes;BONIF DE PROD SOBRE VENDA;-175708.610352;-204179.49995;-28470.88959799998;0.162;▲ +16.2%;OK - Validado
+8;Agosto;3.Despesas com Vendas;2.Bonificação Clientes;DEVOLUCAO DE BONIFICACAO;169.164508;0;-169.164508;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;3.Impostos s/ bonificações;BONIF DE PROD SOBRE VENDA;-17141.83;-49922.64000000001;-32780.81000000001;1.9123;▲ +191.2%;OK - Validado
+8;Agosto;3.Despesas com Vendas;3.Impostos s/ bonificações;DEVOLUCAO DE BONIFICACAO;59.71;0;-59.71;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;COMISSOES SOBRE VENDAS;-54378.79;-47106.48999999999;7272.30000000001;-0.1337;▼ -13.4%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;COMISSOES SOBRE VENDAS CLT;-4006.1899981655;0;4006.1899981655;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;COMISSOES SOBRE VENDAS MARKETPLACE;-39008.39;-153751.422;-114743.032;2.9415;▲ +294.1%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;COMISSÃO AFILIADOS DO VENDEDOR;0;-138.05;-138.05;—;—;Conta Nova em 2026
+8;Agosto;3.Despesas com Vendas;4.Comissões;COMISSÃO SOBRE VENDAS ECOMMERCE - SITE;-12525.8400416049;-10846.3200495375;1679.5199920674;-0.1341;▼ -13.4%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;COPARTICIPACAO CAMPANHAS MKTPLACE;16767.38;9197.19;-7570.190000000001;-0.4515;▼ -45.1%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;DEVOLUCOES DE VENDAS;1859.76;0;-1859.76;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;RESCISÃO DE REPRESENTAÇÃO COMERCIAL;-3612.44;0;3612.44;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;4.Comissões;REVENDA DE MERCADORIA;-142160.09;0;142160.09;-1;▼ -100.0%;OK - Validado
+8;Agosto;3.Despesas com Vendas;5.Bonificação Gerente;PREMIAÇÃO S/ META;-11000;-19350.000018128;-8350.000018128001;0.7591;▲ +75.9%;OK - Validado
+8;Agosto;3.Despesas com Vendas;6.Guelta;DESPESAS COM GUELTA;-15055.02;-572.94;14482.08;-0.9619;▼ -96.2%;OK - Validado
+8;Agosto;3.Despesas com Vendas;7.Anti Fraude VTEX;ANTIFRAUDE;0;-1149.04;-1149.04;—;—;Conta Nova em 2026
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;ADIANTAMENTO RECEBIDO;0;6.85;6.85;—;—;Conta Nova em 2026
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;CHARGEBACK;49.54;5.17;-44.37;-0.8956000000000001;▼ -89.6%;OK - Validado
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;DEPOSITO INDEVIDO;0;-9.43;-9.43;—;—;Conta Nova em 2026
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;DEVOLUCOES DE VENDAS;348.85;9.1;-339.75;-0.9739;▼ -97.4%;OK - Validado
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;MEIO DE PAGAMENTO;-827.6999999999999;-507.63;320.0699999999999;-0.3867;▼ -38.7%;OK - Validado
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;REVENDA DE MERCADORIA;-14633.72704519419;-18639.09;-4005.362954805803;0.2737;▲ +27.4%;OK - Validado
+8;Agosto;3.Despesas com Vendas;9.Meio Pagamento;TARIFA PAYPAL;-3280.22;-2644.07;636.1499999999996;-0.1939;▼ -19.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;ALUGUEL DE IMÓVEIS;-2800;-2800;0;0;0.0%;OK - Estável
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;AMAZON - VAP ASSESSORIA E CONSULTORIA;0;-4786.94;-4786.94;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;ASSESSORIA ADUANEIRA;0;-3385.86;-3385.86;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;CAMPANHAS INSTITUCIONAIS;-983;-400;583;-0.5931000000000001;▼ -59.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;CARTÃO PROMOTORA;-2107.97;-2755.49999892;-647.5299989200003;0.3072;▲ +30.7%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;CERTIFICADOS DIGITAIS;-171;-360;-189;1.1053;▲ +110.5%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;CHARGEBACK;-11650.19;-268.51;11381.68;-0.977;▼ -97.7%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESA ARMAZENAGEM PORTUARIA/AEROPORT;0;-20.64;-20.64;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ALIMENTAÇÃO - VIAGEM;-137.5100129718;-391.7800047759;-254.2699918041;1.8491;▲ +184.9%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ARMAZENAGEM FULFILLMENT;-15220.7162;-32306.701636009;-17085.985436009;1.1225;▲ +112.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM CREDITO E COBRANCAS;-75.82;0;75.82;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ESTACIONAMENTO;-249.699988467;-558.4000206896001;-308.7000322226;1.2363;▲ +123.6%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM PASSAGEM RODOVIARIA;0;-120.0000082671;-120.0000082671;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM PEDAGIOS;-126.4999844754;-311.4300048331;-184.9300203577;1.4619;▲ +146.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM TAXI/ UBER/ 99;-337.1300009857;-985.6099990488001;-648.4799980631001;1.9235;▲ +192.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;EMBALAGEM PARA VENDA;-2249.12;-12807.37;-10558.25;4.6944;▲ +469.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;IOF SOBRE DEMAIS OPERACOES;-428.4;-414.78;13.62000000000006;-0.0318;▼ -3.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MARTECH;-16114.6;-19514.41;-3399.809999999999;0.211;▲ +21.1%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MENSALIDADE DE SISTEMAS;-2743.71;-1299;1444.71;-0.5266;▼ -52.7%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MERCADORIAS REENVIADAS EM DUPLICIDADE;0;-749.53;-749.53;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA GANHA FORCE BARBER;-15143.0101;-3903.7935;11239.2166;-0.7422;▼ -74.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA GANHA MQ PROFESSIONAL;-7214.6171;-27286.5266;-20071.9095;2.7821;▲ +278.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK FORCE BARBER;-10540.16;0;10540.16;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK MQ PROFESSIONAL;-249012.7499999995;-116979.5;132033.2499999995;-0.5302;▼ -53.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK PARLUX;0;-573.31;-573.31;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA GOOGLE MQ PROFESSIONAL;-15887.0999340223;-17530.9399880796;-1643.8400540573;0.1035;▲ +10.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA GOOGLE PARLUX;-5098.1900659777;-3532.5400119204;1565.6500540573;-0.3071;▼ -30.7%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA MARKETPLACE;-76623.2758;-68014.7431864677;8608.532613532298;-0.1123;▼ -11.2%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;PLATAFORMA DE ARMAZEN. DE SISTEMAS - SAS;-4885.5299583951;-4885.5299504625;7.932600055937655e-06;0;0.0%;OK - Estável
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;PLATAFORMAS DE ECOMMERCE;-971.15;-1658.68;-687.5299999999999;0.708;▲ +70.8%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;PROCESSOS JUDICIAIS DRTO CONSUMIDOR;-2500;0;2500;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;PROMOTORES DE VENDA FREELANCE;0;-1150;-1150;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;REEMBOLSO DE KILOMETRAGEM;-3484.400028057;-4298.4199996127;-814.0199715557001;0.2336;▲ +23.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;RESCISÕES DE FUNCIONARIOS;0;-232.66;-232.66;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;REVERSÃO DE FRETE;0;-40.14;-40.14;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;SERVIÇOS DE CONSULTORIA E ASSESSORIA;-11452.34;-19101.14;-7648.799999999999;0.6679;▲ +66.8%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;1.Comercial Despesas;TELEFONE;-1303.9422142503;-464.2834869121;839.6587273382002;-0.6439;▼ -64.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;AJUSTE CUPOM DESCONTO - SHOPEE;0;-20976.54;-20976.54;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;AJUSTES -MARKETPLACE;0;957.55;957.55;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;BLOQUEIOS/DESBLOQUEIOS - MARKETPLACE;0;2884.36;2884.36;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;CASHBACK /BONUS- MARKETPLACE;0;4779.190000000001;4779.190000000001;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;COOPARTIPAÇÃO FRETE -MARKETPLACE;0;-1250.64;-1250.64;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;CUPOM DESCONTO - MARKETPLACE;0;-2965.61;-2965.61;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;DISPUTA/MEDIAÇÃO - MARKETPLACE;0;2302.58;2302.58;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;REEMBOLSO /ESTORNO FRETES MARKETPLACE;0;5482.5;5482.5;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;2.Operações Marketplace;TAXAS - MARKETPLACE;0;-970.31;-970.31;—;—;Conta Nova em 2026
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;AJUSTES DE PROVISÃO SERVIÇOS ADM 13;12917.16;0;-12917.16;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;ASSISTENCIA MEDICA E ODONTOLOGICA;-5277.729822036;-3328.100023057;1949.629798979;-0.3694;▼ -36.9%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;FGTS MENSAL;-4819.08;-10953.54;-6134.460000000001;1.273;▲ +127.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;INSS EMPRESA;-16571.64;-16499.38;72.2599999999984;-0.0044;▼ -0.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;INSS FUNCIONARIO;-5271.179999999999;-5211.46;59.71999999999935;-0.0113;▼ -1.1%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;IRRF S/ SALARIOS/RESCISOES;-1733.62;0;1733.62;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO DE 13 SALARIO;-4853.91;-4687.82;166.0900000000001;-0.0342;▼ -3.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO DE FERIAS;-6475.51;-6263.25;212.2600000000002;-0.0328;▼ -3.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO FGTS 13 SALARIO;-388.32;-374.99;13.33000000000004;-0.0343;▼ -3.4%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO FGTS FÉRIAS;-518.03;-501.13;16.89999999999998;-0.0326;▼ -3.3%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO INSS EMPRESA 13 SALARIO;-1335.6;-1256.4;79.20000000000005;-0.0593;▼ -5.9%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO INSS EMPRESA FÉRIAS;-1781.57;-1678.5;103.0700000000002;-0.0579;▼ -5.8%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REEMBOLSO DE ASSISTENCIA MEDICA;-3290.41;-5983.580000000001;-2693.170000000001;0.8184999999999999;▲ +81.8%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE INSS FERIAS;1444.6;0;-1444.6;-1;▼ -100.0%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SALÁRIOS;-40392.51000183451;-34857.81;5534.700001834513;-0.137;▼ -13.7%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SEGURO DE VIDA;-79.1709873084;-52.2000002622;26.9709870462;-0.3407;▼ -34.1%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SERVIÇOS ADMINISTRATIVOS;-60290.22;-58761.45;1528.770000000004;-0.0254;▼ -2.5%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SERVIÇOS ADMINISTRATIVOS 13;-5440.860000000001;-4900.110000000001;540.75;-0.09939999999999999;▼ -9.9%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;VALE REFEICAO/ALIMENTACAO;-17435.9996394;-16726.9998268552;708.9998125448001;-0.0407;▼ -4.1%;OK - Validado
+8;Agosto;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;VALE TRANSPORTES;-9384.199932354;-10719.7001560244;-1335.500223670399;0.1423;▲ +14.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ACORDOS COMERCIAIS REEMBOLSO;0;-3934.35;-3934.35;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ALARMES E MONITORAMENTOS;-740;0;740;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ALUGUEL DE IMÓVEIS;-56879.4660312746;-62565.3600475168;-5685.8940162422;0.1;▲ +10.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ASSESSORIA JURIDICA;-10428.27;-10531.27;-103;0.009899999999999999;▲ +1.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ASSISTENCIA NOS PRODUTOS MQ;-621;-796;-175;0.2818;▲ +28.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;BONIF DE PROD SOBRE VENDA;0;-458.97;-458.97;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CERTIFICADOS DIGITAIS;0;-180;-180;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONDOMINIO;-5211.4867255518;-10108.5899242419;-4897.1031986901;0.9397;▲ +94.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONFRATERNIZAÇÕES E COFFEE BREAK;-3198.91;-16174.69;-12975.78;4.0563;▲ +405.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONTABILIDADE TERCEIRIZADA;-10095;-16942;-6847;0.6783;▲ +67.8%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONTRIBUIÇÃO SINDICAL PATRONAL;-450;-450;0;0;0.0%;OK - Estável
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM ALIMENTAÇÃO - VIAGEM;0;-266.08;-266.08;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM COMBUSTIVEL;-814.44;-519.19;295.25;-0.3625;▼ -36.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM CORRESPONDENCIA;0;-380.71;-380.71;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM ESTACIONAMENTO;0;-144.04;-144.04;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM LANCHES;-155.236888526;0;155.236888526;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM PEDAGIOS;-115.61;0;115.61;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM RECRUTAMENTO E SELEÇÃO;-1877.99;0;1877.99;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM TAXI/ UBER/ 99;-453.1200002266;-230.3800009512;222.7399992754001;-0.4916;▼ -49.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS LOGISTICAS COM CARGA E DESCARGA;-7000;-10647.99;-3647.99;0.5211;▲ +52.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;EMBALAGEM PARA VENDA;-4176.09;-25023.25;-20847.16;4.992;▲ +499.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ENDOMARKETING;-857.65;-2597.239570105;-1739.589570105;2.0283;▲ +202.8%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ENERGIA ELETRICA;-2806.44;-2560.1499969354;246.2900030646001;-0.08779999999999999;▼ -8.8%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;FRETE SOBRE COMPRA;-2862.68;-5637.87;-2775.19;0.9693999999999999;▲ +96.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;INTERNET;-5093.29;-4096;997.29;-0.1958;▼ -19.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IOF SOBRE DEMAIS OPERACOES;0;-3.85;-3.85;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IPTU;-3713.5372431736;-3694.3300313059;19.2072118676997;-0.0052;▼ -0.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;LUCROS E DIVIDENDOS DISTRIBUIDOS;-61521.49000000001;-65531.39;-4009.899999999994;0.0652;▲ +6.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MANUT DE MOVEIS, EQUIPAMENTOS E VEICULOS;-320;-385;-65;0.2031;▲ +20.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MANUTENÇÃO/BENFEITORIA EM IMÓVEIS;-1700;-4566.459999999999;-2866.459999999999;1.6862;▲ +168.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MARCAS E PATENTES (ROYALTIES);-10000;0;10000;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE COPA E COZINHA;-4791.079999999999;-832.14;3958.939999999999;-0.8262999999999999;▼ -82.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE ESCRITÓRIO;-76.73;-1842.56;-1765.83;23.0136;▲ +2301.4%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE USO E CONSUMO;-847.8531114740001;-1674.96;-827.1068885259997;0.9754999999999999;▲ +97.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MEDICINA DO TRABALHO;-862.3;-833.72;28.57999999999993;-0.0331;▼ -3.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MENSALIDADE DE SISTEMAS;-44375.4;-58735.01000000001;-14359.61000000001;0.3236;▲ +32.4%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;PLATAFORMA DE ARMAZEN. DE SISTEMAS - SAS;0;-0.01;-0.01;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;PROCESSOS JUDICIAIS DRTO CONSUMIDOR;-250;-785.1700000000001;-535.1700000000001;2.1407;▲ +214.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;RESCISÕES DE FUNCIONARIOS;-5654.4;0;5654.4;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SEGUROS SOBRE ATIVOS;-2388.59;-833.09;1555.5;-0.6512;▼ -65.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇO DE LIMPEZA;-4820;-2040;2780;-0.5768;▼ -57.7%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇO DE SUPORTE EM SISTEMAS DE TI;-3793.96;-12857.47;-9063.509999999998;2.3889;▲ +238.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇOS DE CONSUL DE SERVIÇOS FREELANCE;-11000;-12500;-1500;0.1364;▲ +13.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇOS DE CONSULTORIA E ASSESSORIA;-14622.77;-10259.15;4363.620000000001;-0.2984;▼ -29.8%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXA DE REMOÇÃO DE ESTOQUE;-2411.4664;0;2411.4664;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXA MUNICIPAL/ESTADUAL/FEDERAL;0;-225;-225;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXAS CARTORIO E CONSULADO;-17.24;0;17.24;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TELEFONE;-1511.2269041638;-2355.7045876391;-844.4776834752997;0.5588000000000001;▲ +55.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ÁGUA E ESGOTO;-373.36;-163.96;209.4;-0.5609000000000001;▼ -56.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;ASSESSORIA EM CERTIFICAÇÃO DE PRODUTOS;-24134.263;-4997.0407;19137.2223;-0.7929;▼ -79.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;BONIF DE PROD SOBRE VENDA;0;-483.8;-483.8;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESP FCC COMERCIAL;-27965.7;-10660;17305.7;-0.6188;▼ -61.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESPESAS COM CORRESPONDENCIA;-339.97;0;339.97;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESPESAS COM TAXI/ UBER/ 99;-253.5799987877;0;253.5799987877;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;EMBALAGEM PARA VENDA;-3509.6;0;3509.6;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;FOTOS E VIDEOS DE PRODUTOS;-4200;0;4200;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;MARCAS E PATENTES (ROYALTIES);-836.65;-869.49;-32.84000000000003;0.0393;▲ +3.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;MATERIAL DE USO E CONSUMO;-596.53;0;596.53;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;SERVIÇOS ADMINISTRATIVOS;-18000;-20000;-2000;0.1111;▲ +11.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;SERVIÇOS ADMINISTRATIVOS 13;-1500;-1591.95;-91.95000000000005;0.0613;▲ +6.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;2.Desenvol Produtos;TELEFONE;-395.2708676147;-298.3219254488;96.94894216590001;-0.2453;▼ -24.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;AJUSTES DE PROVISÃO SERVIÇOS ADM 13;-35611.55;0;35611.55;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;ASSISTENCIA MEDICA E ODONTOLOGICA;-34589.280177964;-29507.729976943;5081.550201021;-0.1469;▼ -14.7%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;BOLSAS E TREINAMENTOS;0;-1748;-1748;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;FGTS MENSAL;-6392.45;-6559.98;-167.5299999999997;0.0262;▲ +2.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;FGTS RESCISÓRIO;-1279.46;0;1279.46;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;INSS EMPRESA;-25226.67;-20061.89;5164.779999999999;-0.2047;▼ -20.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;INSS FUNCIONARIO;-8456.53;-6733.969999999999;1722.560000000001;-0.2037;▼ -20.4%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;IRRF S/ SALARIOS/RESCISOES;-5492.959999999999;-2213.06;3279.899999999999;-0.5971;▼ -59.7%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROLABORE;-9434.57;-10221.3;-786.7299999999996;0.0834;▲ +8.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO DE 13 SALARIO;-6648.27;-5460.400000000001;1187.869999999999;-0.1787;▼ -17.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO DE FERIAS;-9136.56;-7280.530000000001;1856.029999999999;-0.2031;▼ -20.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO FGTS 13 SALARIO;-531.83;-436.8200000000001;95.00999999999999;-0.1786;▼ -17.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO FGTS FÉRIAS;-730.86;-582.4200000000001;148.4399999999999;-0.2031;▼ -20.3%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO INSS EMPRESA 13 SALARIO;-1881.95;-1463.38;418.5699999999999;-0.2224;▼ -22.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO INSS EMPRESA FÉRIAS;-2583.3;-1951.21;632.0900000000001;-0.2447;▼ -24.5%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REEMBOLSO DE ASSISTENCIA MEDICA;-4663.43;-4969.42;-305.9899999999998;0.06559999999999999;▲ +6.6%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE 13º;6388.23;0;-6388.23;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FERIAS;3150.62;0;-3150.62;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FGTS 13º;511.05;0;-511.05;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FGTS FERIAS;466;0;-466;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE INSS 13º;1712.06;0;-1712.06;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE INSS FERIAS;1614.67;0;-1614.67;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SALÁRIOS;-58343.14;-47341.64;11001.5;-0.1886;▼ -18.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SEGURO DE VIDA;-138.4490126916;-130.5699997378;7.879012953799986;-0.05690000000000001;▼ -5.7%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SERVIÇOS ADMINISTRATIVOS;-190775.91;-129528.02;61247.88999999998;-0.321;▼ -32.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SERVIÇOS ADMINISTRATIVOS 13;-15621.94;-16832.26;-1210.319999999998;0.0775;▲ +7.8%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;VALE REFEICAO/ALIMENTACAO;-17487.900357028;-11690.0003577302;5797.899999297801;-0.3315;▼ -33.1%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;VALE TRANSPORTES;-6359.000071218;-6478.6400892852;-119.6400180671999;0.0188;▲ +1.9%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;BAIXA DE ESTOQUE PARA PERDA INVENTARIO;-1252.3001;-32987.56463893394;-31735.26453893394;25.3416;▲ +2534.2%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;5.Descontos - Despesas;FRETES SOBRE VENDAS;0.51;0;-0.51;-1;▼ -100.0%;OK - Validado
+8;Agosto;5.Despesas Administrativa Operacional;5.Descontos - Despesas;MARCAS E PATENTES (ROYALTIES);0;0.02;0.02;—;—;Conta Nova em 2026
+8;Agosto;5.Despesas Administrativa Operacional;5.Descontos - Despesas;SERVIÇOS DE CONSULTORIA E ASSESSORIA;0;62.64;62.64;—;—;Conta Nova em 2026
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;ANUIDADE DE CARTÃO DE CRÉDITO;-38.66;-38.66;0;0;0.0%;OK - Estável
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;DESPESAS COM CREDITO E COBRANCAS;-451.53;0;451.53;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;ICMS DIFAL S/ VENDAS MARKETPLACE;0;-9153.269977523301;-9153.269977523301;—;—;Conta Nova em 2026
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;IRRF SOBRE RENDIMENTO FINANCEIRO;-18357.42;-33941.43;-15584.01;0.8489;▲ +84.9%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;JUROS E IOF CHEQUE ESPECIAL;-0.1;-47.28;-47.18;471.8;▲ +47180.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;JUROS SOBRE EMPRESTIMOS;-76779.09933418239;-89946.0627294619;-13166.96339527951;0.1715;▲ +17.1%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;MANUTENÇÃO DE CONTAS BANCÁRIAS;-2504.99;-686.01;1818.98;-0.7261;▼ -72.6%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;REND SOBRE APLIC FINANCEIRA;91795.27;163659.45;71864.18000000001;0.7829;▲ +78.3%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;RESULTADO FINANCEIRO COM MARKETPLACE;-281.28;0;281.28;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFA DE BAIXA DE COBRANÇA;-84.8;0;84.8;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFA DE CÂMBIO;-97.87;0;97.87;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFA DE REGISTRO DE COBRANÇA;-1672.91;-1873.84;-200.9299999999998;0.1201;▲ +12.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFAS DE NEGATIVAÇÃO;-286.64;-106.29;180.35;-0.6292;▼ -62.9%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFAS PIX/TED/DOC;-156.16;-4.98;151.18;-0.9681000000000001;▼ -96.8%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;2.Variação Cambial;REVENDA DE MERCADORIA;509.11;-916.73;-1425.84;0.8007;▲ +80.1%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL ATIVA;68093.97;4194.21;-63899.76;-0.9384;▼ -93.8%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL PASSIVA;0;-15736.11;-15736.11;—;—;Conta Nova em 2026
+8;Agosto;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL RECEBIVEIS;-5082.41;370.81;5453.22;-0.927;▼ -92.7%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;COMPRAS DE MERCADORIA ATEND. DIRETO;-0.01;0;0.01;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;REVENDA DE MERCADORIA;1907.73;2296.47;388.74;0.2038;▲ +20.4%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;ALUGUEL DE IMÓVEIS;-31.64;0;31.64;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;ASSISTENCIA MEDICA E ODONTOLOGICA;-2.55;0;2.55;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;CSLL TRIMESTRAL;-18.695530482;0;18.695530482;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;FRETE SOBRE COMPRA;-0.82;0;0.82;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;FRETES SOBRE VENDAS;-13.39;-1.09;12.3;-0.9186;▼ -91.9%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;IRPJ TRIMESTRAL;-4066.464469518;0;4066.464469518;-1;▼ -100.0%;OK - Validado
+8;Agosto;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;MENSALIDADE DE SISTEMAS;-9.64;0;9.64;-1;▼ -100.0%;OK - Validado
+8;Agosto;7.Vendas IC;1.Vendas Bruta IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;1892817.87;1862807.95;-30009.92000000016;-0.0159;▼ -1.6%;OK - Validado
+8;Agosto;7.Vendas IC;2.Devolução Venda Bruta IC;DEVOLUCOES DE VENDAS;-30086.28;-403017.25;-372930.97;12.3954;▲ +1239.5%;OK - Validado
+8;Agosto;7.Vendas IC;3.CPV IC;DEVOLUCOES DE VENDAS;20856.1965;156252.9519;135396.7554;6.4919;▲ +649.2%;OK - Validado
+8;Agosto;7.Vendas IC;3.CPV IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;-930126.995894;-784672.1102489999;145454.8856450001;-0.1564;▼ -15.6%;OK - Validado
+8;Agosto;7.Vendas IC;4.Impostos IC;DEVOLUCOES DE VENDAS;6138.1;118474.54;112336.44;18.3015;▲ +1830.2%;OK - Validado
+8;Agosto;7.Vendas IC;4.Impostos IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;-420087.14;-529426.62;-109339.48;0.2603;▲ +26.0%;OK - Validado
+8;Agosto;7.Vendas IC;5.IR e CS - IC;IRPJ MENSAL;-58079.443576;-49476.129716;8603.313859999995;0.1481;▲ +14.8%;OK - Validado
+8;Agosto;7.Vendas IC;6.Frete IC;FRETE ATENDIMENTO DIRETO;-21671.02;0;21671.02;-1;▼ -100.0%;OK - Validado
+8;Agosto;7.Vendas IC;6.Frete IC;FRETES SOBRE VENDAS;0;-38042.53;-38042.53;—;—;Conta Nova em 2026
+9;Setembro;1.Venda Liquida;1.Venda Bruta;REC FCC COMERCIAL - AMAZON;55799.0771;89043.16399999999;33244.08689999999;0.5958;▲ +59.6%;OK - Validado
+9;Setembro;1.Venda Liquida;1.Venda Bruta;REC FCC COMERCIAL - CH;75401.46;256603.08;181201.62;2.4032;▲ +240.3%;OK - Validado
+9;Setembro;1.Venda Liquida;1.Venda Bruta;REC FCC COMERCIAL - EUA;0;23443.44;23443.44;—;—;Conta Nova em 2026
+9;Setembro;1.Venda Liquida;1.Venda Bruta;REVENDA DE MERCADORIA;6180224.180000001;7829414.989999999;1649190.809999999;0.2668;▲ +26.7%;OK - Validado
+9;Setembro;1.Venda Liquida;2.Devolução;DEVOLUCOES DE VENDAS;-309316.7447;-213711.154;95605.59069999997;-0.3091;▼ -30.9%;OK - Validado
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS AVARIA 0,3%;-74.76;-3056.74;-2981.98;39.8874;▲ +3988.7%;OK - Validado
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS COMERCIAIS 3%;-712.38;-14353.79;-13641.41;19.1491;▲ +1914.9%;OK - Validado
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;AMAZON - CONTRATOS ACORDOS COMERCIAIS 8%;-234.46;-44715.74;-44481.28;189.718;▲ +18971.8%;OK - Validado
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;DESCONTOS CONCEDIDOS;0;-98.7826;-98.7826;—;—;Conta Nova em 2026
+9;Setembro;1.Venda Liquida;3.Desc Financeiros;REVENDA DE MERCADORIA;-6502.08;-173.52;6328.559999999999;-0.9732999999999999;▼ -97.3%;OK - Validado
+9;Setembro;1.Venda Liquida;4.Imposto;CRÉDITO PRESUMIDO TTD 409 E 478;211963.6;330996.92;119033.3199999999;0.5616;▲ +56.2%;OK - Validado
+9;Setembro;1.Venda Liquida;4.Imposto;DEVOLUCOES DE VENDAS;26108.91;36628.58;10519.67;0.4029;▲ +40.3%;OK - Validado
+9;Setembro;1.Venda Liquida;4.Imposto;ISS ( S/ VENDA);0;-6000;-6000;—;—;Conta Nova em 2026
+9;Setembro;1.Venda Liquida;4.Imposto;REMESSA DE PRODUTO GARANTIA/CONSERTO;-3391.9;-3282.54;109.3600000000001;-0.0322;▼ -3.2%;OK - Validado
+9;Setembro;1.Venda Liquida;4.Imposto;REVENDA DE MERCADORIA;-762236.3000000002;-1085395.38;-323159.0799999997;0.424;▲ +42.4%;OK - Validado
+9;Setembro;1.Venda Liquida;5.IRPJ e CSLL;IRPJ MENSAL;-157408.315988;-229501.943216;-72093.62722799997;0.458;▲ +45.8%;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;1.CPV;REVENDA DE MERCADORIA;-2884356.459579;-3338406.37834;-454049.9187609996;0.1574;▲ +15.7%;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;REC FCC COMERCIAL - AMAZON;-19209.32;-30168.32;-10959;0.5705;▲ +57.0%;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;REC FCC COMERCIAL - CH;-48502.93336;-144436.06688;-95933.13352;1.9779;▲ +197.8%;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;2.CPV  FCC COML;REC FCC COMERCIAL - EUA;0;-11365.8;-11365.8;—;—;Conta Nova em 2026
+9;Setembro;2.Custo Mercadoria Vendida;3.CPV Devolução;DEVOLUCOES DE VENDAS;146171.5705;87378.9964;-58792.5741;-0.4022;▼ -40.2%;OK - Validado
+9;Setembro;2.Custo Mercadoria Vendida;4.CPV Garantia;REMESSA DE PRODUTO GARANTIA/CONSERTO;-6286.7106;-10472.1478;-4185.4372;0.6658;▲ +66.6%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;ASSESSORIA ADUANEIRA;0;-162412.53;-162412.53;—;—;Conta Nova em 2026
+9;Setembro;3.Despesas com Vendas;1.Frete;COMPLEMENTO DE FRETE;-1339.9;0;1339.9;-1;▼ -100.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;EXTRAVIOS DE MERCADORIAS PELOS CORREIOS;0;-352.68;-352.68;—;—;Conta Nova em 2026
+9;Setembro;3.Despesas com Vendas;1.Frete;FRETE CORREIO ECOMMERCE;-41513.79000000001;-28648.99;12864.80000000001;-0.3099;▼ -31.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;FRETE SOBRE COMPRA;-4574.2;-680;3894.2;-0.8513;▼ -85.1%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;FRETES SOBRE DEVOLUÇÕES;-1800;0;1800;-1;▼ -100.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;FRETES SOBRE VENDAS;-220470.1699999999;-374612.063;-154141.8930000001;0.6992;▲ +69.9%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;REEMBOLSO DE FRETE COMEX;477.66;0;-477.66;-1;▼ -100.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;1.Frete;REEMBOLSO DE PERDAS E EXTRAVIOS;730.3391;211.2404;-519.0987;-0.7108;▼ -71.1%;OK - Validado
+9;Setembro;3.Despesas com Vendas;10.Outras Desp. FCC;DESP FCC COMERCIAL;-138.2602;-10037.021;-9898.7608;71.5952;▲ +7159.5%;OK - Validado
+9;Setembro;3.Despesas com Vendas;2.Bonificação Clientes;BONIF DE PROD SOBRE VENDA;-159109.991587;-104106.673465;55003.31812200003;-0.3457;▼ -34.6%;OK - Validado
+9;Setembro;3.Despesas com Vendas;2.Bonificação Clientes;DEVOLUCAO DE BONIFICACAO;511.3836;148.9802;-362.4034;-0.7087;▼ -70.9%;OK - Validado
+9;Setembro;3.Despesas com Vendas;3.Impostos s/ bonificações;BONIF DE PROD SOBRE VENDA;-15561.09;-21143.63;-5582.539999999997;0.3587;▲ +35.9%;OK - Validado
+9;Setembro;3.Despesas com Vendas;3.Impostos s/ bonificações;DEVOLUCAO DE BONIFICACAO;0;71.49000000000001;71.49000000000001;—;—;Conta Nova em 2026
+9;Setembro;3.Despesas com Vendas;4.Comissões;COMISSOES SOBRE VENDAS;-58852.93;-65381.17;-6528.239999999998;0.1109;▲ +11.1%;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;COMISSOES SOBRE VENDAS MARKETPLACE;-38127.2;-219686.6532;-181559.4532;4.7619;▲ +476.2%;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;COMISSÃO SOBRE VENDAS ECOMMERCE - SITE;-16016.9600003707;-16094.9900284492;-78.03002807849953;0.0049;▲ +0.5%;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;COPARTICIPACAO CAMPANHAS MKTPLACE;16557.59;3991.41;-12566.18;-0.7589;▼ -75.9%;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;DEVOLUCOES DE VENDAS;4528.68;0;-4528.68;-1;▼ -100.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;4.Comissões;REVENDA DE MERCADORIA;-184140.83;0;184140.83;-1;▼ -100.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;5.Bonificação Gerente;PREMIAÇÃO S/ META;-19592;-34700;-15108;0.7711;▲ +77.1%;OK - Validado
+9;Setembro;3.Despesas com Vendas;6.Guelta;DESPESAS COM GUELTA;-16565.1;-5300;11265.1;-0.6801;▼ -68.0%;OK - Validado
+9;Setembro;3.Despesas com Vendas;7.Anti Fraude VTEX;ANTIFRAUDE;0;-1297.47;-1297.47;—;—;Conta Nova em 2026
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;ADIANTAMENTO RECEBIDO;4.82;0.06;-4.760000000000001;-0.9876;▼ -98.8%;OK - Validado
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;CHARGEBACK;32.19;0.2;-31.99;-0.9937999999999999;▼ -99.4%;OK - Validado
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;DEPOSITO INDEVIDO;0;-9.43;-9.43;—;—;Conta Nova em 2026
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;DEVOLUCOES DE VENDAS;203.45;12.85;-190.6;-0.9368000000000001;▼ -93.7%;OK - Validado
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;MEIO DE PAGAMENTO;-729.7;-593.1000000000001;136.5999999999999;-0.1872;▼ -18.7%;OK - Validado
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;REVENDA DE MERCADORIA;-18609.55226304273;-12436.34;6173.212263042729;-0.3317;▼ -33.2%;OK - Validado
+9;Setembro;3.Despesas com Vendas;9.Meio Pagamento;TARIFA PAYPAL;-1102.56;0;1102.56;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;ALUGUEL DE IMÓVEIS;-2800;-2800;0;0;0.0%;OK - Estável
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;AMAZON - VAP ASSESSORIA E CONSULTORIA;0;-2916.66;-2916.66;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;ASSESSORIA ADUANEIRA;-1692.93;-2430;-737.0699999999999;0.4354;▲ +43.5%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;CAMPANHAS INSTITUCIONAIS;0;-600;-600;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;CARTÃO PROMOTORA;-1461.49;-2109.3999883584;-647.9099883584004;0.4433;▲ +44.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;CERTIFICADOS DIGITAIS;-171;-240;-69;0.4035;▲ +40.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;CHARGEBACK;-21329.82;-543.8;20786.02;-0.9745;▼ -97.5%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;CONTRIBUIÇÃO SINDICAL PATRONAL;0;-260.47;-260.47;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESP FCC COMERCIAL;0;-2832.89;-2832.89;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESA ARMAZENAGEM PORTUARIA/AEROPORT;0;-160.58;-160.58;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ALIMENTAÇÃO - VIAGEM;-1548.2100045894;-862.7899973858;685.4200072035999;-0.4427;▼ -44.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ARMAZENAGEM FULFILLMENT;-15578.7209;-51117.7799368126;-35539.0590368126;2.2813;▲ +228.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM CORRESPONDENCIA;-65.26;0;65.26;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM ESTACIONAMENTO;-1077.6999882506;-908.589998762;169.1099894885999;-0.1569;▼ -15.7%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM PASSAGEM RODOVIARIA;0;-10.7999871642;-10.7999871642;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM PEDAGIOS;-712.6399725039;-454.2300052288;258.4099672751;-0.3626;▼ -36.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS COM TAXI/ UBER/ 99;-1063.3400009872;-421.8762557196;641.4637452676;-0.6033;▼ -60.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;DESPESAS DE REPRESENTAÇÃO COMERCIAL;-2144.980005599;0;2144.980005599;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;EMBALAGEM PARA VENDA;-11357.55;-9470.25;1887.299999999999;-0.1662;▼ -16.6%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;FRETE SOBRE COMPRA;0;-397.824;-397.824;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;IOF SOBRE DEMAIS OPERACOES;-57.73;-77.41;-19.68;0.3409;▲ +34.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MARTECH;-19203.76;-10752.515;8451.244999999999;-0.4401;▼ -44.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MEDICINA DO TRABALHO;-64.9999975;0;64.9999975;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MENSALIDADE DE SISTEMAS;-2902.68;-1279.51;1623.17;-0.5592;▼ -55.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA GANHA FORCE BARBER;-20186.5364;-4389.4644;15797.072;-0.7826000000000001;▼ -78.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA GANHA MQ PROFESSIONAL;-19601.5972;-15665.1097;3936.487499999999;-0.2008;▼ -20.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK FORCE BARBER;-16258.76;0;16258.76;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK MQ PROFESSIONAL;-274118.0800000004;-82084.14;192033.9400000004;-0.7006;▼ -70.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA FACEBOOK PARLUX;0;-1448.84;-1448.84;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA GOOGLE MQ PROFESSIONAL;-26195.070132107;-29353.3500130808;-3158.279880973798;0.1206;▲ +12.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA GOOGLE PARLUX;-4289.629867893;-5014.0399869192;-724.4101190261999;0.1689;▲ +16.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA MARKETPLACE;-49987.3839;-31663.3986450017;18323.9852549983;-0.3666;▼ -36.7%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;MIDIA PAGA TIK TOK MQ PROFESSIONAL;-16000;0;16000;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;PLATAFORMA DE ARMAZEN. DE SISTEMAS - SAS;-5109.5299996293;-4885.5299715508;224.0000280784998;-0.0438;▼ -4.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;PLATAFORMAS DE ECOMMERCE;-968.6;-1940.74;-972.1399999999998;1.0037;▲ +100.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;PROMOTORES DE VENDA FREELANCE;-4000;-5450;-1450;0.3625;▲ +36.2%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;REEMBOLSO DE KILOMETRAGEM;-8688.400043882;-7171.6400089318;1516.7600349502;-0.1746;▼ -17.5%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;RESCISÕES DE FUNCIONARIOS;-61940.4;-70.13;61870.27;-0.9989;▼ -99.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;REVERSÃO DE FRETE;-66.16;-256.91;-190.75;2.8832;▲ +288.3%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;SERVIÇOS DE CONSULTORIA E ASSESSORIA;-13531;-6754.11;6776.89;-0.5008;▼ -50.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;1.Comercial Despesas;TELEFONE;-1088.3346691808;-600.2292983358;488.1053708449999;-0.4485;▼ -44.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;AJUSTE CUPOM DESCONTO - SHOPEE;0;-17934.79;-17934.79;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;BLOQUEIOS/DESBLOQUEIOS - MARKETPLACE;0;-3115.11;-3115.11;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;CASHBACK /BONUS- MARKETPLACE;0;605.19;605.19;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;COOPARTIPAÇÃO FRETE -MARKETPLACE;0;-8204.11;-8204.11;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;CUPOM DESCONTO - MARKETPLACE;0;-3501.38;-3501.38;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;DISPUTA/MEDIAÇÃO - MARKETPLACE;0;1590.5;1590.5;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;REEMBOLSO /ESTORNO FRETES MARKETPLACE;0;-12192.18;-12192.18;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;2.Operações Marketplace;TAXAS - MARKETPLACE;0;-424.0100007106;-424.0100007106;—;—;Conta Nova em 2026
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;ASSISTENCIA MEDICA E ODONTOLOGICA;-909.1899956832;-3328.0900468759;-2418.9000511927;2.6605;▲ +266.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;FGTS MENSAL;-6131.69;-11529.13;-5397.44;0.8803;▲ +88.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;FGTS RESCISÓRIO;-61975.6;0;61975.6;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;INSS EMPRESA;-17495.25;-17040.87;454.380000000001;-0.026;▼ -2.6%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;INSS FUNCIONARIO;-5493.579999999999;-5392.86;100.7199999999993;-0.0183;▼ -1.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;IRRF S/ SALARIOS/RESCISOES;-1533.63;-616.46;917.1699999999998;-0.598;▼ -59.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO DE 13 SALARIO;-5014.67;-4913.68;100.9899999999998;-0.0201;▼ -2.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO DE FERIAS;-7454.67;-6204.1;1250.57;-0.1678;▼ -16.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO FGTS 13 SALARIO;-436.07;-393.0599999999999;43.01000000000005;-0.0986;▼ -9.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO FGTS FÉRIAS;-596.31;-513.72;82.58999999999992;-0.1385;▼ -13.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO INSS EMPRESA 13 SALARIO;-1377.51;-1316.85;60.66000000000008;-0.044;▼ -4.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;PROVISÃO INSS EMPRESA FÉRIAS;-2042.6;-1720.72;321.8799999999999;-0.1576;▼ -15.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REEMBOLSO DE ASSISTENCIA MEDICA;-3290.41;-5983.580000000001;-2693.170000000001;0.8184999999999999;▲ +81.8%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE 13º;7655.8;0;-7655.8;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE FERIAS;22262.71;0;-22262.71;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE FGTS 13º;647.3499999999999;0;-647.3499999999999;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE FGTS FERIAS;1781.01;0;-1781.01;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE INSS 13º;2200.5;0;-2200.5;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;REVERSÃO DE PROVISÃO DE INSS FERIAS;6411.64;0;-6411.64;-1;▼ -100.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SALÁRIOS;-43684.28;-42306.38;1377.900000000001;-0.0315;▼ -3.1%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SEGURO DE VIDA;-75.398341695;-45.2369537754;30.1613879196;-0.4;▼ -40.0%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SERVIÇOS ADMINISTRATIVOS;-69502.83;-58761.45;10741.38;-0.1545;▼ -15.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;SERVIÇOS ADMINISTRATIVOS 13;-5440.860000000001;-4900.110000000001;540.75;-0.09939999999999999;▼ -9.9%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;VALE REFEICAO/ALIMENTACAO;-19133.00023543;-15412.9999749962;3720.000260433799;-0.1944;▼ -19.4%;OK - Validado
+9;Setembro;4.Despesas Comercial Operacional;3.Folha de pagamento e Beneficios - Comercial;VALE TRANSPORTES;-11439.099272701;-7938.700046320399;3500.3992263806;-0.306;▼ -30.6%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ACORDOS COMERCIAIS REEMBOLSO;0;-11616.68;-11616.68;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ALARMES E MONITORAMENTOS;-260;0;260;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ALUGUEL DE IMÓVEIS;-56879.4660312746;-62565.3600475168;-5685.8940162422;0.1;▲ +10.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ASSESSORIA JURIDICA;-10428.27;-10531.27;-103;0.009899999999999999;▲ +1.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ASSISTENCIA NOS PRODUTOS MQ;-2205;-2715;-510;0.2313;▲ +23.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CERTIFICADOS DIGITAIS;-232;0;232;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;COMBUSTIVEL DOS VEICULOS PROPRIOS;-510.15;0;510.15;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONDOMINIO;-5211.4867255518;-10108.589994318;-4897.103268766199;0.9397;▲ +94.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONFRATERNIZAÇÕES E COFFEE BREAK;-10218.98;-1151.08;9067.9;-0.8874;▼ -88.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONTABILIDADE TERCEIRIZADA;-10095;-17092;-6997;0.6931;▲ +69.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;CONTRIBUIÇÃO SINDICAL PATRONAL;-450;-450;0;0;0.0%;OK - Estável
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESENVOLVIMENTO DE SISTEMAS;-1260;0;1260;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM ALIMENTAÇÃO - VIAGEM;0;-676.4599999999999;-676.4599999999999;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM COMBUSTIVEL;0;-350;-350;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM CORRESPONDENCIA;0;-1500.57;-1500.57;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM CREDITO E COBRANCAS;-414.51;-71.5;343.01;-0.8275;▼ -82.8%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM ESTACIONAMENTO;0;-297.94;-297.94;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM LANCHES;-189.8999990294;0;189.8999990294;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM PEDAGIOS;-146.84;0;146.84;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS COM TAXI/ UBER/ 99;-518.680002708;-98.05374428040001;420.6262584276;-0.8109999999999999;▼ -81.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;DESPESAS LOGISTICAS COM CARGA E DESCARGA;-6720;-16539.51;-9819.509999999998;1.4612;▲ +146.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;EMBALAGEM PARA VENDA;-216.46;-3819.82;-3603.36;16.6468;▲ +1664.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ENDOMARKETING;-414.1;-1572.900065237;-1158.800065237;2.7984;▲ +279.8%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ENERGIA ELETRICA;-2538;-2544.7199900094;-6.71999000940059;0.0026;▲ +0.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;FRETE SOBRE COMPRA;-8400;-16250;-7850;0.9345;▲ +93.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IMPLANTACAO DE SISTEMA;-7720;0;7720;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;INTERNET;-2909.22;-4317.1;-1407.880000000001;0.4839;▲ +48.4%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IOF SOBRE DEMAIS OPERACOES;-288.79;-3.85;284.94;-0.9867;▼ -98.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IPTU;-3713.5372431736;-3694.3299681558;19.20727501780038;-0.0052;▼ -0.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;IPVA;0;-4508.00002482;-4508.00002482;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;LUCROS E DIVIDENDOS DISTRIBUIDOS;-76417.49;-65531.39;10886.10000000001;-0.1425;▼ -14.2%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MANUT DE MOVEIS, EQUIPAMENTOS E VEICULOS;-101.9999982626;0;101.9999982626;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MANUTENÇÃO/BENFEITORIA EM IMÓVEIS;-5880.6;-20.78;5859.820000000001;-0.9965;▼ -99.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAIS E EQUIPAMENTOS DE INFORMATICA;-529.9;0;529.9;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE COPA E COZINHA;-2289.88;-2783.79;-493.9100000000003;0.2157;▲ +21.6%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE ESCRITÓRIO;-562.29;-2018.36;-1456.07;2.5895;▲ +258.9%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MATERIAL DE USO E CONSUMO;-978.1;-592.62;385.48;-0.3941;▼ -39.4%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MEDICINA DO TRABALHO;-862.3;-883.72;-21.42000000000007;0.0248;▲ +2.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;MENSALIDADE DE SISTEMAS;-55450.6;-55521.045;-70.44499999999971;0.0013;▲ +0.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;PLATAFORMA DE ARMAZEN. DE SISTEMAS - SAS;0;-0.01;-0.01;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;PROCESSOS JUDICIAIS DRTO CONSUMIDOR;-1126.41;0;1126.41;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;REEMBOLSO DE ST PARA POSTOS;0;-26.6;-26.6;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SEGUROS SOBRE ATIVOS;-2389.59;-832.57;1557.02;-0.6516;▼ -65.2%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇO DE LIMPEZA;-2140;-4350;-2210;1.0327;▲ +103.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇO DE SUPORTE EM SISTEMAS DE TI;-2646.98;-12857.47;-10210.49;3.8574;▲ +385.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇOS DE CONSUL DE SERVIÇOS FREELANCE;-10000;-12500;-2500;0.25;▲ +25.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;SERVIÇOS DE CONSULTORIA E ASSESSORIA;-21297.77;-12299.15;8998.62;-0.4225;▼ -42.2%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXA DE REMOÇÃO DE ESTOQUE;-635.9223;0;635.9223;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXA MUNICIPAL/ESTADUAL/FEDERAL;-574.32;-2819.03997518;-2244.71997518;3.9085;▲ +390.9%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TAXAS CARTORIO E CONSULADO;-8.62;0;8.62;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;TELEFONE;-1020.5963432777;-2343.9950960471;-1323.3987527694;1.2967;▲ +129.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;1.Despesas Administrativas;ÁGUA E ESGOTO;-844.52;-163.96;680.56;-0.8059000000000001;▼ -80.6%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;ASSESSORIA EM CERTIFICAÇÃO DE PRODUTOS;-12733.66;-12612.1352;121.5248000000011;-0.0095;▼ -0.9%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESENVOLVIMENTO DE PRODUTOS;0;-130;-130;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESP FCC COMERCIAL;-11420;-10660;760;-0.0665;▼ -6.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;DESPESAS COM CORRESPONDENCIA;0;-323.88;-323.88;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;MARCAS E PATENTES (ROYALTIES);-836.65;-869.49;-32.84000000000003;0.0393;▲ +3.9%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;SERVIÇOS ADMINISTRATIVOS;-18000;-20000;-2000;0.1111;▲ +11.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;SERVIÇOS ADMINISTRATIVOS 13;-1500;-1591.95;-91.95000000000005;0.0613;▲ +6.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;2.Desenvol Produtos;TELEFONE;-298.6089717294;-312.0056085949;-13.3966368655;0.0449;▲ +4.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;AJUSTES DE PROVISÃO SERVIÇOS ADM 13;-1541.73;0;1541.73;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;ASSISTENCIA MEDICA E ODONTOLOGICA;-12051.1900043168;-29088.8999531241;-17037.7099488073;1.4138;▲ +141.4%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;BOLSAS E TREINAMENTOS;0;-1248;-1248;—;—;Conta Nova em 2026
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;FGTS MENSAL;-6024.879999999999;-6582.91;-558.0300000000007;0.0926;▲ +9.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;INSS EMPRESA;-26115.00999999999;-20138.53;5976.479999999996;-0.2289;▼ -22.9%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;INSS FUNCIONARIO;-8684.46;-6796.759999999999;1887.7;-0.2174;▼ -21.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;IRRF S/ SALARIOS/RESCISOES;-5140.599999999999;-2213.06;2927.54;-0.5695;▼ -57.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROLABORE;-9434.57;-10221.3;-786.7299999999996;0.0834;▲ +8.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO DE 13 SALARIO;-7114.189999999999;-5527.58;1586.609999999999;-0.223;▼ -22.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO DE FERIAS;-9046.65;-7320.299999999999;1726.35;-0.1908;▼ -19.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO FGTS 13 SALARIO;-569.1700000000001;-442.2;126.97;-0.2231;▼ -22.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO FGTS FÉRIAS;-723.7299999999998;-592.76;130.9699999999998;-0.181;▼ -18.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO INSS EMPRESA 13 SALARIO;-2011.98;-1481.36;530.6200000000001;-0.2637;▼ -26.4%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;PROVISÃO INSS EMPRESA FÉRIAS;-2556.39;-1985.83;570.5600000000004;-0.2232;▼ -22.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REEMBOLSO DE ASSISTENCIA MEDICA;-4663.43;-5474.65;-811.2199999999993;0.174;▲ +17.4%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE 13º;5244.41;0;-5244.41;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FERIAS;11946.24;0;-11946.24;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FGTS 13º;419.6199999999999;0;-419.6199999999999;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE FGTS FERIAS;955.68;0;-955.68;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE INSS 13º;1529.88;0;-1529.88;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;REVERSÃO DE PROVISÃO DE INSS FERIAS;3440.49;0;-3440.49;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SALÁRIOS;-57907.45;-46872.26;11035.19;-0.1906;▼ -19.1%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SEGURO DE VIDA;-131.851658305;-113.1530462246;18.69861208040003;-0.1418;▼ -14.2%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SERVIÇOS ADMINISTRATIVOS;-119665.23;-131033;-11367.77;0.095;▲ +9.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;SERVIÇOS ADMINISTRATIVOS 13;-15955.27;-16832.26;-876.989999999998;0.055;▲ +5.5%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;VALE REFEICAO/ALIMENTACAO;-15871.89976868;-12425.000113782;3446.899654898001;-0.2172;▼ -21.7%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;3.Folha de pagamento e Beneficios;VALE TRANSPORTES;-6335.300725689;-6397.959793178;-62.65906748900034;0.009899999999999999;▲ +1.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;4.Outras Despesas Não Operacionais;BAIXA DE ESTOQUE PARA PERDA INVENTARIO;-743.9281;-14471.3244;-13727.3963;18.4526;▲ +1845.3%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;5.Descontos - Despesas;COMPRAS DE MERCADORIA ATEND. DIRETO;0.09;0;-0.09;-1;▼ -100.0%;OK - Validado
+9;Setembro;5.Despesas Administrativa Operacional;5.Descontos - Despesas;FRETES SOBRE VENDAS;0.13;0;-0.13;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;ANUIDADE DE CARTÃO DE CRÉDITO;-38.66;-38.66;0;0;0.0%;OK - Estável
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;ICMS DIFAL S/ VENDAS MARKETPLACE;0;-8793.2300174751;-8793.2300174751;—;—;Conta Nova em 2026
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;IOF SOBRE DEMAIS OPERACOES;-15.44;0;15.44;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;IRRF SOBRE RENDIMENTO FINANCEIRO;-1930.27;-11815.97;-9885.7;5.1214;▲ +512.1%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;JUROS SOBRE EMPRESTIMOS;-78942.9761443148;-90081.6292732608;-11138.653128946;0.1411;▲ +14.1%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;MANUTENÇÃO DE CONTAS BANCÁRIAS;-985.42;-686.01;299.41;-0.3038;▼ -30.4%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;REND SOBRE APLIC FINANCEIRA;99449.97;169100.68;69650.70999999999;0.7004;▲ +70.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFA DE CÂMBIO;-79.68;0;79.68;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFA DE REGISTRO DE COBRANÇA;-2497.58;-1768.66;728.9199999999998;-0.2919;▼ -29.2%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFAS DE NEGATIVAÇÃO;-185.44;-26.02;159.42;-0.8597;▼ -86.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;1.Receitas/Depesas Financeiras;TARIFAS PIX/TED/DOC;-61.5;-7.99;53.51;-0.8701000000000001;▼ -87.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;2.Variação Cambial;REVENDA DE MERCADORIA;-101.05;0;101.05;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL ATIVA;56391.99;1607.01;-54784.98;-0.9715;▼ -97.2%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL PASSIVA;0;-157.07;-157.07;—;—;Conta Nova em 2026
+9;Setembro;6.Receitas/Despesas Financeiras;2.Variação Cambial;VARIAÇÃO CAMBIAL RECEBIVEIS;-17838.94;-3575.39;14263.55;-0.7996;▼ -80.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;3.Multas e Juros recebidos;REVENDA DE MERCADORIA;1563.12;1218.27;-344.8499999999999;-0.2206;▼ -22.1%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;ALUGUEL DE IMÓVEIS;-30.84;0;30.84;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;FRETES SOBRE VENDAS;-68.83000000000001;-0.1;68.73000000000002;-0.9984999999999999;▼ -99.8%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;ICMS;-233.72;0;233.72;-1;▼ -100.0%;OK - Validado
+9;Setembro;6.Receitas/Despesas Financeiras;4.Multas e Juros pagos;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;1668.48;0;-1668.48;-1;▼ -100.0%;OK - Validado
+9;Setembro;7.Vendas IC;1.Vendas Bruta IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;1811155.24;2192534.36;381379.1200000003;0.2106;▲ +21.1%;OK - Validado
+9;Setembro;7.Vendas IC;2.Devolução Venda Bruta IC;DEVOLUCOES DE VENDAS;-65894.27;-22910.4;42983.87;-0.6523;▼ -65.2%;OK - Validado
+9;Setembro;7.Vendas IC;3.CPV IC;DEVOLUCOES DE VENDAS;31539.5656;12905.0808;-18634.4848;-0.5908;▼ -59.1%;OK - Validado
+9;Setembro;7.Vendas IC;3.CPV IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;-882557.721272;-1020060.07799;-137502.3567179999;0.1558;▲ +15.6%;OK - Validado
+9;Setembro;7.Vendas IC;4.Impostos IC;DEVOLUCOES DE VENDAS;8909.84;0;-8909.84;-1;▼ -100.0%;OK - Validado
+9;Setembro;7.Vendas IC;4.Impostos IC;REVENDA DE MERCADORIA ATENDIMENTO DIRETO;-403224.61;-587304.3;-184079.69;0.4565;▲ +45.6%;OK - Validado
+9;Setembro;7.Vendas IC;5.IR e CS - IC;IRPJ MENSAL;-53580.609236;-73333.28984799999;-19752.68061199999;-0.3687;▼ -36.9%;OK - Validado
+9;Setembro;7.Vendas IC;6.Frete IC;FRETE ATENDIMENTO DIRETO;-14596.86;0;14596.86;-1;▼ -100.0%;OK - Validado
+9;Setembro;7.Vendas IC;6.Frete IC;FRETES SOBRE VENDAS;0;-17606.87;-17606.87;—;—;Conta Nova em 2026

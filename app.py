@@ -1472,7 +1472,37 @@ def rota_ia_perguntar_stream():
             yield f"data: {json.dumps({'tipo': 'erro', 'erro': str(e)}, ensure_ascii=False)}\n\n"
         return Response(err_gen(), mimetype="text/event-stream")
 
+
+@app.route("/download/auditoria-excel")
+def download_auditoria_excel():
+    fpath = os.path.join(BASE_DIR, "Auditoria_DRE_MoM_YoY_Mes_a_Mes.xlsx")
+    if os.path.exists(fpath):
+        return send_file(fpath, as_attachment=True, download_name="Auditoria_DRE_MoM_YoY_Mes_a_Mes.xlsx")
+    return jsonify({"error": "Arquivo não encontrado"}), 404
+
+@app.route("/download/auditoria-mom-csv")
+def download_auditoria_mom_csv():
+    fpath = os.path.join(BASE_DIR, "2_Auditoria_MoM_Mes_a_Mes.csv")
+    if os.path.exists(fpath):
+        return send_file(fpath, as_attachment=True, download_name="2_Auditoria_MoM_Mes_a_Mes.csv", mimetype="text/csv")
+    return jsonify({"error": "Arquivo não encontrado"}), 404
+
+@app.route("/download/auditoria-yoy-csv")
+def download_auditoria_yoy_csv():
+    fpath = os.path.join(BASE_DIR, "3_Auditoria_YoY_Mes_a_Mes.csv")
+    if os.path.exists(fpath):
+        return send_file(fpath, as_attachment=True, download_name="3_Auditoria_YoY_Mes_a_Mes.csv", mimetype="text/csv")
+    return jsonify({"error": "Arquivo não encontrado"}), 404
+
+@app.route("/download/auditoria-yoy-excel")
+def download_auditoria_yoy_excel():
+    fpath = os.path.join(BASE_DIR, "Auditoria_YoY_Completa_Linha_a_Linha.xlsx")
+    if os.path.exists(fpath):
+        return send_file(fpath, as_attachment=True, download_name="Auditoria_YoY_Completa_Linha_a_Linha.xlsx")
+    return jsonify({"error": "Arquivo não encontrado"}), 404
+
 if __name__ == "__main__":
     iniciar_agendador_diario()
     app.run(debug=False, port=5150, host="0.0.0.0", threaded=True)
+
 

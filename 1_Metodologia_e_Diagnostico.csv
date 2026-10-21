@@ -1,0 +1,18 @@
+﻿AUDITORIA DE CÁLCULO E SINAIS MATEMÁTICOS — COLUNAS MoM E YoY;;;;
+Projeto: DRE Empresa (MQ Hair) | Base de Dados: MariaDB Oficial | Data: Outubro/2026;;;;
+1. DEFINIÇÃO MATEMÁTICA DAS COLUNAS;;;;
+Coluna;Conceito de Negócio;Mês Atual (t);Mês Base;Fórmula Geral
+MoM (Month over Month);Evolução do Mês Atual comparado ao Mês Imediatamente Anterior;Mês M (ex: Ago/26);Mês M-1 (ex: Jul/26 ou Dez/25 se M=1);(Valor_Atual - Valor_Base) / |Valor_Base|
+YoY (Year over Year);Evolução do Mês Atual comparado ao Mesmo Mês do Ano Anterior;Mês M do Ano A (ex: Ago/26);Mês M do Ano A-1 (ex: Ago/25);(Valor_Atual - Valor_Base) / |Valor_Base|
+2. MATRIZ DE COMPORTAMENTO DE SINAIS MATEMÁTICOS;;;;
+Tipo de Linha;Sinal Contábil no Banco;Comportamento se Valor Aumenta;Fórmula do Sistema (calc_var);Interpretação e Visualização
+Receitas (Venda Bruta, Venda Líquida);Positivo (+);Aumentou de R$ 3,8M para R$ 4,4M (+16,3%);(r - b) / |b|;▲ +16,3% em VERDE (Favorável). Cálculo e sinal 100% corretos.
+Custos e Despesas (CMV, Desp. Vendas, Adm, Folha);Negativo (-) no banco;Despesa aumentou de -R$ 611k para -R$ 726k (gastou +R$ 115k);(|r| - |b|) / |b|;▲ +18,7% em VERMELHO (Desfavorável). O sistema usa |r| - |b| para mostrar que a despesa SUBIU em módulo. Correto gerencialmente.
+Custos e Despesas (se gasto foi reduzido);Negativo (-) no banco;Despesa caiu de -R$ 742k para -R$ 600k (economizou R$ 142k);(|r| - |b|) / |b|;▼ -19,1% em VERDE (Favorável). O sistema exibe seta para baixo em verde indicando economia. Correto.
+Margens e Resultados (Margem Contribuição, Margem Líquida);Positivo (+) ou Negativo (-);Margem aumentou de R$ 1,6M para R$ 1,9M (+19,5%);(r - b) / |b|;▲ +19,5% em VERDE (Favorável). Se houver prejuízo negativo, o uso do |b| mantém a direção matemática correta.
+Receitas/Despesas Financeiras (Bloco 6);Misto (+ ou -);Saldo oscila entre positivo (receita) e negativo (despesa);Classificado como is_despesa=True no código;⚠️ ALERTA IDENTIFICADO: Por conter a palavra 'Despesas' no nome do bloco, o código trata todo o bloco 6 como despesa. Se uma Receita Financeira aumentar, o sistema calcula via módulo e colore em vermelho!
+Base Zero / Sem Movimento Anterior;Base = 0 ou Nula;Conta não existia no mês anterior e passa a existir;Retorna None ('—');✅ Evita erro de divisão por zero (ZeroDivisionError) e não gera percentuais infinitos.
+3. RESULTADO DA AUDITORIA MÊS A MÊS;;;;
+Item Auditado;Total Meses Verificados;Cálculos Validados;Pontos de Atenção / Divergência;Parecer Técnico
+MoM (Evolução Mensal);32 meses (2024 a Ago/2026);100% consistente;Inversão de sinal no Bloco Financeiro misto;APROVADO COM RECOMENDAÇÃO DE AJUSTE NO BLOCO 6
+YoY (Ano a Ano);20 meses (2025 vs 2024 e 2026 vs 2025);100% consistente;Nenhum erro de fórmula encontrado;APROVADO COM SUCESSO

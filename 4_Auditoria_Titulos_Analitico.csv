@@ -1,0 +1,201 @@
+﻿Ano;Mês;Período;Bloco;Título DRE;Natureza;Realizado M-1;Realizado Mês;MoM (%);Realizado Ano Ant.;YoY (%);Auditoria Sinal MoM;Auditoria Sinal YoY
+2025;1;Janeiro/2025;1.Venda Liquida;1.Venda Bruta;Receita;0;4363585.4712;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;0;-49660.89;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;1;Janeiro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;1.Venda Liquida;1.Venda Bruta;Receita;4363585.4712;5180112.073799998;0.1871;0;—;OK;Base Zero
+2025;2;Fevereiro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-49660.89;-169265.56;2.4084;0;—;OK;Base Zero
+2025;2;Fevereiro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;2;Fevereiro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;1.Venda Liquida;1.Venda Bruta;Receita;5180112.073799998;4339973.4243;-0.1622;0;—;OK;Base Zero
+2025;3;Março/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-169265.56;-52812.9;-0.688;0;—;OK;Base Zero
+2025;3;Março/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;3;Março/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;1.Venda Liquida;1.Venda Bruta;Receita;4339973.4243;5708513.6325;0.3153;0;—;OK;Base Zero
+2025;4;Abril/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-52812.9;-84851.06999999999;0.6065999999999999;0;—;OK;Base Zero
+2025;4;Abril/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;4;Abril/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;1.Venda Liquida;1.Venda Bruta;Receita;5708513.6325;7670872.619700002;0.3438000000000001;0;—;OK;Base Zero
+2025;5;Maio/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-84851.06999999999;-182083.39;1.1459;0;—;OK;Base Zero
+2025;5;Maio/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;5;Maio/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;1.Venda Liquida;1.Venda Bruta;Receita;7670872.619700002;6148167.968499999;-0.1985;0;—;OK;Base Zero
+2025;6;Junho/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-182083.39;-91569.98999999999;-0.4971;0;—;OK;Base Zero
+2025;6;Junho/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;6;Junho/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;1.Venda Liquida;1.Venda Bruta;Receita;6148167.968499999;6217345.7782;0.0113;0;—;OK;Base Zero
+2025;7;Julho/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-91569.98999999999;-134906.7803;0.4733;0;—;OK;Base Zero
+2025;7;Julho/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;7;Julho/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;1.Venda Liquida;1.Venda Bruta;Receita;6217345.7782;6746651.822999998;0.0851;0;—;OK;Base Zero
+2025;8;Agosto/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-134906.7803;-331180.1914;1.4549;0;—;OK;Base Zero
+2025;8;Agosto/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;8;Agosto/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;1.Venda Liquida;1.Venda Bruta;Receita;6746651.822999998;6311424.717100001;-0.0645;0;—;OK;Base Zero
+2025;9;Setembro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-331180.1914;-309316.7447;-0.066;0;—;OK;Base Zero
+2025;9;Setembro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;9;Setembro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;1.Venda Liquida;1.Venda Bruta;Receita;6311424.717100001;8537920.9864;0.3528;0;—;OK;Base Zero
+2025;10;Outubro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-309316.7447;-96330.6577;-0.6886;0;—;OK;Base Zero
+2025;10;Outubro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;10;Outubro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;1.Venda Liquida;1.Venda Bruta;Receita;8537920.9864;9758431.309600001;0.143;0;—;OK;Base Zero
+2025;11;Novembro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-96330.6577;-132269.42;0.3731;0;—;OK;Base Zero
+2025;11;Novembro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;11;Novembro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;1.Venda Liquida;1.Venda Bruta;Receita;9758431.309600001;7893127.606799997;-0.1911;0;—;OK;Base Zero
+2025;12;Dezembro/2025;1.Venda Liquida;2.Devolução;Despesa/Custo;-132269.42;-208436.7212;0.5758;0;—;OK;Base Zero
+2025;12;Dezembro/2025;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2025;12;Dezembro/2025;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;1.Venda Liquida;1.Venda Bruta;Receita;7893127.606799997;6337039.162199998;-0.1971;4363585.4712;0.4523;OK;OK
+2026;1;Janeiro/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-208436.7212;-143565.1178;-0.3112;-49660.89;1.8909;OK;OK
+2026;1;Janeiro/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;1;Janeiro/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;1.Venda Liquida;1.Venda Bruta;Receita;6337039.162199998;5921046.924;-0.06559999999999999;5180112.073799998;0.143;OK;OK
+2026;2;Fevereiro/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-143565.1178;-242267.3;0.6875;-169265.56;0.4313;OK;OK
+2026;2;Fevereiro/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;2;Fevereiro/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;1.Venda Liquida;1.Venda Bruta;Receita;5921046.924;8926747.212;0.5075999999999999;4339973.4243;1.0569;OK;OK
+2026;3;Março/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-242267.3;-103576.378;-0.5725;-52812.9;0.9612;OK;OK
+2026;3;Março/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;3;Março/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;1.Venda Liquida;1.Venda Bruta;Receita;8926747.212;7845563.165200001;-0.1211;5708513.6325;0.3744;OK;OK
+2026;4;Abril/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-103576.378;-97689.922;-0.0568;-84851.06999999999;0.1513;OK;OK
+2026;4;Abril/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;4;Abril/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;1.Venda Liquida;1.Venda Bruta;Receita;7845563.165200001;8735165.819200002;0.1134;7670872.619700002;0.1387;OK;OK
+2026;5;Maio/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-97689.922;-372039.762;2.8084;-182083.39;1.0432;OK;OK
+2026;5;Maio/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;5;Maio/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;1.Venda Liquida;1.Venda Bruta;Receita;8735165.819200002;8660051.158999998;-0.0086;6148167.968499999;0.4086;OK;OK
+2026;6;Junho/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-372039.762;-280231.024;-0.2468;-91569.98999999999;2.0603;OK;OK
+2026;6;Junho/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;6;Junho/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;1.Venda Liquida;1.Venda Bruta;Receita;8660051.158999998;7709769.047200001;-0.1097;6217345.7782;0.24;OK;OK
+2026;7;Julho/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-280231.024;-170094.348;-0.393;-134906.7803;0.2608;OK;OK
+2026;7;Julho/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;7;Julho/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;1.Venda Liquida;1.Venda Bruta;Receita;7709769.047200001;7834166.264;0.0161;6746651.822999998;0.1612;OK;OK
+2026;8;Agosto/2026;1.Venda Liquida;2.Devolução;Despesa/Custo;-170094.348;-189120.026;0.1119;-331180.1914;-0.429;OK;OK
+2026;8;Agosto/2026;1.Venda Liquida;3.Impostos;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;2.Custo Mercadoria Vendida;1.CMV;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;3.Despesas com Vendas;1.Bonificação;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;3.Despesas com Vendas;2.Comissão;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;3.Despesas com Vendas;3.Guelta;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;3.Despesas com Vendas;4.Despesas Comerciais;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;4.Despesas Comercial Operacional;1.Folha Comercial;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
+2026;8;Agosto/2026;5.Despesas Administrativa Operacional;1.Folha Administrativa;Despesa/Custo;0;0;—;0;—;Base Zero;Base Zero
