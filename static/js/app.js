@@ -2780,7 +2780,7 @@ document.addEventListener('DOMContentLoaded', () => {
       errBox.innerHTML = `
         <span style="font-size: 16px; line-height: 1;">⚠️</span>
         <div>
-          <strong style="color: #fca5a5;">Assistente MQIA:</strong><br>
+          <strong style="color: #fca5a5;">Assistente Pessoal:</strong><br>
           <span>${msg}</span>
         </div>
       `;
